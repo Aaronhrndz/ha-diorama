@@ -1459,6 +1459,134 @@
   align-self: center;
 }
 
+/* The alarm on a wide tile as tall as its keypad, the modes in the top
+   right corner on the round of the corner's controls, and the keypad across
+   from the name. */
+.fp-alarm {
+  height: 100%;
+}
+
+.fp-alarm > .fp-tile {
+  height: auto;
+  min-height: 100%;
+}
+
+.fp-alarm .fp-controls > .fp-group {
+  padding: 0;
+  background: none;
+}
+
+.fp-alarm .fp-aside {
+  margin: 0;
+}
+
+/* A disarmed alarm stays glass, with its green coming in from the left
+   and on its icon. */
+.fp-alarm .fp-tile:not([data-active])[style*='--_tile-glow'] {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--_tile-glow) 22%, transparent) 0%,
+    color-mix(in srgb, var(--_tile-glow) 6%, transparent) 45%,
+    transparent 80%
+  );
+}
+
+.fp-alarm .fp-tile:not([data-active]) .fp-top > .fp-icon {
+  color: var(--_tile-glow);
+  opacity: 1;
+}
+
+/* A mode picked to wait for the code, its fill pulsing until it is sent. */
+.fp-mode-picked {
+  animation: fp-waiting 1.4s ease-in-out infinite;
+}
+
+@keyframes fp-waiting {
+  50% {
+    background: color-mix(in srgb, var(--_mode-color, currentColor) 8%, transparent);
+  }
+}
+
+/* A button that cannot be pressed for now, like the modes of an armed alarm. */
+.fp-control:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* A keypad on a tile: smaller keys, packed to the right. */
+.fp-keypad-compact {
+  gap: 10px;
+  width: auto;
+}
+
+.fp-keypad-compact .fp-keypad-dots {
+  height: 20px;
+  gap: 10px;
+}
+
+.fp-keypad-compact .fp-keypad-hint {
+  font-size: var(--_state-size);
+}
+
+.fp-keypad-compact .fp-keypad-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.fp-keypad-compact .fp-keypad-keys {
+  grid-template-columns: repeat(3, 52px);
+  gap: 8px 12px;
+}
+
+.fp-keypad-compact .fp-key {
+  width: 52px;
+  height: 52px;
+  font-size: 22px;
+}
+
+.fp-keypad-compact .fp-key > .fp-icon {
+  width: 22px;
+  height: 22px;
+  --mdc-icon-size: 22px;
+}
+
+.fp-keypad-compact .fp-keypad-field {
+  width: 200px;
+}
+
+/* The code large in the middle of the left half, over the name. */
+.fp-alarm .fp-keypad-dots {
+  position: absolute;
+  top: 50%;
+  left: var(--_padding);
+  height: auto;
+  gap: 14px;
+  transform: translateY(-50%);
+}
+
+.fp-alarm .fp-keypad-dot {
+  width: 16px;
+  height: 16px;
+}
+
+.fp-alarm .fp-keypad-compact .fp-keypad-hint {
+  max-width: 140px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* The key that sends the code, in the color of what it does once there is
+   a code to send, faint in it before. */
+.fp-key-go {
+  color: var(--_go-color, inherit);
+}
+
+.fp-key-go:not(:disabled) {
+  background: color-mix(in oklab, var(--_go-color, var(--_tile-accent, var(--_accent))), black 15%);
+  color: #fff;
+}
+
 /* A link like button, for Clear. */
 .fp-link {
   padding: 4px 8px;
@@ -2251,6 +2379,10 @@
   .fp-tile[data-pressed],
   .fp-tile:focus-visible {
     transform: none;
+  }
+
+  .fp-mode-picked {
+    animation: none;
   }
 
   /* With no growth to show focus, a ring inside the edge shows it. */
