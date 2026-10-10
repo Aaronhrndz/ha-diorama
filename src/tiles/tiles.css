@@ -27,6 +27,7 @@
   --_mode-cool: var(--fp-mode-cool, var(--_accent-cool));
   --_mode-dry: var(--fp-mode-dry, #ffc60a);
   --_mode-fan: var(--fp-mode-fan, #30c9a4);
+  --_accent-unlocked: var(--fp-accent-unlocked, #46c46e);
   --_alarm-armed: var(--fp-alarm-armed, #ff453a);
   --_alarm-disarmed: var(--fp-alarm-disarmed, #30d158);
   --_font-tile: var(--fp-font-tile, 'Inter', system-ui, sans-serif);
@@ -137,6 +138,16 @@
     140% 140% at 0% 0%,
     color-mix(in srgb, var(--_tile-glow) 42%, transparent) 0%,
     color-mix(in srgb, var(--_tile-glow) 14%, transparent) 45%,
+    transparent 80%
+  );
+}
+
+/* An unlocked lock's green, coming in from the left. */
+.fp-tile[data-active][data-glow='left'][style*='--_tile-glow'] {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--_tile-glow) 24%, transparent) 0%,
+    color-mix(in srgb, var(--_tile-glow) 7%, transparent) 45%,
     transparent 80%
   );
 }
@@ -2245,4 +2256,10 @@
     outline: 2px solid currentColor;
     outline-offset: -2px;
   }
+}
+
+/* A lock tile that opens the door in two taps: the half the first tap
+   lights runs back frame by frame, with no easing of its own. */
+.fp-confirm[data-step='1'] .fp-fill-lit {
+  transition: none;
 }

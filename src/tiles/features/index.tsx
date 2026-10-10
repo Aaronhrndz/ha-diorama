@@ -210,7 +210,7 @@ export const FEATURES: FeatureDef[] = [
     supports: e => supports(e, media.MEDIA.soundMode) && has('sound_mode_list')(e),
     View: media.SoundMode,
   },
-  { id: 'open-door', label: 'Open the door', domains: ['lock'], supports: bit(1), View: other.OpenDoor },
+  { id: 'open-door', label: 'Open the door', domains: ['lock'], supports: bit(1) },
   { id: 'commands', label: 'Commands', domains: ['vacuum'], View: other.VacuumCommands, wide: true },
   {
     id: 'fan-speed',

@@ -338,7 +338,11 @@ const SERVICES: Record<string, (id: string, service: string, data: Record<string
     if (service === 'turn_off') update(id, 'off')
     if (service === 'turn_on') update(id, 'idle')
   },
-  lock: (id, service) => update(id, service === 'lock' ? 'locked' : service === 'open' ? 'open' : 'unlocked'),
+  lock: (id, service) => {
+    update(id, service === 'lock' ? 'locked' : service === 'open' ? 'open' : 'unlocked')
+    // A door that was opened latches again a moment later.
+    if (service === 'open') setTimeout(() => update(id, 'locked'), 3000)
+  },
   alarm_control_panel: (id, service, data) => {
     if (states[id].attributes.code_format && data.code !== '1234' && service !== 'alarm_disarm' && !data.code) return
     update(id, service === 'alarm_disarm' ? 'disarmed' : service.replace('alarm_arm_', 'armed_'))

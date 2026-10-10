@@ -18,7 +18,7 @@ import {
 } from '#/tiles/features/parts.tsx'
 import { linePaths, useHistory } from '#/tiles/history.ts'
 import type { EntityState } from '#/types.ts'
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
+import { useId, useRef, useState, type CSSProperties } from 'react'
 import { popsOver } from '#/tiles/gestures.ts'
 
 // The features of the rest: an alarm, a lock, a vacuum, a mower, a counter,
@@ -112,33 +112,6 @@ export function AlarmModes({ env, entity }: FeatureProps) {
         )}
       </div>
     </>
-  )
-}
-
-// How long a press on Open waits for the second press that opens the door.
-const CONFIRM_MS = 4000
-
-// Opens the door. The first press asks, a second one opens it, so a stray
-// press never does.
-export function OpenDoor({ env, entity }: FeatureProps) {
-  const [asking, setAsking] = useState(false)
-  useEffect(() => {
-    if (!asking) return
-    const timer = setTimeout(() => setAsking(false), CONFIRM_MS)
-    return () => clearTimeout(timer)
-  }, [asking])
-  const open = entity.state === 'open' || entity.state === 'opening'
-  return (
-    <Pill
-      icon="ph:door-open"
-      label={open ? 'Door open' : asking ? 'Press again to open' : 'Open the door'}
-      disabled={open}
-      onPress={() => {
-        if (!asking) return setAsking(true)
-        setAsking(false)
-        void callService(env.hass, 'lock.open', { entity_id: entity.entity_id })
-      }}
-    />
   )
 }
 

@@ -23,8 +23,9 @@ type Props = {
   // A color that washes over an active tile from its top left corner, like
   // the color a light shines in.
   glow?: string
-  // Whether the glow comes from the top left corner or down from the top.
-  glowFrom?: 'corner' | 'top'
+  // Whether the glow comes from the top left corner, down from the top, or
+  // in from the left.
+  glowFrom?: 'corner' | 'top' | 'left'
   state: ReactNode
   // What a tap does when the config sets no tap_action.
   onTap?: () => void
