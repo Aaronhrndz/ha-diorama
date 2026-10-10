@@ -48,6 +48,8 @@ moves that section under the new version and uses it as the release notes.
 
 - A media player tile with the volume is its volume across the whole tile, dragged sideways like a light's brightness, while a tap still plays or pauses it.
 - A media player tile with the volume buttons says how loud it plays before what is playing.
+- A number on an entity tile is its value across the whole tile, dragged sideways like a light's brightness, unless it has too many steps for a slider.
+- A percentage on an entity tile, like a battery's charge, fills the whole tile from the left as far, in place of a bar beside the icon.
 - The rainbow of a light's color bar and its favorite colors are softer and even in lightness, so no color glares on the tile.
 - The on and off switch under a light's or a humidifier's dial and a fan's oscillate control are now pills that fill in while on, in place of switches.
 - A cover that cannot stop shows only up and down on its wide tile.

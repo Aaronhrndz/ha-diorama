@@ -33,6 +33,8 @@ type Props = {
   // The side it fills from: the left, or the bottom or the top for one
   // dragged up and down, like a blind or a screen that comes down.
   from?: 'left' | 'bottom' | 'top'
+  // Only shows the value, like a battery's charge, with nothing to drag.
+  readOnly?: boolean
 }
 
 // How far a finger goes along the fill before the press is a drag.
@@ -67,6 +69,7 @@ export function FillTile({
   onTap,
   onSend,
   from = 'left',
+  readOnly = false,
 }: Props) {
   const [value, hold] = useHeld(reported)
   const [drag, setDrag] = useState<number | null>(null)
@@ -131,7 +134,7 @@ export function FillTile({
   }, [])
 
   const down = (e: ReactPointerEvent) => {
-    if (e.button !== 0) return
+    if (e.button !== 0 || readOnly) return
     start.current = { x: e.clientX, y: e.clientY, from: shown, dragging: false }
   }
 
@@ -144,7 +147,7 @@ export function FillTile({
       bottom: ['ArrowUp', 'ArrowDown'],
     }[from]
     const by = e.key === more ? 1 : e.key === less ? -1 : 0
-    if (!by) return
+    if (!by || readOnly) return
     e.preventDefault()
     const next = snap(shown + by * Math.max(step, 10))
     setDrag(next)
@@ -163,6 +166,7 @@ export function FillTile({
       data-dragging={drag !== null || undefined}
       data-vertical={from !== 'left' || undefined}
       data-from={from}
+      data-readonly={readOnly || undefined}
       onPointerDownCapture={down}
       onKeyDown={keys}
     >
@@ -172,16 +176,18 @@ export function FillTile({
         entity={entity}
         active={on}
         looksOff
-        role="switch"
+        role={readOnly ? 'button' : 'switch'}
         accent={accent}
         state={state}
         onTap={onTap}
       />
-      <span
-        className="fp-fill-grip"
-        data-start
-        style={{ opacity: GRIP_OPACITY * Math.max(0, (GRIP_TO - shown) / GRIP_TO) }}
-      />
+      {!readOnly && (
+        <span
+          className="fp-fill-grip"
+          data-start
+          style={{ opacity: GRIP_OPACITY * Math.max(0, (GRIP_TO - shown) / GRIP_TO) }}
+        />
+      )}
       <div
         className="fp-fill-lit"
         inert
@@ -194,15 +200,17 @@ export function FillTile({
         }}
       >
         <Tile env={env} config={config} entity={entity} active accent={accent} glow={glow} state={state} />
-        <span
-          className="fp-fill-grip"
-          style={
-            {
-              '--_edge': `${shown}%`,
-              opacity: GRIP_OPACITY * Math.max(0, (shown - GRIP_FROM) / (100 - GRIP_FROM)),
-            } as CSSProperties
-          }
-        />
+        {!readOnly && (
+          <span
+            className="fp-fill-grip"
+            style={
+              {
+                '--_edge': `${shown}%`,
+                opacity: GRIP_OPACITY * Math.max(0, (shown - GRIP_FROM) / (100 - GRIP_FROM)),
+              } as CSSProperties
+            }
+          />
+        )}
       </div>
     </div>
   )

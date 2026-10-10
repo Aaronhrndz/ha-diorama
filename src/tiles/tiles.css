@@ -995,11 +995,6 @@
   transition: none;
 }
 
-.fp-slider-static {
-  cursor: inherit;
-  touch-action: auto;
-}
-
 /* A pill with words, for a menu, a switch or an action. */
 .fp-pill {
   display: flex;

@@ -440,7 +440,12 @@ function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggest
     .map(feature => {
       const featured = { ...config, feature: feature.id }
       return {
-        label: feature.suggestion ?? `${tap}, ${feature.does ?? `with ${lowerFirst(feature.label)}`}`,
+        label:
+          feature.suggestion ??
+          `${tap}, ${
+            (typeof feature.does === 'function' ? feature.does(hass.states[entityId]) : feature.does) ??
+            `with ${lowerFirst(feature.label)}`
+          }`,
         config: isWide(featured, hass.states[entityId]) ? { ...featured, size: 'wide' } : featured,
       }
     })

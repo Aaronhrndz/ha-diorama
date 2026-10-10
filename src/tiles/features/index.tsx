@@ -20,7 +20,7 @@ export type FeatureDef = {
   label: string
   // What the card picker says after the tap in place of with and the label,
   // for a control that is the whole tile.
-  does?: string
+  does?: string | ((entity: EntityState) => string)
   // What the card picker says in place of the tap too, for a control that
   // changes what a tap does.
   suggestion?: string
@@ -279,6 +279,7 @@ export const FEATURES: FeatureDef[] = [
   {
     id: 'numeric-input',
     label: 'Value slider or minus and plus',
+    does: e => (other.asksForBox(e) ? 'with minus and plus buttons' : 'drag for its value'),
     domains: ['number', 'input_number'],
     supports: numeric,
     View: other.NumericInput,
@@ -300,10 +301,10 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'bar-gauge',
-    label: 'Percentage bar',
+    label: 'Percentage fill',
+    does: 'filled as far as its percentage',
     domains: ['sensor'],
     supports: e => numeric(e) && e.attributes.unit_of_measurement === '%',
-    View: other.BarGauge,
   },
 ]
 

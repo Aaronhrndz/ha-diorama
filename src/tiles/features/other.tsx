@@ -10,14 +10,13 @@ import {
   numberOf,
   optionWord,
   Pill,
-  Slider,
   Stepper,
   supports,
   type FeatureProps,
   useFlash,
 } from '#/tiles/features/parts.tsx'
 import { linePaths, useHistory } from '#/tiles/history.ts'
-import type { EntityState } from '#/types.ts'
+import type { EntityState, HomeAssistant } from '#/types.ts'
 import { useId, useRef, useState, type CSSProperties } from 'react'
 import { popsOver } from '#/tiles/gestures.ts'
 
@@ -221,25 +220,38 @@ export function SelectOptions({ env, entity }: FeatureProps) {
 // a pair of minus and plus buttons, like Home Assistant's own.
 const MAX_SLIDER_STEPS = 256
 
-// A number along a bar, or between minus and plus when it asks for a box.
-export function NumericInput({ env, entity }: FeatureProps) {
-  const domain = domainOf(entity)
+// Whether a number entity asks for a box, with too many steps for a
+// slider counting as one.
+export function asksForBox(entity: EntityState) {
+  const min = numberOf(entity, 'min') ?? 0
+  const max = numberOf(entity, 'max') ?? 100
+  const step = numberOf(entity, 'step') ?? 1
+  const mode = entity.attributes.mode
+  return mode === 'box' || (mode !== 'slider' && (max - min) / step > MAX_SLIDER_STEPS)
+}
+
+// A number entity's range, its steps, whether it asks for a box, how it
+// reads with its unit, and how to set it.
+export function numberInput(hass: HomeAssistant, entity: EntityState) {
   const min = numberOf(entity, 'min') ?? 0
   const max = numberOf(entity, 'max') ?? 100
   const step = numberOf(entity, 'step') ?? 1
   const unit = typeof entity.attributes.unit_of_measurement === 'string' ? entity.attributes.unit_of_measurement : ''
-  const value = Number(entity.state)
-  const mode = entity.attributes.mode
-  const box = mode === 'box' || (mode !== 'slider' && (max - min) / step > MAX_SLIDER_STEPS)
+  const box = asksForBox(entity)
   const digits = Math.max(0, -Math.floor(Math.log10(step)))
-  const format = (v: number) => `${formatNumber(env.hass, v, digits)}${unit ? (unit === '%' ? '%' : ` ${unit}`) : ''}`
-  const send = (v: number) => callService(env.hass, `${domain}.set_value`, { entity_id: entity.entity_id, value: v })
+  const format = (v: number) => `${formatNumber(hass, v, digits)}${unit ? (unit === '%' ? '%' : ` ${unit}`) : ''}`
+  const send = (v: number) =>
+    callService(hass, `${domainOf(entity)}.set_value`, { entity_id: entity.entity_id, value: v })
+  return { min, max, step, digits, box, format, send }
+}
+
+// A number between minus and plus. One that can be a slider is the whole
+// tile instead, drawn by the tile.
+export function NumericInput({ env, entity }: FeatureProps) {
+  const { min, max, step, format, send } = numberInput(env.hass, entity)
+  const value = Number(entity.state)
   if (!Number.isFinite(value)) return null
-  return box ? (
-    <Stepper label="Value" value={value} step={step} min={min} max={max} format={format} onSend={send} />
-  ) : (
-    <Slider label="Value" value={value} min={min} max={max} step={step} format={format} onChange={send} />
-  )
+  return <Stepper label="Value" value={value} step={step} min={min} max={max} format={format} onSend={send} />
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -397,27 +409,5 @@ export function TrendGraph({ env, entity }: FeatureProps) {
         </>
       )}
     </svg>
-  )
-}
-
-// A percentage as a bar that fills as far.
-export function BarGauge({ env, entity }: FeatureProps) {
-  const value = Number(entity.state)
-  if (!Number.isFinite(value)) return null
-  const share = Math.min(1, Math.max(0, value / 100))
-  return (
-    <div
-      className="fp-slider fp-slider-static"
-      role="meter"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={value}
-      style={{ '--_share': share } as CSSProperties}
-    >
-      <div className="fp-slider-fill" />
-      <div className="fp-slider-label">
-        <span>{formatState(env.hass, entity)}</span>
-      </div>
-    </div>
   )
 }
