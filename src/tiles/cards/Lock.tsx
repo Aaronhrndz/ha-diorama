@@ -42,9 +42,9 @@ export default function Lock({ env, config }: Props) {
 }
 
 // The whole tile opens the door, in two taps. The first one lights half of
-// it, which runs back to nothing over the time the second tap has, and the
-// second one lights it all and opens the door. It stays lit while the door
-// is open.
+// it, plain, which runs back to nothing over the time the second tap has,
+// and the second one lights it all, fades the green in and opens the door.
+// It stays lit while the door is open.
 function OpenDoorTile({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const open = entity?.state === 'open' || entity?.state === 'opening'
@@ -73,6 +73,9 @@ function OpenDoorTile({ env, config }: Props) {
     return () => cancelAnimationFrame(frame)
   }, [step, open])
   const { feature: _, ...plain } = config
+  // Green only once the second tap opens it.
+  const done = open || step === 2
+  const accent = done ? GREEN : undefined
   const state = step === 1 ? 'Tap again to open' : formatState(env.hass, entity)
   const tap = () => {
     if (open || step === 2) return
@@ -81,13 +84,13 @@ function OpenDoorTile({ env, config }: Props) {
     void callService(env.hass, 'lock.open', { entity_id: entity!.entity_id })
   }
   return (
-    <div className="fp-fill fp-confirm" data-step={step}>
+    <div className="fp-fill fp-confirm" data-step={step} data-done={done || undefined}>
       <Tile
         env={env}
         config={plain}
         entity={entity}
         active={open}
-        accent={GREEN}
+        accent={accent}
         glow={GREEN}
         glowFrom="left"
         state={state}
@@ -99,7 +102,7 @@ function OpenDoorTile({ env, config }: Props) {
           config={plain}
           entity={entity}
           active
-          accent={GREEN}
+          accent={accent}
           glow={GREEN}
           glowFrom="left"
           state={state}
