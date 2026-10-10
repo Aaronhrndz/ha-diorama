@@ -14,8 +14,16 @@ import type { ComponentType } from 'react'
 
 export type FeatureDef = {
   id: string
-  // How the card picker names the suggestion, and the editor the choice.
+  // How the editor names the choice, and the card picker the suggestion
+  // after the tile's tap, as in Floorplan Toggle - Tap to turn on or off,
+  // with color bar.
   label: string
+  // What the card picker says after the tap in place of with and the label,
+  // for a control that is the whole tile.
+  does?: string
+  // What the card picker says in place of the tap too, for a control that
+  // changes what a tap does.
+  suggestion?: string
   domains: string[]
   supports?: (entity: EntityState) => boolean
   // What it draws across from the icon, so the tile stays two rows tall.
@@ -43,7 +51,13 @@ const menu = (id: keyof typeof climate.MENUS) => (props: FeatureProps) => (
 const COVERS = ['cover', 'valve']
 
 export const FEATURES: FeatureDef[] = [
-  { id: 'brightness', label: 'Drag the tile for brightness', domains: ['light'], supports: light.dims },
+  {
+    id: 'brightness',
+    label: 'Brightness slider',
+    does: 'drag for brightness',
+    domains: ['light'],
+    supports: light.dims,
+  },
   {
     id: 'color-temp',
     label: 'White temperature bar',
@@ -75,7 +89,13 @@ export const FEATURES: FeatureDef[] = [
     supports: e => supports(e, cover.OPEN) || supports(e, cover.CLOSE),
     View: cover.OpenClose,
   },
-  { id: 'position', label: 'Drag the tile to open', domains: COVERS, supports: bit(cover.SET_POSITION) },
+  {
+    id: 'position',
+    label: 'Position slider',
+    does: 'drag to set how far open',
+    domains: COVERS,
+    supports: bit(cover.SET_POSITION),
+  },
   {
     id: 'position-favorite',
     label: 'Favorite position buttons',
@@ -93,7 +113,8 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'tilt-position',
-    label: 'Drag the tile to tilt the slats',
+    label: 'Slat tilt slider',
+    does: 'drag to tilt the slats',
     domains: ['cover'],
     supports: bit(cover.SET_TILT),
   },
@@ -105,7 +126,7 @@ export const FEATURES: FeatureDef[] = [
     View: props => <cover.Favorites {...props} tilt />,
     wide: true,
   },
-  { id: 'speed', label: 'Drag the tile for speed', domains: ['fan'], supports: bit(cover.FAN.speed) },
+  { id: 'speed', label: 'Speed slider', does: 'drag for speed', domains: ['fan'], supports: bit(cover.FAN.speed) },
   {
     id: 'preset-modes',
     label: 'Preset menu',
@@ -137,7 +158,7 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'target-temperature',
-    label: 'Temperature minus and plus',
+    label: 'Temperature minus and plus buttons',
     domains: ['climate', 'water_heater'],
     supports: e => numberOf(e, 'temperature') !== null || numberOf(e, 'target_temp_low') !== null,
     View: climate.TargetTemperature,
@@ -168,7 +189,7 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'target-humidity',
-    label: 'Humidity minus and plus',
+    label: 'Humidity minus and plus buttons',
     domains: ['climate', 'humidifier'],
     supports: e => numberOf(e, 'humidity') !== null && (domainOf(e) === 'humidifier' || supports(e, 4)),
     View: climate.TargetHumidity,
@@ -191,7 +212,8 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'volume-slider',
-    label: 'Drag the tile for volume',
+    label: 'Volume slider',
+    does: 'drag for volume',
     domains: ['media_player'],
     supports: bit(media.MEDIA.volumeSet),
   },
@@ -216,7 +238,13 @@ export const FEATURES: FeatureDef[] = [
     supports: e => supports(e, media.MEDIA.soundMode) && has('sound_mode_list')(e),
     View: media.SoundMode,
   },
-  { id: 'open-door', label: 'Open the door in two taps', domains: ['lock'], supports: bit(1) },
+  {
+    id: 'open-door',
+    label: 'Two taps to open the door',
+    suggestion: 'Tap twice to open the door',
+    domains: ['lock'],
+    supports: bit(1),
+  },
   {
     id: 'commands',
     label: 'Start, pause and dock buttons',
@@ -265,7 +293,7 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'trend-graph',
-    label: 'Graph of the last 24 hours',
+    label: 'Graph of the last day',
     domains: ['sensor'],
     supports: e => numeric(e) && typeof e.attributes.unit_of_measurement === 'string',
     View: other.TrendGraph,

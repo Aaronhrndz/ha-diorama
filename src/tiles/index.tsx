@@ -53,10 +53,10 @@ const MAP_DOMAINS = ['person', 'device_tracker', 'zone']
 
 // What the dial is called for each domain in the card picker.
 const DIAL_NAMES: Record<string, string> = {
-  climate: 'Thermostat',
-  water_heater: 'Water heater',
-  humidifier: 'Humidifier',
-  light: 'Brightness',
+  climate: 'Drag the ring for the temperature',
+  water_heater: 'Drag the ring for the temperature',
+  humidifier: 'Drag the ring for the humidity',
+  light: 'Drag the ring for the brightness',
 }
 
 type EntityView<C extends TileConfig> = (props: {
@@ -169,8 +169,18 @@ type Card = {
   // A card of its own for a few domains, like the alarm panel, offered
   // beside the tile of the domain rather than in its place.
   extra?: boolean
-  // What the card picker says for each suggestion, when there is more than
-  // one.
+  // What the card picker says after the card's name for the tile with no
+  // control, which a control's suggestion starts with too, as in Floorplan
+  // Toggle - Tap to turn on or off, drag for brightness. Home Assistant shows
+  // no description there, so it says all the tile does.
+  does?: string | ((domain: string) => string)
+  // What a wide tile adds, after the tap, for a tile with controls.
+  controls?: string
+  // The features the card picker leaves out, since they only repeat what
+  // the tile with no control already does.
+  repeats?: string[]
+  // The suggestions in place of the ones made from does, controls and the
+  // features.
   suggest?: (hass: HomeAssistant, entityId: string) => Suggestion[] | null
 }
 
@@ -188,7 +198,8 @@ const CARDS: Card[] = [
     type: 'fp-toggle',
     element: entityCard(TOGGLE_DOMAINS, Toggle),
     domains: TOGGLE_DOMAINS,
-    name: 'Floorplan On and Off',
+    name: 'Floorplan Toggle',
+    does: domain => (domain === 'valve' ? 'Tap to open or close' : 'Tap to turn on or off'),
     description: 'Light, switch, fan, valve or anything else on or off',
   },
   {
@@ -196,6 +207,8 @@ const CARDS: Card[] = [
     element: entityCard(BUTTON_DOMAINS, Button),
     domains: BUTTON_DOMAINS,
     name: 'Floorplan Button',
+    repeats: ['button'],
+    does: 'Tap to run it',
     description: 'Button, script or scene tile',
   },
   {
@@ -203,7 +216,10 @@ const CARDS: Card[] = [
     element: entityCard<CoverConfig>(COVER_DOMAINS, Cover, ['invert'], true),
     wide: true,
     domains: COVER_DOMAINS,
-    name: 'Floorplan Blind or Cover',
+    name: 'Floorplan Cover',
+    repeats: ['open-close'],
+    does: 'Tap to open or close',
+    controls: 'up, stop and down buttons',
     description: 'Blind or screen tile with up, stop and down',
   },
   {
@@ -212,6 +228,9 @@ const CARDS: Card[] = [
     wide: true,
     domains: VACUUM_DOMAINS,
     name: 'Floorplan Vacuum',
+    repeats: ['commands'],
+    does: 'Tap to start or pause',
+    controls: 'start, stop and dock buttons',
     description: 'Robot vacuum tile',
   },
   {
@@ -219,6 +238,8 @@ const CARDS: Card[] = [
     element: entityCard<SelectConfig>(SELECT_DOMAINS, Select, ['tap_behavior']),
     domains: SELECT_DOMAINS,
     name: 'Floorplan Option List',
+    repeats: ['select-options'],
+    does: 'Tap for a menu of its options',
     description: 'Option tile with a menu',
   },
   {
@@ -227,6 +248,8 @@ const CARDS: Card[] = [
     wide: true,
     domains: CLIMATE_DOMAINS,
     name: 'Floorplan Thermostat',
+    does: 'Tap for details',
+    controls: 'temperature and mode buttons',
     description: 'Thermostat or water heater tile with its temperature and modes',
   },
   {
@@ -235,12 +258,16 @@ const CARDS: Card[] = [
     wide: true,
     domains: MEDIA_DOMAINS,
     name: 'Floorplan Media Player',
+    repeats: ['playback'],
+    does: 'Tap to play or pause',
+    controls: 'play and skip buttons',
     description: 'Speaker or TV tile with play, pause and tracks',
   },
   {
     type: 'fp-lock',
     element: entityCard(LOCK_DOMAINS, Lock),
     name: 'Floorplan Lock',
+    does: 'Tap to lock or unlock',
     description: 'Lock tile',
     domains: LOCK_DOMAINS,
   },
@@ -249,6 +276,7 @@ const CARDS: Card[] = [
     element: entityCard('any', Entity),
     domains: 'any',
     name: 'Floorplan Any Entity',
+    does: 'Its state, tap for details',
     description: 'Any entity, like a sensor, with its state',
   },
   {
@@ -261,10 +289,10 @@ const CARDS: Card[] = [
       const features = Number(hass.states[entityId]?.attributes.supported_features ?? 0)
       const config = { type: 'custom:fp-weather', entity: entityId }
       // Both forecasts offered, one suggestion each, the hours first.
-      if (!(features & 1) || !(features & 2)) return [{ config }]
+      if (!(features & 1) || !(features & 2)) return [{ label: 'The weather now and what comes next', config }]
       return [
-        { label: 'Next hours', config: { ...config, forecast_type: 'hourly' } },
-        { label: 'Next days', config: { ...config, forecast_type: 'daily' } },
+        { label: 'The weather now and the next hours', config: { ...config, forecast_type: 'hourly' } },
+        { label: 'The weather now and the next days', config: { ...config, forecast_type: 'daily' } },
       ]
     },
   },
@@ -272,6 +300,7 @@ const CARDS: Card[] = [
     type: 'fp-camera',
     element: CameraCard,
     name: 'Floorplan Camera',
+    does: 'Its picture, tap to see it bigger',
     description: 'Camera or image picture tile',
     domains: CAMERA_DOMAINS,
   },
@@ -281,6 +310,7 @@ const CARDS: Card[] = [
     extra: true,
     domains: ['alarm_control_panel'],
     name: 'Floorplan Alarm Keypad',
+    does: 'A button for each mode and a keypad for the code',
     description: 'The alarm with a button for each mode and a keypad for its code',
   },
   {
@@ -303,6 +333,7 @@ const CARDS: Card[] = [
     extra: true,
     domains: MEDIA_DOMAINS,
     name: 'Floorplan Now Playing',
+    does: 'Art, progress, buttons and volume',
     description: 'What is playing, with its art, how far in it is, its buttons and volume',
   },
   {
@@ -311,6 +342,7 @@ const CARDS: Card[] = [
     extra: true,
     domains: ['calendar'],
     name: 'Floorplan Calendar',
+    does: 'The coming events, day by day',
     description: 'The coming events of one calendar or more, day by day',
   },
   {
@@ -319,6 +351,7 @@ const CARDS: Card[] = [
     extra: true,
     domains: ['todo'],
     name: 'Floorplan To-do List',
+    does: 'Add items and tick them off',
     description: 'A list to add to and tick off',
   },
   {
@@ -335,8 +368,11 @@ const CARDS: Card[] = [
       const daily = numeric && typeof entity?.attributes.state_class === 'string'
       return [
         // A strip of on and off needs less height than a line.
-        { label: 'Last 24 hours', config: numeric ? config : { ...config, grid_options: { columns: 12, rows: 3 } } },
-        ...(daily ? [{ label: 'Each day of the last week', config: { ...config, chart: 'bar' } }] : []),
+        {
+          label: 'Its history over the last day',
+          config: numeric ? config : { ...config, grid_options: { columns: 12, rows: 3 } },
+        },
+        ...(daily ? [{ label: 'A bar for each day of the last week', config: { ...config, chart: 'bar' } }] : []),
       ]
     },
   },
@@ -348,7 +384,9 @@ const CARDS: Card[] = [
     name: 'Floorplan Ring Gauge',
     description: 'A reading on a ring',
     suggest: (hass, entityId) =>
-      isNumeric(hass.states[entityId]) ? [{ config: { type: 'custom:fp-gauge', entity: entityId } }] : null,
+      isNumeric(hass.states[entityId])
+        ? [{ label: 'Its reading on a ring', config: { type: 'custom:fp-gauge', entity: entityId } }]
+        : null,
   },
   {
     type: 'fp-map',
@@ -356,6 +394,7 @@ const CARDS: Card[] = [
     extra: true,
     domains: MAP_DOMAINS,
     name: 'Floorplan Map',
+    does: 'Where it is on a map',
     description: 'Where a person, a tracker or a zone is',
   },
 ]
@@ -378,24 +417,37 @@ export function registerTiles() {
 
 // The suggestions of a card for an entity picked in Home Assistant's card
 // picker: the tile, wide for a tile with controls, since the editor can
-// make it small, then the tile with each control it can show along its
-// bottom, as Home Assistant offers its own tile with each of its features.
+// make it small, then the tile with each control it can show beside its
+// icon, as Home Assistant offers its own tile with each of its features.
+// Each is labelled with all the tile does, since the picker shows no
+// description.
 function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggestion[] | null {
   if (!shows(card, entityId)) return null
   const type = `custom:${card.type}`
   if (card.suggest) return card.suggest(hass, entityId)
   const config = { type, entity: entityId }
-  const base = [{ config: card.wide ? { ...config, size: 'wide' } : config }]
+  const domain = entityId.split('.')[0]
+  const tap = typeof card.does === 'function' ? card.does(domain) : card.does
+  const base = [
+    {
+      label: card.controls ? `${tap}, with ${card.controls}` : tap,
+      config: card.wide ? { ...config, size: 'wide' } : config,
+    },
+  ]
   if (card.extra) return base
-  const features = featuresFor(hass.states[entityId]).map(feature => {
-    const featured = { ...config, feature: feature.id }
-    return {
-      label: feature.label,
-      config: isWide(featured, hass.states[entityId]) ? { ...featured, size: 'wide' } : featured,
-    }
-  })
+  const features = featuresFor(hass.states[entityId])
+    .filter(feature => !card.repeats?.includes(feature.id))
+    .map(feature => {
+      const featured = { ...config, feature: feature.id }
+      return {
+        label: feature.suggestion ?? `${tap}, ${feature.does ?? `with ${lowerFirst(feature.label)}`}`,
+        config: isWide(featured, hass.states[entityId]) ? { ...featured, size: 'wide' } : featured,
+      }
+    })
   return [...base, ...features]
 }
+
+const lowerFirst = (text: string) => text[0].toLowerCase() + text.slice(1)
 
 // Whether a card is the one to offer for an entity picked in Home
 // Assistant's card picker. Floorplan Entity is offered only for an entity
