@@ -56,7 +56,7 @@ const DIAL_NAMES: Record<string, string> = {
   climate: 'Thermostat',
   water_heater: 'Water heater',
   humidifier: 'Humidifier',
-  light: 'Brightness dial',
+  light: 'Brightness',
 }
 
 type EntityView<C extends TileConfig> = (props: {
@@ -181,14 +181,14 @@ const CARDS: Card[] = [
     type: 'fp-title',
     element: TitleCard,
     domains: null,
-    name: 'Floorplan Title',
+    name: 'Floorplan Room Title',
     description: 'Section heading that follows the room filter',
   },
   {
     type: 'fp-toggle',
     element: entityCard(TOGGLE_DOMAINS, Toggle),
     domains: TOGGLE_DOMAINS,
-    name: 'Floorplan Toggle',
+    name: 'Floorplan On and Off',
     description: 'Light, switch, fan, valve or anything else on or off',
   },
   {
@@ -203,7 +203,7 @@ const CARDS: Card[] = [
     element: entityCard<CoverConfig>(COVER_DOMAINS, Cover, ['invert'], true),
     wide: true,
     domains: COVER_DOMAINS,
-    name: 'Floorplan Cover',
+    name: 'Floorplan Blind or Cover',
     description: 'Blind or screen tile with up, stop and down',
   },
   {
@@ -218,7 +218,7 @@ const CARDS: Card[] = [
     type: 'fp-select',
     element: entityCard<SelectConfig>(SELECT_DOMAINS, Select, ['tap_behavior']),
     domains: SELECT_DOMAINS,
-    name: 'Floorplan Select',
+    name: 'Floorplan Option List',
     description: 'Option tile with a menu',
   },
   {
@@ -226,7 +226,7 @@ const CARDS: Card[] = [
     element: entityCard(CLIMATE_DOMAINS, Climate, [], true),
     wide: true,
     domains: CLIMATE_DOMAINS,
-    name: 'Floorplan Climate',
+    name: 'Floorplan Thermostat',
     description: 'Thermostat or water heater tile with its temperature and modes',
   },
   {
@@ -234,7 +234,7 @@ const CARDS: Card[] = [
     element: entityCard(MEDIA_DOMAINS, Media, [], true),
     wide: true,
     domains: MEDIA_DOMAINS,
-    name: 'Floorplan Media',
+    name: 'Floorplan Media Player',
     description: 'Speaker or TV tile with play, pause and tracks',
   },
   {
@@ -248,7 +248,7 @@ const CARDS: Card[] = [
     type: 'fp-entity',
     element: entityCard('any', Entity),
     domains: 'any',
-    name: 'Floorplan Entity',
+    name: 'Floorplan Any Entity',
     description: 'Any entity, like a sensor, with its state',
   },
   {
@@ -280,7 +280,7 @@ const CARDS: Card[] = [
     element: panelCard(['alarm_control_panel'], AlarmPanel, { columns: 'full', rows: 'auto' }, 7),
     extra: true,
     domains: ['alarm_control_panel'],
-    name: 'Floorplan Alarm Panel',
+    name: 'Floorplan Alarm Keypad',
     description: 'The alarm with a button for each mode and a keypad for its code',
   },
   {
@@ -288,7 +288,7 @@ const CARDS: Card[] = [
     element: panelCard(DIAL_DOMAINS, Dial, { columns: 12, rows: 'auto' }, 6),
     extra: true,
     domains: DIAL_DOMAINS,
-    name: 'Floorplan Dial',
+    name: 'Floorplan Big Dial',
     description: 'A thermostat, water heater, humidifier or light on a big ring you drag',
     suggest: (hass, entityId) => {
       const entity = hass.states[entityId]
@@ -302,7 +302,7 @@ const CARDS: Card[] = [
     element: panelCard(MEDIA_DOMAINS, MediaControl, { columns: 'full', rows: 'auto' }, 4),
     extra: true,
     domains: MEDIA_DOMAINS,
-    name: 'Floorplan Media Control',
+    name: 'Floorplan Now Playing',
     description: 'What is playing, with its art, how far in it is, its buttons and volume',
   },
   {
@@ -326,7 +326,7 @@ const CARDS: Card[] = [
     element: panelCard<GraphConfig>(GRAPH_DOMAINS, Graph, { columns: 12, rows: 4 }, 4, ['graph']),
     extra: true,
     domains: GRAPH_DOMAINS,
-    name: 'Floorplan Graph',
+    name: 'Floorplan History Graph',
     description: 'The history of a reading, or the times something was on',
     suggest: (hass, entityId) => {
       const entity = hass.states[entityId]
@@ -335,8 +335,8 @@ const CARDS: Card[] = [
       const daily = numeric && typeof entity?.attributes.state_class === 'string'
       return [
         // A strip of on and off needs less height than a line.
-        { label: 'History', config: numeric ? config : { ...config, grid_options: { columns: 12, rows: 3 } } },
-        ...(daily ? [{ label: 'Last week', config: { ...config, chart: 'bar' } }] : []),
+        { label: 'Last 24 hours', config: numeric ? config : { ...config, grid_options: { columns: 12, rows: 3 } } },
+        ...(daily ? [{ label: 'Each day of the last week', config: { ...config, chart: 'bar' } }] : []),
       ]
     },
   },
@@ -345,7 +345,7 @@ const CARDS: Card[] = [
     element: panelCard<GaugeConfig>(GAUGE_DOMAINS, Gauge, { columns: 6, rows: 3 }, 3, ['gauge']),
     extra: true,
     domains: GAUGE_DOMAINS,
-    name: 'Floorplan Gauge',
+    name: 'Floorplan Ring Gauge',
     description: 'A reading on a ring',
     suggest: (hass, entityId) =>
       isNumeric(hass.states[entityId]) ? [{ config: { type: 'custom:fp-gauge', entity: entityId } }] : null,
@@ -385,7 +385,12 @@ function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggest
   const type = `custom:${card.type}`
   if (card.suggest) return card.suggest(hass, entityId)
   const config = { type, entity: entityId }
-  const base = card.wide ? [{ config: { ...config, size: 'wide' } }, { label: 'Small', config }] : [{ config }]
+  const base = card.wide
+    ? [
+        { label: 'Wide, with its controls', config: { ...config, size: 'wide' } },
+        { label: 'Small, without controls', config },
+      ]
+    : [{ config }]
   if (card.extra) return base
   const features = featuresFor(hass.states[entityId]).map(feature => {
     const featured = { ...config, feature: feature.id }

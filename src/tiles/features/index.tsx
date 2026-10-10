@@ -43,10 +43,10 @@ const menu = (id: keyof typeof climate.MENUS) => (props: FeatureProps) => (
 const COVERS = ['cover', 'valve']
 
 export const FEATURES: FeatureDef[] = [
-  { id: 'brightness', label: 'Brightness', domains: ['light'], supports: light.dims },
+  { id: 'brightness', label: 'Drag the tile for brightness', domains: ['light'], supports: light.dims },
   {
     id: 'color-temp',
-    label: 'Color temperature',
+    label: 'White temperature bar',
     domains: ['light'],
     supports: light.warms,
     View: light.ColorTemp,
@@ -54,7 +54,7 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'color',
-    label: 'Color',
+    label: 'Color bar',
     domains: ['light'],
     supports: light.colors,
     View: light.Hue,
@@ -62,23 +62,23 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'color-favorites',
-    label: 'Favorite colors',
+    label: 'Favorite color buttons',
     domains: ['light'],
     supports: e => light.warms(e) || light.colors(e),
     View: light.ColorFavorites,
   },
-  { id: 'effect', label: 'Effect', domains: ['light'], supports: has('effect_list'), View: light.Effect },
+  { id: 'effect', label: 'Effect menu', domains: ['light'], supports: has('effect_list'), View: light.Effect },
   {
     id: 'open-close',
-    label: 'Open and close',
+    label: 'Open, stop and close buttons',
     domains: COVERS,
     supports: e => supports(e, cover.OPEN) || supports(e, cover.CLOSE),
     View: cover.OpenClose,
   },
-  { id: 'position', label: 'Position', domains: COVERS, supports: bit(cover.SET_POSITION) },
+  { id: 'position', label: 'Drag the tile to open', domains: COVERS, supports: bit(cover.SET_POSITION) },
   {
     id: 'position-favorite',
-    label: 'Favorite positions',
+    label: 'Favorite position buttons',
     domains: COVERS,
     supports: bit(cover.SET_POSITION),
     View: cover.Favorites,
@@ -86,50 +86,50 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'tilt',
-    label: 'Tilt',
+    label: 'Slat open and close buttons',
     domains: ['cover'],
     supports: e => supports(e, cover.OPEN_TILT) || supports(e, cover.CLOSE_TILT),
     View: cover.Tilt,
   },
   {
     id: 'tilt-position',
-    label: 'Tilt position',
+    label: 'Drag the tile to tilt the slats',
     domains: ['cover'],
     supports: bit(cover.SET_TILT),
   },
   {
     id: 'tilt-favorite',
-    label: 'Favorite tilts',
+    label: 'Favorite tilt buttons',
     domains: ['cover'],
     supports: bit(cover.SET_TILT),
     View: props => <cover.Favorites {...props} tilt />,
     wide: true,
   },
-  { id: 'speed', label: 'Speed', domains: ['fan'], supports: bit(cover.FAN.speed) },
+  { id: 'speed', label: 'Drag the tile for speed', domains: ['fan'], supports: bit(cover.FAN.speed) },
   {
     id: 'preset-modes',
-    label: 'Preset',
+    label: 'Preset menu',
     domains: ['fan'],
     supports: e => supports(e, cover.FAN.preset) && has('preset_modes')(e),
     View: cover.FanPreset,
   },
   {
     id: 'direction',
-    label: 'Direction',
+    label: 'Forward and reverse buttons',
     domains: ['fan'],
     supports: bit(cover.FAN.direction),
     View: cover.FanDirection,
   },
   {
     id: 'oscillate',
-    label: 'Oscillate',
+    label: 'Oscillate button',
     domains: ['fan'],
     supports: bit(cover.FAN.oscillate),
     View: cover.FanOscillate,
   },
   {
     id: 'hvac-modes',
-    label: 'Modes',
+    label: 'Mode buttons',
     domains: ['climate'],
     supports: has('hvac_modes'),
     View: climate.HvacModes,
@@ -137,7 +137,7 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'target-temperature',
-    label: 'Target temperature',
+    label: 'Temperature minus and plus',
     domains: ['climate', 'water_heater'],
     supports: e => numberOf(e, 'temperature') !== null || numberOf(e, 'target_temp_low') !== null,
     View: climate.TargetTemperature,
@@ -146,38 +146,44 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'preset-modes',
-    label: 'Preset',
+    label: 'Preset menu',
     domains: ['climate'],
     supports: has('preset_modes'),
     View: menu('preset-modes'),
   },
-  { id: 'fan-modes', label: 'Fan', domains: ['climate'], supports: has('fan_modes'), View: menu('fan-modes') },
-  { id: 'swing-modes', label: 'Swing', domains: ['climate'], supports: has('swing_modes'), View: menu('swing-modes') },
+  { id: 'fan-modes', label: 'Fan menu', domains: ['climate'], supports: has('fan_modes'), View: menu('fan-modes') },
+  {
+    id: 'swing-modes',
+    label: 'Swing menu',
+    domains: ['climate'],
+    supports: has('swing_modes'),
+    View: menu('swing-modes'),
+  },
   {
     id: 'swing-horizontal-modes',
-    label: 'Side to side swing',
+    label: 'Side to side swing menu',
     domains: ['climate'],
     supports: has('swing_horizontal_modes'),
     View: menu('swing-horizontal-modes'),
   },
   {
     id: 'target-humidity',
-    label: 'Target humidity',
+    label: 'Humidity minus and plus',
     domains: ['climate', 'humidifier'],
     supports: e => numberOf(e, 'humidity') !== null && (domainOf(e) === 'humidifier' || supports(e, 4)),
     View: climate.TargetHumidity,
   },
   {
     id: 'operation-modes',
-    label: 'Operation mode',
+    label: 'Operation mode menu',
     domains: ['water_heater'],
     supports: has('operation_list'),
     View: menu('operation-modes'),
   },
-  { id: 'modes', label: 'Mode', domains: ['humidifier'], supports: has('available_modes'), View: menu('modes') },
+  { id: 'modes', label: 'Mode menu', domains: ['humidifier'], supports: has('available_modes'), View: menu('modes') },
   {
     id: 'playback',
-    label: 'Playback',
+    label: 'Play, pause and skip buttons',
     domains: ['media_player'],
     supports: e =>
       [media.MEDIA.pause, media.MEDIA.play, media.MEDIA.previous, media.MEDIA.next].some(b => supports(e, b)),
@@ -185,82 +191,88 @@ export const FEATURES: FeatureDef[] = [
   },
   {
     id: 'volume-slider',
-    label: 'Volume',
+    label: 'Drag the tile for volume',
     domains: ['media_player'],
     supports: bit(media.MEDIA.volumeSet),
   },
   {
     id: 'volume-buttons',
-    label: 'Volume buttons',
+    label: 'Volume down and up buttons',
     domains: ['media_player'],
     supports: e => supports(e, media.MEDIA.volumeStep) || supports(e, media.MEDIA.volumeSet),
     View: media.VolumeButtons,
   },
   {
     id: 'source',
-    label: 'Source',
+    label: 'Source menu',
     domains: ['media_player'],
     supports: e => supports(e, media.MEDIA.source) && has('source_list')(e),
     View: media.Source,
   },
   {
     id: 'sound-mode',
-    label: 'Sound mode',
+    label: 'Sound mode menu',
     domains: ['media_player'],
     supports: e => supports(e, media.MEDIA.soundMode) && has('sound_mode_list')(e),
     View: media.SoundMode,
   },
   { id: 'open-door', label: 'Open the door in two taps', domains: ['lock'], supports: bit(1) },
-  { id: 'commands', label: 'Commands', domains: ['vacuum'], View: other.VacuumCommands, wide: true },
+  {
+    id: 'commands',
+    label: 'Start, pause and dock buttons',
+    domains: ['vacuum'],
+    View: other.VacuumCommands,
+    wide: true,
+  },
   {
     id: 'fan-speed',
-    label: 'Suction',
+    label: 'Suction menu',
     domains: ['vacuum'],
     supports: e => supports(e, other.VACUUM_FAN_SPEED) && has('fan_speed_list')(e),
     View: other.VacuumFanSpeed,
   },
-  { id: 'commands', label: 'Commands', domains: ['lawn_mower'], View: other.MowerCommands },
+  { id: 'commands', label: 'Mow, pause and dock buttons', domains: ['lawn_mower'], View: other.MowerCommands },
   {
     id: 'alarm-modes',
-    label: 'Alarm modes',
+    label: 'Arm and disarm buttons',
     domains: ['alarm_control_panel'],
     View: other.AlarmModes,
     wide: true,
   },
-  { id: 'actions', label: 'Counter buttons', domains: ['counter'], View: other.CounterActions },
-  { id: 'actions', label: 'Timer buttons', domains: ['timer'], View: other.TimerActions },
+  { id: 'actions', label: 'Minus, reset and plus buttons', domains: ['counter'], View: other.CounterActions },
+  { id: 'actions', label: 'Start, pause and cancel buttons', domains: ['timer'], View: other.TimerActions },
   {
     id: 'select-options',
-    label: 'Options',
+    label: 'Option menu',
     domains: ['select', 'input_select'],
     supports: has('options'),
     View: other.SelectOptions,
   },
   {
     id: 'numeric-input',
-    label: 'Number',
+    label: 'Value slider or minus and plus',
     domains: ['number', 'input_number'],
     supports: numeric,
     View: other.NumericInput,
   },
-  { id: 'date-set', label: 'Date', domains: ['date', 'datetime', 'input_datetime'], View: other.DateSet },
-  { id: 'update-actions', label: 'Install', domains: ['update'], View: other.UpdateActions },
+  { id: 'date-set', label: 'Date picker', domains: ['date', 'datetime', 'input_datetime'], View: other.DateSet },
+  { id: 'update-actions', label: 'Install and skip buttons', domains: ['update'], View: other.UpdateActions },
   {
     id: 'button',
-    label: 'Button',
+    label: 'Press button',
     domains: ['button', 'input_button', 'script', 'scene'],
     View: other.PressButton,
   },
   {
     id: 'trend-graph',
-    label: 'Graph',
+    label: 'Graph of the last 24 hours',
     domains: ['sensor'],
     supports: e => numeric(e) && typeof e.attributes.unit_of_measurement === 'string',
     View: other.TrendGraph,
   },
   {
     id: 'bar-gauge',
-    label: 'Bar',
+    label: 'Percentage bar',
     domains: ['sensor'],
     supports: e => numeric(e) && e.attributes.unit_of_measurement === '%',
     View: other.BarGauge,
@@ -312,10 +324,15 @@ export const besideIcon = (feature: string | undefined) =>
   !!feature && !!FEATURES.find(f => f.id === feature && f.View && !f.row)
 
 // The features of a domain, for the editor, whatever the entity has.
+// What the editor calls a control that means something else for each
+// domain, when it lists them for a tile of more than one.
+const SHARED: Record<string, string> = { actions: 'Counter or timer buttons', commands: 'Vacuum or mower buttons' }
+
 export function featuresOf(domains: string[] | 'any') {
   const seen = new Map<string, string>()
   for (const f of FEATURES)
-    if ((domains === 'any' || f.domains.some(d => domains.includes(d))) && !seen.has(f.id)) seen.set(f.id, f.label)
+    if (domains === 'any' || f.domains.some(d => domains.includes(d)))
+      seen.set(f.id, seen.has(f.id) && seen.get(f.id) !== f.label ? (SHARED[f.id] ?? seen.get(f.id)!) : f.label)
   return [...seen].map(([value, label]) => ({ value, label }))
 }
 
