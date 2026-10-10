@@ -19,13 +19,13 @@ function injectFonts() {
 // Tailwind registers its variables with @property, which browsers only
 // honor at document level, never inside a shadow root. Without them the
 // border, shadow and ring utilities resolve to nothing. Register them once
-// in the document.
-export function injectProperties() {
-  if (document.getElementById(PROPERTIES_ID)) return
-  const rules = styles.match(/@property\s+--[\w-]+\s*\{[^}]*\}/g)
+// in the document, from these styles or another sheet's, like the tiles'.
+export function injectProperties(css = styles, id = PROPERTIES_ID) {
+  if (document.getElementById(id)) return
+  const rules = css.match(/@property\s+--[\w-]+\s*\{[^}]*\}/g)
   if (!rules) return
   const style = document.createElement('style')
-  style.id = PROPERTIES_ID
+  style.id = id
   style.textContent = rules.join('\n')
   document.head.appendChild(style)
 }
