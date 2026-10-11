@@ -1672,25 +1672,46 @@
 }
 
 .fp-agenda-event {
-  position: relative;
-  padding: 10px 12px 10px 18px;
+  padding: 10px 12px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--_event, currentColor) 14%, transparent);
+  background: var(--_event-bg);
 }
 
-.fp-agenda-event::before {
-  content: '';
-  position: absolute;
-  top: 10px;
-  bottom: 10px;
-  left: 8px;
-  width: 4px;
-  border-radius: 2px;
-  background: var(--_event, currentColor);
+/* Each event is tinted in its calendar's color. On a light dashboard the
+   tint sits on white, so it reads as a light card with a touch of the
+   color rather than as a muddy one. */
+:is(.fp-agenda-event, .fp-agenda-pill) {
+  --_event-bg: color-mix(in srgb, var(--_event, currentColor) 14%, transparent);
+  --_event-now: color-mix(in srgb, var(--_event, currentColor) 26%, transparent);
+}
+
+:host([data-light]) :is(.fp-agenda-event, .fp-agenda-pill) {
+  --_event-bg: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 8%, #fff) 70%, transparent);
+  --_event-now: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 18%, #fff) 85%, transparent);
 }
 
 .fp-agenda-event[data-now] {
-  background: color-mix(in srgb, var(--_event, currentColor) 26%, transparent);
+  background: var(--_event-now);
+}
+
+/* The events that last all day: just their names, in round pills over the
+   day's other events. */
+.fp-agenda-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fp-agenda-pill {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--_event-bg);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .fp-agenda-title {

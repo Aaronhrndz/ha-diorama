@@ -75,8 +75,9 @@ function useEvents(hass: HomeAssistant, ids: string[], days: number) {
 }
 
 // The coming events of one calendar or more, across the whole card from
-// under the icon down to the name: day by day, each event with its time
-// and a bar in its calendar's color. With a single day it shows only
+// under the icon down to the name: day by day, the events that last all
+// day as round pills first, then each other event with its time, all
+// tinted in their calendar's color. With a single day it shows only
 // today's, with no heading over them. The line under the name says what
 // is next.
 export default function Calendar({ env, config }: { env: TileEnv; config: CalendarConfig }) {
@@ -127,21 +128,39 @@ export default function Calendar({ env, config }: { env: TileEnv; config: Calend
                 {dayName(day)}
               </div>
             )}
-            {list.map((event, i) => (
-              <div
-                key={`${event.calendar}-${event.start.getTime()}-${i}`}
-                role="listitem"
-                className="fp-agenda-event"
-                data-now={(event.start.getTime() <= now && !event.allDay) || undefined}
-                style={{ '--_event': COLORS[event.calendar % COLORS.length] } as CSSProperties}
-              >
-                <div className="fp-agenda-title">{event.title}</div>
-                <div className="fp-agenda-time">
-                  {event.allDay ? 'All day' : `${time(event.start)} to ${time(event.end)}`}
-                  {event.location && ` · ${event.location}`}
-                </div>
+            {list.some(event => event.allDay) && (
+              <div className="fp-agenda-pills">
+                {list
+                  .filter(event => event.allDay)
+                  .map((event, i) => (
+                    <div
+                      key={`${event.calendar}-${event.start.getTime()}-${i}`}
+                      role="listitem"
+                      className="fp-agenda-pill"
+                      style={{ '--_event': COLORS[event.calendar % COLORS.length] } as CSSProperties}
+                    >
+                      {event.title}
+                    </div>
+                  ))}
               </div>
-            ))}
+            )}
+            {list
+              .filter(event => !event.allDay)
+              .map((event, i) => (
+                <div
+                  key={`${event.calendar}-${event.start.getTime()}-${i}`}
+                  role="listitem"
+                  className="fp-agenda-event"
+                  data-now={event.start.getTime() <= now || undefined}
+                  style={{ '--_event': COLORS[event.calendar % COLORS.length] } as CSSProperties}
+                >
+                  <div className="fp-agenda-title">{event.title}</div>
+                  <div className="fp-agenda-time">
+                    {`${time(event.start)} to ${time(event.end)}`}
+                    {event.location && ` · ${event.location}`}
+                  </div>
+                </div>
+              ))}
           </section>
         ))}
       </div>
