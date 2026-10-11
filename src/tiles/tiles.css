@@ -2247,6 +2247,34 @@
   text-align: center;
 }
 
+/* The whole degrees right aligned in the room of the widest, with the
+   degree sign over the tenths small beside them. */
+.fp-degrees {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.fp-degrees-whole {
+  min-width: var(--_whole, auto);
+  text-align: right;
+}
+
+.fp-degrees-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-left: 0.04em;
+  padding-block: 0.06em;
+  font-size: 0.42em;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.fp-degrees-side > [data-empty] {
+  visibility: hidden;
+}
+
 .fp-dial-end {
   padding: 2px 8px;
   border: none;

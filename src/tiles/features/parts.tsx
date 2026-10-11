@@ -510,6 +510,32 @@ export const formatNumber = (hass: HomeAssistant, value: number, digits = 1) =>
 // A temperature with a degree sign and no unit, like 21.5°.
 export const formatDegrees = (hass: HomeAssistant, value: number) => `${formatNumber(hass, value)}°`
 
+// A temperature shown large, the whole degrees big and the degree sign
+// over the tenths small beside them. The tenths keep their room when there
+// are none, so the number stays still as it goes from 21° to 21.5°.
+export function BigDegrees({ hass, value }: { hass: HomeAssistant; value: number }) {
+  const format = new Intl.NumberFormat(hass.locale?.language, { maximumFractionDigits: 1 })
+  const parts = format.formatToParts(value)
+  const fraction = parts.find(part => part.type === 'fraction')?.value
+  const point = format.formatToParts(0.5).find(part => part.type === 'decimal')?.value ?? '.'
+  const whole = parts
+    .filter(part => part.type !== 'decimal' && part.type !== 'fraction')
+    .map(part => part.value)
+    .join('')
+  return (
+    <span className="fp-degrees">
+      <span className="fp-degrees-whole">{whole}</span>
+      <span className="fp-degrees-side">
+        <span>°</span>
+        <span data-empty={!fraction || undefined}>
+          {point}
+          {fraction ?? '0'}
+        </span>
+      </span>
+    </span>
+  )
+}
+
 // Round buttons side by side in one frosted pill, like the modes of a
 // thermostat or the buttons of a player.
 export function Group({ label, radio, children }: { label: string; radio?: boolean; children: ReactNode }) {

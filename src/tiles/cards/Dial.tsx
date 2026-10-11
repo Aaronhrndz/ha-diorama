@@ -1,14 +1,14 @@
 import { callService, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { HvacModes, MENUS, ModeMenu } from '#/tiles/features/climate.tsx'
-import { formatDegrees, listOf, numberOf, optionWord } from '#/tiles/features/parts.tsx'
+import { BigDegrees, formatDegrees, listOf, numberOf, optionWord } from '#/tiles/features/parts.tsx'
 import { insideTile } from '#/tiles/gestures.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { climateColor, HVAC_MODES } from '#/tiles/modes.ts'
 import { Panel } from '#/tiles/Panel.tsx'
 import { kelvinToRgb } from '#/signals.ts'
 import type { EntityState, HomeAssistant } from '#/types.ts'
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
 
 // The ring sweeps three quarters of a circle, open at the bottom, starting
 // from the bottom left.
@@ -43,6 +43,9 @@ type Model = {
   // end on. Without them a range fills between its ends.
   ends?: [string, string]
   format: (value: number) => string
+  // The value as the middle of the dial shows it, when not as format
+  // writes it.
+  show?: (value: number) => ReactNode
   send: (values: number[]) => void
   // Whether it heads for a single value from either side, like a
   // thermostat on auto that heats or cools to it.
@@ -155,6 +158,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
     now: current !== null ? `Now ${formatDegrees(hass, current)}` : undefined,
     current: current ?? undefined,
     format: value => formatDegrees(hass, value),
+    show: value => <BigDegrees hass={hass} value={value} />,
     send: values =>
       callService(
         hass,
@@ -375,7 +379,10 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   // while it goes from 21° to 21.5°. A digit is about a ch wide, and a
   // point or a sign about half of one.
   const width = (text: string) => [...text].reduce((sum, char) => sum + (/\d/.test(char) ? 1 : 0.55), 0)
-  const widest = Math.max(...[m.min, m.max, m.min + m.step, m.max - m.step].map(value => width(m.format(snap(value)))))
+  const samples = [m.min, m.max, m.min + m.step, m.max - m.step].map(value => m.format(snap(value)))
+  const widest = Math.max(...samples.map(width))
+  // Shown big, only the whole part needs the room, as the rest keeps its own.
+  const whole = Math.max(...samples.map(text => width(text.replace(/[.,]\d+|°/g, ''))))
   const toward = heading(m, values)
   const ends = values.length === 2 ? values.map(value => shareOf(m, value)) : null
   // A range with a color for each end fills from the ring's start up to
@@ -431,7 +438,13 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
         data-off={m.off || undefined}
         data-dragging={dragging || undefined}
         data-range={values.length === 2 || undefined}
-        style={{ '--_dial': m.color, '--_digits': `${widest}ch` } as CSSProperties}
+        style={
+          {
+            '--_dial': m.color,
+            '--_digits': m.show ? 'auto' : `${widest}ch`,
+            '--_whole': `${whole}ch`,
+          } as CSSProperties
+        }
       >
         <div className="fp-dial-buttons">
           <Control icon="ph:plus-bold" label="Raise" onPress={nudge(1)} />
@@ -528,11 +541,11 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
                       setActive(i)
                     }}
                   >
-                    {m.format(value)}
+                    {m.show?.(value) ?? m.format(value)}
                   </button>
                 ))
               ) : (
-                <span>{m.format(values[0])}</span>
+                <span>{m.show?.(values[0]) ?? m.format(values[0])}</span>
               )}
             </div>
             {m.now && <div className="fp-dial-now">{m.now}</div>}
