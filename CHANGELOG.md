@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- The back button, a phone's own too, takes the camera from a room back to the whole home instead of leaving the dashboard.
+
 ### Changed
 
 - On a wide card, as on a computer, the home and a room flown to fit right to the card's edges instead of running a little past them. A phone keeps them filling its card as before.
