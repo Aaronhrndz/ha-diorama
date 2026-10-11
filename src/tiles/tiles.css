@@ -696,8 +696,8 @@
   max-width: min(320px, calc(100vw - 32px));
   max-height: min(420px, calc(100vh - 32px));
   margin: 0;
-  padding: 6px;
-  overflow-y: auto;
+  padding: 0;
+  overflow: hidden;
   border: none;
   border-radius: 18px;
   background: var(--fp-menu-bg, rgba(44, 44, 48, 0.82));
@@ -718,8 +718,20 @@
 }
 
 .fp-menu:popover-open {
+  display: flex;
+  flex-direction: column;
   opacity: 1;
   transform: none;
+}
+
+/* The options scroll inside the menu, so the menu's own glass stays put
+   while they fade out at its edges. */
+.fp-menu-list {
+  --_fade: 10px;
+  min-height: 0;
+  padding: var(--_fade) 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 @starting-style {
@@ -1466,8 +1478,7 @@
 }
 
 /* The calendar's agenda takes the whole width instead, under the icon,
-   and ends just over the name, fading out there rather than cut off. Its
-   last event clears the fade once it is scrolled to the end. */
+   and ends just over the name. */
 .fp-calendar .fp-bottom {
   flex-direction: column-reverse;
   gap: 2px;
@@ -1475,8 +1486,10 @@
 }
 
 .fp-calendar .fp-agenda {
-  padding-bottom: 14px;
-  mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
+  --_fade: 14px;
+  margin-top: calc(-1 * var(--_fade));
+  padding-top: var(--_fade);
+  padding-bottom: var(--_fade);
 }
 
 .fp-card.fp-calendar .fp-bottom > .fp-text {
@@ -1633,21 +1646,32 @@
   padding: 0 calc(var(--_padding) - 6px) 0 6px;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* Whatever scrolls fades out at its top and bottom edges rather than
+   being cut off there, and keeps as much room inside those edges, so its
+   first and last rows show whole once it is scrolled to either end. */
+:is(.fp-agenda, .fp-menu-list) {
+  mask-image: linear-gradient(to bottom, transparent, #000 var(--_fade), #000 calc(100% - var(--_fade)), transparent);
+}
+
+/* A thin quiet scrollbar in the text's color with no track. */
+:is(.fp-agenda, .fp-menu-list) {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, currentColor 22%, transparent) transparent;
 }
 
 /* Where the standard colors are not read, a thin rounded thumb of the
    same color with no track, in the gap the agenda keeps on its right. */
-.fp-agenda::-webkit-scrollbar {
+:is(.fp-agenda, .fp-menu-list)::-webkit-scrollbar {
   width: 4px;
 }
 
-.fp-agenda::-webkit-scrollbar-track {
+:is(.fp-agenda, .fp-menu-list)::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.fp-agenda::-webkit-scrollbar-thumb {
+:is(.fp-agenda, .fp-menu-list)::-webkit-scrollbar-thumb {
   border-radius: 2px;
   background: color-mix(in srgb, currentColor 22%, transparent);
 }
@@ -1678,16 +1702,16 @@
 }
 
 /* Each event is tinted in its calendar's color. On a light dashboard the
-   tint sits on white, so it reads as a light card with a touch of the
-   color rather than as a muddy one. */
+   tint sits on white, so it reads as a light card of the color rather
+   than as a muddy one. */
 :is(.fp-agenda-event, .fp-agenda-pill) {
   --_event-bg: color-mix(in srgb, var(--_event, currentColor) 14%, transparent);
   --_event-now: color-mix(in srgb, var(--_event, currentColor) 26%, transparent);
 }
 
 :host([data-light]) :is(.fp-agenda-event, .fp-agenda-pill) {
-  --_event-bg: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 8%, #fff) 70%, transparent);
-  --_event-now: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 18%, #fff) 85%, transparent);
+  --_event-bg: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 16%, #fff) 75%, transparent);
+  --_event-now: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 30%, #fff) 85%, transparent);
 }
 
 .fp-agenda-event[data-now] {

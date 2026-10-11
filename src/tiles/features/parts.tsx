@@ -344,22 +344,24 @@ export function MenuPill({ icon, label, options, current, word, onPick }: MenuPr
         className="fp-menu"
         onKeyDown={menuKeys}
       >
-        {options.map(option => (
-          <button
-            key={option}
-            type="button"
-            role="menuitemradio"
-            aria-checked={option === current}
-            className="fp-option"
-            onClick={() => {
-              menu.current?.hidePopover()
-              if (option !== current) onPick(option)
-            }}
-          >
-            <span className="min-w-0 flex-1 truncate">{word(option)}</span>
-            {option === current && <Icon icon="ph:check" className="fp-check" />}
-          </button>
-        ))}
+        <div className="fp-menu-list">
+          {options.map(option => (
+            <button
+              key={option}
+              type="button"
+              role="menuitemradio"
+              aria-checked={option === current}
+              className="fp-option"
+              onClick={() => {
+                menu.current?.hidePopover()
+                if (option !== current) onPick(option)
+              }}
+            >
+              <span className="min-w-0 flex-1 truncate">{word(option)}</span>
+              {option === current && <Icon icon="ph:check" className="fp-check" />}
+            </button>
+          ))}
+        </div>
       </div>
     </>
   )

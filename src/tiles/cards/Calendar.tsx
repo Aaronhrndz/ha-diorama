@@ -17,7 +17,7 @@ type RawEvent = { summary?: string; start: When; end: When; location?: string }
 type Event = { title: string; start: Date; end: Date; allDay: boolean; location?: string; calendar: number }
 
 // The color of each calendar, in the order the config lists them.
-const COLORS = ['#ff9f0a', '#0a84ff', '#30d158', '#bf5af2', '#ff375f', '#64d2ff']
+const COLORS = ['#0a84ff', '#ff9f0a', '#30d158', '#bf5af2', '#ff375f', '#64d2ff']
 
 // How often the events are read again while the card shows.
 const REFRESH_MS = 5 * 60_000
@@ -78,7 +78,7 @@ function useEvents(hass: HomeAssistant, ids: string[], days: number) {
 // under the icon down to the name: day by day, the events that last all
 // day as round pills first, then each other event with its time, all
 // tinted in their calendar's color. With a single day it shows only
-// today's, with no heading over them. The line under the name says what
+// today's. The line under the name says what
 // is next.
 export default function Calendar({ env, config }: { env: TileEnv; config: CalendarConfig }) {
   const entity = env.hass.states[config.entity!]
@@ -123,11 +123,9 @@ export default function Calendar({ env, config }: { env: TileEnv; config: Calend
         {events && coming.length === 0 && <div className="fp-agenda-empty">No events</div>}
         {[...byDay].map(([day, list]) => (
           <section key={day} className="fp-agenda-section" aria-label={dayName(day)}>
-            {days > 1 && (
-              <div className="fp-agenda-day" data-today={day === today || undefined}>
-                {dayName(day)}
-              </div>
-            )}
+            <div className="fp-agenda-day" data-today={day === today || undefined}>
+              {dayName(day)}
+            </div>
             {list.some(event => event.allDay) && (
               <div className="fp-agenda-pills">
                 {list
