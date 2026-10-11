@@ -51,7 +51,10 @@ export function planBounds(rooms: RoomConfig[]) {
 // or along the standard one when none is given. `margin` is how much room
 // is left around the flat, as a factor of the distance. `center` moves the
 // target until the flat sits in the middle of the view, so no side keeps
-// more empty space than the others.
+// more empty space than the others, and fits the rooms' own corners rather
+// than the box around them all, whose empty corners pushed a room off to
+// one side. `spill` lets them run past the sides of the view by that factor
+// of its width, while the top and the bottom still fit.
 export function frameRooms(
   rooms: RoomConfig[],
   aspect: number,
@@ -59,6 +62,7 @@ export function frameRooms(
   from: [number, number, number] = CAMERA_DIRECTION,
   margin = CAMERA_FIT_MARGIN,
   center = false,
+  spill = 1,
 ): Framing {
   let minX = Infinity
   let minY = Infinity
@@ -87,13 +91,13 @@ export function frameRooms(
 
   const vFov = MathUtils.degToRad(CAMERA_FOV_DEG)
   const tanV = Math.tan(vFov / 2)
-  const tanH = tanV * aspect
+  const tanH = tanV * aspect * spill
 
-  // For each box corner, the distance the camera needs so that the corner
+  // For each corner, the distance the camera needs so that the corner
   // still fits horizontally and vertically. The farthest wins.
   const corners: Vector3[] = []
-  for (const x of [minX, maxX])
-    for (const y of [minY, maxY]) for (const z of [-ROOM_SLAB_THICKNESS_M, height]) corners.push(new Vector3(x, z, -y))
+  const floor = center ? rooms.flatMap(room => room.points) : [minX, maxX].flatMap(x => [minY, maxY].map(y => [x, y]))
+  for (const [x, y] of floor) for (const z of [-ROOM_SLAB_THICKNESS_M, height]) corners.push(new Vector3(x, z, -y))
   const fit = () => {
     let distance = 0
     for (const point of corners) {
@@ -149,6 +153,7 @@ export function fitView(
   // Frames the plan along the view's angle even when it already fits, for
   // a card too small to spare the room the saved view leaves around it.
   closeIn = false,
+  spill = 1,
 ): Framing {
   const position = new Vector3(...view.position)
   const target = new Vector3(...view.target)
@@ -172,5 +177,5 @@ export function fitView(
   }
   if (fits && !closeIn) return { position, target }
   const from = position.clone().sub(target)
-  return frameRooms(rooms, aspect, height, [from.x, from.y, from.z], margin, closeIn)
+  return frameRooms(rooms, aspect, height, [from.x, from.y, from.z], margin, closeIn, spill)
 }

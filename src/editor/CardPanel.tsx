@@ -13,6 +13,7 @@ import { tileName, TilePicker } from '#/editor/TilePicker.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { defaultIcon } from '#/tiles/icons.ts'
 import {
+  faArrowLeft,
   faChevronRight,
   faCirclePlus,
   faGripVertical,
@@ -174,8 +175,8 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
             onClick={close}
             className="bg-tint-fill flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full pr-4 pl-3.5 text-[13px] font-semibold text-white transition-[filter,transform] hover:brightness-110 active:scale-[0.97]"
           >
-            <FontAwesomeIcon icon={faXmark} className="size-3.5" />
-            Close
+            <FontAwesomeIcon icon={faArrowLeft} className="size-3.5" />
+            Back
           </button>
         </header>
         <TilePicker

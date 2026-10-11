@@ -67,7 +67,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-- Picking the card for a tile in the side panel opens a page of its own in place of the settings, with the device's name and a close button at the top, and the picked card ticked in its corner.
+- Picking the card for a tile in the side panel opens a page of its own in place of the settings, with the device's name and a Back button at the top, and the picked card ticked in its corner.
 - A dial's name and state are never cut short, and run over the dial when they need the room.
 - A dial shows the tenths of a degree small under the degree sign, and keeps their room when there are none, so the number no longer shifts as it changes.
 - The Floorplan tiles elsewhere on the dashboard no longer hide when the floorplan card flies to a room, unless Hide other rooms' tiles is turned on in the card's editor, so the page no longer jumps. The side panel still follows the room.
@@ -130,6 +130,7 @@ moves that section under the new version and uses it as the release notes.
 - Covers, vacuums, thermostats and media players are offered as a small tile that only answers a tap, as well as wide with their buttons.
 - A calendar or a to-do list in the side panel shows as the calendar or the to-do card, and Floorplan Any Entity is no longer offered for a calendar.
 
+- On a phone, a room you fly to sits in the middle of the card and fills it, running a little past its sides rather than leaving empty space around it.
 ### Fixed
 
 - A thermostat on auto with a single temperature shows the paler stretch and its arrows toward it from either side, where it showed none.

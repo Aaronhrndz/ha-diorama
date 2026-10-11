@@ -3,6 +3,7 @@ import {
   CAMERA_FIT_MARGIN_NARROW,
   CAMERA_FLIGHT_S,
   CAMERA_ROOM_FIT_MARGIN,
+  CAMERA_ROOM_SPILL_NARROW,
   CAMERA_TURN_S,
   NARROW_CARD_PX,
 } from '#/constants.ts'
@@ -173,18 +174,23 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     shown: RoomConfig[],
     items: DecorationConfig[],
     margin = fitMargin(size.width),
+    spill = 1,
   ): CameraView => {
     const aspect = size.width / size.height
     const height = sceneHeight(items)
     const narrow = size.width < NARROW_CARD_PX
     const { position, target } = saved
-      ? fitView(saved, shown, aspect, height, margin, narrow)
-      : frameRooms(shown, aspect, height, undefined, margin, narrow)
+      ? fitView(saved, shown, aspect, height, margin, narrow, spill)
+      : frameRooms(shown, aspect, height, undefined, margin, narrow, spill)
     return { position: triple(position), target: triple(target) }
   }
 
   // The view the camera opened with.
   const home = () => fit(view, rooms, decorations)
+
+  // How far a room runs past the card's sides: on a phone a little, so it
+  // fills the picture.
+  const spill = () => (size.width < NARROW_CARD_PX ? CAMERA_ROOM_SPILL_NARROW : 1)
 
   // One room alone, filling the picture, looked at from the same side and
   // height as the opening view, so flying there only closes in.
@@ -211,6 +217,7 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
       [from.x, from.y, from.z],
       CAMERA_ROOM_FIT_MARGIN,
       true,
+      spill(),
     )
     return { position: triple(position), target: triple(target) }
   }
@@ -232,6 +239,7 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
           [room, ...signs],
           decorations.filter(d => d.room === room.id),
           CAMERA_ROOM_FIT_MARGIN,
+          spill(),
         )
       : frame(room, signs)
   }
