@@ -176,13 +176,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
         }
         className="fp-editor font-system flex min-h-full flex-col gap-3 px-4 pb-6 text-(--primary-text-color) antialiased"
       >
-        <header className="sticky top-0 z-10 -mx-4 flex items-center gap-2 bg-(--fp-surface) px-4 pt-3 pb-2">
-          <div className="flex min-w-0 flex-1 flex-col">
-            <h2 className="truncate text-[17px] font-semibold tracking-tight">{entityName(hass, id)}</h2>
-            <p className="text-label-2 truncate text-xs">
-              The card it shows in the side panel, {room ? roomName(hass, room) : home.name || 'Home'}
-            </p>
-          </div>
+        <header className="sticky top-0 z-10 -mx-4 flex items-center gap-3 bg-(--fp-surface) px-4 pt-3 pb-2">
           {/* Said in words and filled, so the way back is plain to see. */}
           <button
             type="button"
@@ -192,6 +186,12 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
             <FontAwesomeIcon icon={faArrowLeft} className="size-3.5" />
             Back
           </button>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <h2 className="truncate text-[17px] font-semibold tracking-tight">{entityName(hass, id)}</h2>
+            <p className="text-label-2 truncate text-xs">
+              The card it shows in the side panel, {room ? roomName(hass, room) : home.name || 'Home'}
+            </p>
+          </div>
         </header>
         <TilePicker
           hass={hass}
