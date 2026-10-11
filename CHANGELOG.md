@@ -43,6 +43,7 @@ moves that section under the new version and uses it as the release notes.
 - A tile's control sits in its top right corner beside the icon, so a tile with one is as short as a plain tile, and the few with too many buttons for a small tile, like favorite positions, an alarm's modes or a vacuum's commands, always make it wide.
 - A light tile can show a slim color temperature or color bar beside its icon, with a round handle, so it stays as short as a plain tile, and its state line says the light's white in kelvin or the name of its color, whichever the light is in, with a faint handle on the bar for the other one, and while the bar is dragged the tile takes that color and keeps it until the light answers.
 - Eight larger cards come with the tiles and are offered beside them when a card is added by entity: an alarm panel with a keypad, a dial for a thermostat, a water heater, a humidifier or a light's brightness, a media control with the cover art, a calendar agenda, a to-do list, a history graph, a gauge and a map.
+- The larger cards are laid out like a wide tile, with the icon in the top left, their buttons in the top right, the name and the state in the bottom left and what they show in the bottom right, and a tap on a light's or a humidifier's dial turns it on or off.
 - The alarm panel is a wide tile like the others, with its modes in the top right, a keypad beside a large line saying what the code will do, a red lock key to arm and a green open lock to disarm, and a red or green wash for armed or disarmed.
 
 ### Changed
@@ -52,7 +53,7 @@ moves that section under the new version and uses it as the release notes.
 - A number on an entity tile is its value across the whole tile, dragged sideways like a light's brightness, unless it has too many steps for a slider.
 - A percentage on an entity tile, like a battery's charge, fills the whole tile from the left as far, in place of a bar beside the icon.
 - The rainbow of a light's color bar and its favorite colors are softer and even in lightness, so no color glares on the tile.
-- The on and off switch under a light's or a humidifier's dial and a fan's oscillate control are now pills that fill in while on, in place of switches.
+- A fan's oscillate control is now a pill that fills in while on, in place of a switch.
 - A cover that cannot stop shows only up and down on its wide tile.
 - The weather tile can show the next hours or the next days, and the card picker offers both.
 - The camera tile also shows an image entity.

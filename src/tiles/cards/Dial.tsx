@@ -1,7 +1,6 @@
 import { callService, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { HvacModes, MENUS, ModeMenu } from '#/tiles/features/climate.tsx'
-import { Toggle } from '#/tiles/features/light.tsx'
 import { formatDegrees, listOf, numberOf, optionWord } from '#/tiles/features/parts.tsx'
 import { insideTile } from '#/tiles/gestures.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
@@ -156,11 +155,10 @@ function useHeldValues(reported: number[]) {
   return [held ?? reported, hold] as const
 }
 
-// A thermostat, a water heater, a humidifier or a light on a big ring, the
-// whole width: drag the ring's knob, or press minus and plus, to set the
+// A thermostat, a water heater, a humidifier or a light on a big ring: drag the ring's knob, or press minus and plus, to set the
 // temperature, the humidity or the brightness it holds. The ring fills in
-// the color of what it is doing, like orange to heat. Under it, the modes
-// or the switch.
+// the color of what it is doing, like orange to heat. The ring sits in the
+// bottom right corner across from the name, and the modes in the top right.
 export default function Dial({ env, config }: { env: TileEnv; config: TileConfig }) {
   const entity = env.hass.states[config.entity!]
   const m = entity ? model(env.hass, entity) : null
@@ -171,27 +169,43 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   useEffect(() => () => clearTimeout(send.current), [])
   const domain = config.entity!.split('.')[0]
 
-  const footer = entity && (
-    <div className="fp-dial-footer">
-      {domain === 'climate' && listOf(entity, 'hvac_modes').length > 0 && (
-        <HvacModes env={env} config={config} entity={entity} />
-      )}
-      {domain === 'water_heater' && listOf(entity, 'operation_list').length > 0 && (
-        <ModeMenu env={env} config={config} entity={entity} menu={MENUS['operation-modes']} />
-      )}
-      {(domain === 'humidifier' || domain === 'light') && <Toggle env={env} config={config} entity={entity} />}
-      {domain === 'humidifier' && listOf(entity, 'available_modes').length > 0 && (
-        <ModeMenu env={env} config={config} entity={entity} menu={MENUS.modes} />
-      )}
-    </div>
-  )
+  // The modes or the menus in the top right corner. A light and a
+  // humidifier turn on and off with a tap, like their tiles.
+  const controls = !entity
+    ? null
+    : domain === 'climate'
+      ? listOf(entity, 'hvac_modes').length > 0 && <HvacModes env={env} config={config} entity={entity} />
+      : domain === 'water_heater'
+        ? listOf(entity, 'operation_list').length > 0 && (
+            <ModeMenu env={env} config={config} entity={entity} menu={MENUS['operation-modes']} />
+          )
+        : domain === 'humidifier' &&
+          listOf(entity, 'available_modes').length > 0 && (
+            <ModeMenu env={env} config={config} entity={entity} menu={MENUS.modes} />
+          )
+  const toggles = domain === 'light' || domain === 'humidifier'
+  const on = !!entity && !['off', 'unavailable', 'unknown'].includes(entity.state)
+  const panel = {
+    env,
+    config,
+    entity,
+    state: formatState(env.hass, entity),
+    controls,
+    toggles,
+    active: on,
+    accent: m?.color,
+    glow: on && m && m.color !== 'currentColor' ? m.color : undefined,
+    glowFrom: domain === 'light' ? ('corner' as const) : ('top' as const),
+    onTap: toggles
+      ? () =>
+          callService(env.hass, `${domain}.${on ? 'turn_off' : 'turn_on'}`, {
+            entity_id: config.entity,
+          })
+      : undefined,
+    className: 'fp-big-dial',
+  }
 
-  if (!entity || !m)
-    return (
-      <Panel env={env} config={config} entity={entity} state={formatState(env.hass, entity)}>
-        {footer}
-      </Panel>
-    )
+  if (!entity || !m) return <Panel {...panel} />
 
   const snap = (value: number) =>
     Math.min(m.max, Math.max(m.min, Math.round((value - m.min) / m.step) * m.step + m.min))
@@ -249,7 +263,7 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   const first = shareOf(m, values.length === 2 ? values[0] : m.min)
   const last = shareOf(m, values[values.length - 1])
   return (
-    <Panel env={env} config={config} entity={entity} state={formatState(env.hass, entity)} accent={m.color}>
+    <Panel {...panel}>
       <div
         className="fp-dial"
         data-off={m.off || undefined}
@@ -334,7 +348,6 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
           <Control icon="ph:plus-bold" label="Raise" onPress={nudge(1)} />
         </div>
       </div>
-      {footer}
     </Panel>
   )
 }

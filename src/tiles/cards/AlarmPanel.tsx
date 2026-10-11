@@ -1,11 +1,11 @@
 import { cn } from '#/lib/utils.ts'
-import { callService, formatState, moreInfo, type TileEnv } from '#/tiles/actions.ts'
+import { callService, formatState, type TileEnv } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { Keypad } from '#/tiles/features/Keypad.tsx'
 import { alarmModes, codeFormat, needsCode, type AlarmMode } from '#/tiles/features/other.tsx'
 import { Group } from '#/tiles/features/parts.tsx'
 import type { TileConfig } from '#/tiles/host.tsx'
-import { Tile } from '#/tiles/Tile.tsx'
+import { Panel } from '#/tiles/Panel.tsx'
 import { useEffect, useState, type CSSProperties } from 'react'
 
 type Props = { env: TileEnv; config: TileConfig }
@@ -41,8 +41,7 @@ export default function AlarmPanel({ env, config }: Props) {
     }, PICK_MS)
     return () => clearTimeout(timer)
   }, [picked, code])
-  const wide = { ...config, size: 'wide' as const }
-  if (!entity) return <Tile env={env} config={wide} entity={entity} state="" />
+  if (!entity) return <Panel env={env} config={config} entity={entity} state="" />
   const modes = alarmModes(entity)
   const coded = entity.attributes.code_format === 'number' || entity.attributes.code_format === 'text'
   const armed = entity.state !== 'disarmed'
@@ -76,60 +75,57 @@ export default function AlarmPanel({ env, config }: Props) {
       ? 'Enter code to disarm'
       : `Enter code to arm ${target.label}`
   return (
-    <div className="fp-alarm">
-      <Tile
-        env={env}
-        config={wide}
-        entity={entity}
-        active={armed}
-        accent={accent}
-        glow={accent}
-        glowFrom="left"
-        state={formatState(env.hass, entity)}
-        onTap={() => moreInfo(env.host, config.entity)}
-        controls={
-          <Group label="Mode" radio>
-            {modes
-              .filter(mode => !coded || mode.state !== 'disarmed')
-              .map(mode => (
-                <Control
-                  key={mode.state}
-                  icon={mode.icon}
-                  label={mode.label}
-                  role="radio"
-                  checked={(picked ?? entity).state === mode.state}
-                  disabled={off(mode) && entity.state !== mode.state}
-                  className={cn('fp-mode', picked?.state === mode.state && 'fp-mode-picked')}
-                  style={
-                    { '--_mode-color': mode.bit ? 'var(--_alarm-armed)' : 'var(--_alarm-disarmed)' } as CSSProperties
-                  }
-                  onPress={() => press(mode)}
-                />
-              ))}
-          </Group>
-        }
-        aside={
-          coded && (
-            <Keypad
-              compact
-              format={codeFormat(entity)}
-              code={code}
-              onCode={setCode}
-              hint={hint}
-              ready={!!target}
-              action={!target ? 'Tap a mode to arm' : target.state === 'disarmed' ? 'Disarm' : `Arm ${target.label}`}
-              go={
-                target
-                  ? target.state === 'disarmed'
-                    ? { icon: 'ph:lock-open', color: 'var(--_alarm-disarmed)' }
-                    : { icon: 'ph:lock', color: 'var(--_alarm-armed)' }
-                  : undefined
-              }
-              onSubmit={typed => target && set(target, typed)}
-            />
-          )
-        }
-      />
-    </div>
+    <Panel
+      env={env}
+      config={config}
+      entity={entity}
+      active={armed}
+      accent={accent}
+      glow={accent}
+      glowFrom="left"
+      state={formatState(env.hass, entity)}
+      className="fp-alarm"
+      controls={
+        <Group label="Mode" radio>
+          {modes
+            .filter(mode => !coded || mode.state !== 'disarmed')
+            .map(mode => (
+              <Control
+                key={mode.state}
+                icon={mode.icon}
+                label={mode.label}
+                role="radio"
+                checked={(picked ?? entity).state === mode.state}
+                disabled={off(mode) && entity.state !== mode.state}
+                className={cn('fp-mode', picked?.state === mode.state && 'fp-mode-picked')}
+                style={
+                  { '--_mode-color': mode.bit ? 'var(--_alarm-armed)' : 'var(--_alarm-disarmed)' } as CSSProperties
+                }
+                onPress={() => press(mode)}
+              />
+            ))}
+        </Group>
+      }
+    >
+      {coded && (
+        <Keypad
+          compact
+          format={codeFormat(entity)}
+          code={code}
+          onCode={setCode}
+          hint={hint}
+          ready={!!target}
+          action={!target ? 'Tap a mode to arm' : target.state === 'disarmed' ? 'Disarm' : `Arm ${target.label}`}
+          go={
+            target
+              ? target.state === 'disarmed'
+                ? { icon: 'ph:lock-open', color: 'var(--_alarm-disarmed)' }
+                : { icon: 'ph:lock', color: 'var(--_alarm-armed)' }
+              : undefined
+          }
+          onSubmit={typed => target && set(target, typed)}
+        />
+      )}
+    </Panel>
   )
 }

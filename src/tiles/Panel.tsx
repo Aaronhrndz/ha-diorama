@@ -1,67 +1,47 @@
 import { cn } from '#/lib/utils.ts'
-import { entityName, moreInfo, runAction, type TileEnv } from '#/tiles/actions.ts'
-import { useTileGestures } from '#/tiles/gestures.ts'
+import { moreInfo, type TileEnv } from '#/tiles/actions.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
-import { Icon } from '#/tiles/Icon.tsx'
-import { defaultIcon } from '#/tiles/icons.ts'
+import { Tile } from '#/tiles/Tile.tsx'
 import type { EntityState } from '#/types.ts'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 
 type Props = {
   env: TileEnv
   config: TileConfig
   entity: EntityState | undefined
   state: ReactNode
-  // The color of the icon, like red for an armed alarm.
+  // The color of the icon while it is active, like red for an armed alarm.
   accent?: string
-  // What sits across from the name, like the range of a graph.
-  aside?: ReactNode
+  active?: boolean
+  glow?: string
+  glowFrom?: ComponentProps<typeof Tile>['glowFrom']
+  // What a tap does when the config sets no tap_action, its dialog unless
+  // set.
+  onTap?: () => void
+  toggles?: boolean
+  // Buttons and selectors in the top right corner.
+  controls?: ReactNode
   className?: string
   style?: CSSProperties
+  // What the card shows, in the bottom right corner across from the name.
   children?: ReactNode
 }
 
-// The shell of a card bigger than a tile, like the alarm panel or the
-// calendar: the same frosted glass, with the icon, the name and the state
-// along the top and the card's own controls under them. A tap on the top
-// opens the entity's dialog, and the rest is the card's to handle.
-export function Panel({ env, config, entity, state, accent, aside, className, style, children }: Props) {
-  const open = () => moreInfo(env.host, config.entity)
-  const { pressed, handlers } = useTileGestures({
-    haptics: config.haptic !== false,
-    onTap: () => runAction(env, config.tap_action, open),
-    onHold: () => runAction(env, config.hold_action, open),
-  })
-  const unavailable = !entity || entity.state === 'unavailable'
-  const name = entityName(config, entity)
-  const icon =
-    config.icon ??
-    (typeof entity?.attributes.icon === 'string' && entity.attributes.icon ? entity.attributes.icon : undefined) ??
-    defaultIcon(config.entity, entity?.attributes.device_class, entity?.state)
+// The shell of a card bigger than a tile, like the dial or the calendar: a
+// wide tile as tall as what it holds, with the icon in the top left like
+// every tile, its buttons in the top right, the name and the state in the
+// bottom left and what it shows in the bottom right, as small as it can be.
+export function Panel({ env, config, onTap, children, className, style, ...tile }: Props) {
   return (
-    <div
-      className={cn('fp-tile fp-panel', className)}
-      data-unavailable={unavailable || undefined}
-      style={{ '--_tile-accent': config.color ?? accent, ...style } as CSSProperties}
-    >
-      <div
-        {...handlers}
-        role="button"
-        tabIndex={0}
-        aria-label={name}
-        data-pressed={pressed || undefined}
-        className="fp-panel-head"
-      >
-        <span className="fp-panel-icon">
-          <Icon icon={icon} on />
-        </span>
-        <div className="fp-text">
-          <div className="fp-name">{name}</div>
-          <div className="fp-state">{unavailable ? 'Unavailable' : (config.state_text ?? state)}</div>
-        </div>
-        {aside && <div className="fp-panel-aside">{aside}</div>}
-      </div>
-      {!unavailable && children}
+    <div className={cn('fp-card', className)} style={style}>
+      <Tile
+        env={env}
+        config={{ ...config, size: 'wide' }}
+        onTap={onTap ?? (() => moreInfo(env.host, config.entity))}
+        aside={children}
+        unknownIsUnavailable={false}
+        {...tile}
+      />
     </div>
   )
 }

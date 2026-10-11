@@ -1371,113 +1371,61 @@
   flex: 1 1 0;
 }
 
-/* A card bigger than a tile, like the alarm panel or the calendar: the same
-   glass, as tall as what it holds, with the icon, the name and the state
-   along the top. */
-.fp-panel {
-  justify-content: flex-start;
-  gap: 14px;
-  height: auto;
-  min-height: 100%;
-  cursor: default;
-}
-
-.fp-panel-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: -6px;
-  padding: 6px;
-  border-radius: calc(var(--_radius) - 12px);
-  cursor: pointer;
-  transition:
-    background-color var(--_duration) ease,
-    box-shadow var(--_duration) ease,
-    transform var(--_duration) cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .fp-panel-head:hover {
-    box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 8%, transparent);
-  }
-}
-
-.fp-panel-head[data-pressed] {
-  transform: scale(0.98);
-}
-
-.fp-panel-head:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: -2px;
-}
-
-.fp-panel-head > .fp-text {
-  flex: 1;
-}
-
-/* The icon on a disc of its own color. */
-.fp-panel-icon {
-  display: grid;
-  flex: none;
-  width: 40px;
-  height: 40px;
-  place-items: center;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--_tile-accent, var(--_accent)) 22%, transparent);
-  color: color-mix(in oklab, var(--_tile-accent, var(--_accent)), var(--_ink-to) var(--_deep));
-  transition:
-    background-color var(--_duration) ease,
-    color var(--_duration) ease;
-}
-
-.fp-tile .fp-panel-icon > .fp-icon {
-  width: 22px;
-  height: 22px;
-  --mdc-icon-size: 22px;
-  color: inherit;
-}
-
-.fp-panel-aside {
-  flex: none;
-  font-size: var(--_state-size);
-  font-weight: 600;
-  opacity: var(--_secondary);
-}
-
-/* The modes of the alarm, one pill each, the one it is in filled. */
-.fp-alarm-modes {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.fp-alarm-modes > .fp-pill {
-  flex: 1 1 96px;
-  height: 40px;
-}
-
-.fp-panel .fp-keypad {
-  align-self: center;
-}
-
-/* The alarm on a wide tile as tall as its keypad, the modes in the top
-   right corner on the round of the corner's controls, and the keypad across
-   from the name. */
-.fp-alarm {
+/* A card bigger than a tile, like the dial or the calendar: a wide tile
+   as tall as what it holds, the icon in the top left, its buttons in the
+   top right on one round, the name and the state in the bottom left and
+   what it shows in the bottom right. */
+.fp-card {
   height: 100%;
 }
 
-.fp-alarm > .fp-tile {
+.fp-card > .fp-tile {
   height: auto;
   min-height: 100%;
 }
 
-.fp-alarm .fp-controls > .fp-group {
+.fp-card .fp-controls > .fp-group {
   padding: 0;
   background: none;
 }
 
-.fp-alarm .fp-aside {
+.fp-card .fp-aside {
   margin: 0;
+}
+
+/* A card of a set height, like the calendar or the graph, gives what it
+   shows all the height under the icon, and as much of the width as it
+   can leave the name. */
+.fp-card:is(.fp-calendar, .fp-graph, .fp-todo) .fp-bottom {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.fp-card:is(.fp-calendar, .fp-graph, .fp-todo) .fp-bottom > .fp-text {
+  flex: 1 1 30%;
+  align-self: flex-end;
+}
+
+.fp-card:is(.fp-calendar, .fp-graph, .fp-todo) .fp-aside {
+  flex: 0 1 62%;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* How far back the graph goes, plain in the top right. */
+.fp-graph .fp-controls {
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+
+.fp-graph-range {
+  font-size: var(--_state-size);
+  font-weight: 600;
+  opacity: var(--_secondary);
 }
 
 /* A disarmed alarm stays glass, with its green coming in from the left
@@ -1617,7 +1565,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: 420px;
+  flex: 1;
+  min-height: 0;
   margin: 0 -6px;
   padding: 0 6px;
   overflow-y: auto;
@@ -1973,34 +1922,22 @@
   );
 }
 
-/* The gauge: a ring open at the bottom with the value in its middle. */
-.fp-gauge {
-  display: grid;
-  place-items: center;
-  justify-content: stretch;
-}
-
-.fp-gauge-ring,
-.fp-gauge-center {
-  grid-area: 1 / 1;
-}
-
+/* The gauge: a small ring open at the bottom, across from the name. */
 .fp-gauge-ring {
-  width: 100%;
-  height: 100%;
-  max-height: 150px;
+  width: 64px;
+  height: 59px;
   color: color-mix(in oklab, var(--_tile-accent, var(--_accent)), var(--_ink-to) var(--_deep));
 }
 
 .fp-gauge-track,
 .fp-gauge-fill {
   fill: none;
-  stroke-width: 9;
+  stroke-width: 12;
   stroke-linecap: round;
 }
 
 .fp-gauge-track {
-  stroke: color-mix(in srgb, var(--_text-inactive) 16%, transparent);
+  stroke: color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .fp-gauge-fill {
@@ -2008,35 +1945,9 @@
   transition: stroke-dasharray 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.fp-gauge-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 70%;
-  padding-top: 6px;
-  text-align: center;
-}
-
-.fp-gauge-value {
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.fp-gauge-unit {
-  margin-left: 2px;
-  font-size: 15px;
-  font-weight: 600;
-  opacity: var(--_secondary);
-}
-
-.fp-gauge .fp-name {
-  margin-top: 4px;
-  font-size: 13px;
-  opacity: var(--_secondary);
-  -webkit-line-clamp: 1;
+/* A card of a set height stays that tall. */
+.fp-card:is(.fp-calendar, .fp-graph, .fp-gauge, .fp-map) > .fp-tile {
+  height: 100%;
 }
 
 /* The dial: a big ring to drag, open at the bottom, with what it aims for
@@ -2054,7 +1965,7 @@
 }
 
 .fp-dial-ring {
-  width: min(240px, 100%);
+  width: 200px;
   aspect-ratio: 1;
   overflow: visible;
   touch-action: none;
@@ -2111,7 +2022,6 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  color: var(--_text-inactive);
   pointer-events: none;
 }
 
@@ -2168,27 +2078,15 @@
   display: flex;
   gap: 48px;
   margin-top: -36px;
-  color: var(--_text-inactive);
 }
 
 .fp-dial-buttons > .fp-control {
   background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
-.fp-dial-footer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
-
-.fp-dial-footer > * {
-  flex: 1 1 auto;
-}
-
 /* The media control: the cover art, large and blurred, washes the whole
-   card, with the art itself in the top left. */
-.fp-media-control[data-art]::before {
+   card. */
+.fp-media-control[style*='--_art'] > .fp-tile::before {
   content: '';
   position: absolute;
   inset: -40px;
@@ -2198,53 +2096,38 @@
   opacity: 0.85;
 }
 
-.fp-media-control {
+.fp-media-control > .fp-tile {
   isolation: isolate;
 }
 
-.fp-media-control[data-art] {
+.fp-media-control[style*='--_art'] > .fp-tile {
   color: #fff;
 }
 
-.fp-media-top {
+/* How far in and the volume, across from the title, with shuffle and
+   repeat on either side of the volume. */
+.fp-media-control .fp-aside {
+  flex: 0 1 55%;
+  min-width: 0;
+}
+
+.fp-media-side {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fp-media-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 4px;
 }
 
-.fp-media-top > .fp-text {
+.fp-media-row > .fp-feature {
   flex: 1;
-}
-
-.fp-media-art {
-  display: grid;
-  flex: none;
-  width: 64px;
-  height: 64px;
-  place-items: center;
-  border-radius: 14px;
-  background: color-mix(in srgb, currentColor 14%, transparent) var(--_art, none) center / cover;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-  transition: transform var(--_duration) cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.fp-media-art[data-pressed] {
-  transform: scale(0.94);
-}
-
-.fp-media-art:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-
-.fp-media-title {
-  overflow: hidden;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.25;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .fp-progress {
@@ -2276,55 +2159,29 @@
   font-variant-numeric: tabular-nums;
 }
 
-.fp-media-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.fp-tile .fp-media-buttons > .fp-control > .fp-icon {
-  width: 26px;
-  height: 26px;
-  --mdc-icon-size: 26px;
-}
-
-.fp-media-buttons > .fp-media-main {
-  width: 60px;
-  height: 60px;
-}
-
-.fp-tile .fp-media-buttons > .fp-media-main > .fp-icon {
-  width: 34px;
-  height: 34px;
-  --mdc-icon-size: 34px;
-}
-
-.fp-tile .fp-media-buttons > .fp-media-small > .fp-icon {
-  width: 20px;
-  height: 20px;
-  --mdc-icon-size: 20px;
+.fp-tile .fp-media-small > .fp-icon {
   opacity: 0.6;
 }
 
-.fp-media-buttons > .fp-media-small[aria-checked='true'] {
+.fp-media-small[aria-checked='true'] {
   background: color-mix(in srgb, currentColor 18%, transparent);
 }
 
-.fp-tile .fp-media-buttons > .fp-media-small[aria-checked='true'] > .fp-icon {
+.fp-tile .fp-media-small[aria-checked='true'] > .fp-icon {
   opacity: 1;
 }
 
-/* The map: Home Assistant's own, edge to edge in the tile's corners, the
-   name on a frosted label over its top left. */
-.fp-map {
-  padding: 0;
-  cursor: default;
-}
-
+/* The map: Home Assistant's own, filling the right of the tile from top
+   to bottom, inset as far as the padding, with rounded corners. */
 .fp-map-box {
   position: absolute;
-  inset: 0;
+  top: var(--_padding);
+  right: var(--_padding);
+  bottom: var(--_padding);
+  width: 62%;
+  overflow: hidden;
+  border-radius: calc(var(--_radius) - var(--_padding) / 2);
+  cursor: default;
   --ha-card-border-radius: 0;
   --ha-card-border-width: 0;
   --ha-card-background: transparent;
@@ -2334,21 +2191,6 @@
 .fp-map-box > * {
   display: block;
   height: 100%;
-}
-
-.fp-map-name {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 1;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--_bg-inactive);
-  -webkit-backdrop-filter: blur(var(--_blur)) saturate(1.6);
-  backdrop-filter: blur(var(--_blur)) saturate(1.6);
-  font-size: 14px;
-  font-weight: 600;
-  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2364,15 +2206,12 @@
   .fp-swatch,
   .fp-sheet,
   .fp-key,
-  .fp-panel-head,
-  .fp-panel-icon,
   .fp-todo-item > .fp-check,
   .fp-bar-fill,
   .fp-gauge-fill,
   .fp-dial-fill,
   .fp-dial-knob,
-  .fp-dial-end,
-  .fp-media-art {
+  .fp-dial-end {
     transition: none;
   }
 

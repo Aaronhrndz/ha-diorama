@@ -1,12 +1,10 @@
-import { callService, entityName, formatState, moreInfo, runAction, type TileEnv } from '#/tiles/actions.ts'
+import { callService, entityName, formatState, type TileEnv } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { MEDIA, VolumeSlider } from '#/tiles/features/media.tsx'
 import { numberOf, supports } from '#/tiles/features/parts.tsx'
-import { useTileGestures } from '#/tiles/gestures.ts'
 import { useNow } from '#/tiles/history.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
-import { Icon } from '#/tiles/Icon.tsx'
-import { defaultIcon } from '#/tiles/icons.ts'
+import { Panel } from '#/tiles/Panel.tsx'
 import type { CSSProperties } from 'react'
 
 const OFF = ['off', 'standby', 'unavailable', 'unknown']
@@ -19,10 +17,11 @@ const clock = (seconds: number) => {
   return hours ? `${hours}:${pad(minutes % 60)}:${pad(whole % 60)}` : `${minutes}:${pad(whole % 60)}`
 }
 
-// What is playing, the whole width: the cover art, washed large and blurred
-// behind the whole card, the title and the artist, how far into it it is,
-// the buttons to play it and its volume. A tap on the art opens the
-// player's dialog.
+// What is playing, with the cover art washed large and blurred behind the
+// whole card: the title and the artist in the bottom left corner where a
+// tile has its name, the buttons to play it in the top right, and across
+// from the title how far into it it is and its volume, with shuffle and
+// repeat on either side. A tap opens the player's dialog.
 export default function MediaControl({ env, config }: { env: TileEnv; config: TileConfig }) {
   const entity = env.hass.states[config.entity!]
   const attributes = entity?.attributes ?? {}
@@ -41,112 +40,107 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Ti
   const at = position === null ? null : playing && updated ? position + (now - Date.parse(updated)) / 1000 : position
   const run = (service: string) => () => callService(env.hass, `media_player.${service}`, { entity_id: config.entity })
   const has = (bit: number) => supports(entity, bit)
-  const open = () => moreInfo(env.host, config.entity)
-  const { pressed, handlers } = useTileGestures({
-    haptics: config.haptic !== false,
-    onTap: () => runAction(env, config.tap_action, open),
-    onHold: () => runAction(env, config.hold_action, open),
-  })
   const name = entityName(config, entity)
-  return (
-    <div
-      className="fp-tile fp-panel fp-media-control"
-      data-art={picture ? true : undefined}
-      data-unavailable={entity?.state === 'unavailable' || !entity || undefined}
-      style={picture ? ({ '--_art': `url("${picture}")` } as CSSProperties) : undefined}
-    >
-      <div className="fp-media-top">
-        <div
-          {...handlers}
-          role="button"
-          tabIndex={0}
-          aria-label={name}
-          data-pressed={pressed || undefined}
-          className="fp-media-art"
-        >
-          {!picture && <Icon icon={config.icon ?? defaultIcon(config.entity)} on />}
-        </div>
-        <div className="fp-text">
-          <div className="fp-media-title">{off ? name : (title ?? formatState(env.hass, entity))}</div>
-          <div className="fp-state">{off ? formatState(env.hass, entity) : (artist ?? name)}</div>
-        </div>
+  const timed = !off && duration !== null && duration > 0 && at !== null
+  const progress = timed && (
+    <div className="fp-progress">
+      <div
+        className="fp-progress-bar"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={duration}
+        aria-valuenow={Math.round(Math.min(at, duration))}
+      >
+        <span style={{ width: `${Math.min(at / duration, 1) * 100}%` }} />
       </div>
-      {!off && duration !== null && duration > 0 && at !== null && (
-        <div className="fp-progress">
-          <div
-            className="fp-progress-bar"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={duration}
-            aria-valuenow={Math.round(Math.min(at, duration))}
-          >
-            <span style={{ width: `${Math.min(at / duration, 1) * 100}%` }} />
-          </div>
-          <div className="fp-progress-times">
-            <span>{clock(Math.min(at, duration))}</span>
-            <span>-{clock(duration - Math.min(at, duration))}</span>
-          </div>
-        </div>
-      )}
-      {entity && (
-        <div className="fp-media-buttons">
-          {!off && has(MEDIA.shuffle) && (
-            <Control
-              icon="ph:shuffle"
-              label="Shuffle"
-              className="fp-media-small"
-              role="radio"
-              checked={attributes.shuffle === true}
-              onPress={() =>
-                callService(env.hass, 'media_player.shuffle_set', {
-                  entity_id: config.entity,
-                  shuffle: attributes.shuffle !== true,
-                })
-              }
-            />
-          )}
-          {!off && has(MEDIA.previous) && (
-            <Control icon="ph:skip-back" label="Previous" onPress={run('media_previous_track')} />
-          )}
-          {!off && has(playing ? MEDIA.pause : MEDIA.play) && (
-            <Control
-              icon={playing ? 'ph:pause' : 'ph:play'}
-              label={playing ? 'Pause' : 'Play'}
-              className="fp-media-main"
-              onPress={run('media_play_pause')}
-            />
-          )}
-          {!off && has(MEDIA.next) && <Control icon="ph:skip-forward" label="Next" onPress={run('media_next_track')} />}
-          {!off && has(MEDIA.repeat) && (
-            <Control
-              icon={attributes.repeat === 'one' ? 'ph:repeat-once' : 'ph:repeat'}
-              label="Repeat"
-              className="fp-media-small"
-              role="radio"
-              checked={attributes.repeat === 'all' || attributes.repeat === 'one'}
-              onPress={() =>
-                callService(env.hass, 'media_player.repeat_set', {
-                  entity_id: config.entity,
-                  repeat: attributes.repeat === 'off' ? 'all' : attributes.repeat === 'all' ? 'one' : 'off',
-                })
-              }
-            />
-          )}
-          {has(off ? MEDIA.turnOn : MEDIA.turnOff) && (
-            <Control
-              icon="ph:power-bold"
-              label={off ? 'Turn on' : 'Turn off'}
-              className="fp-media-small"
-              onPress={run(off ? 'turn_on' : 'turn_off')}
-            />
-          )}
-        </div>
-      )}
-      {entity && !off && has(MEDIA.volumeSet) && (
-        <div className="fp-feature">
-          <VolumeSlider env={env} config={config} entity={entity} />
-        </div>
-      )}
+      <div className="fp-progress-times">
+        <span>{clock(Math.min(at, duration))}</span>
+        <span>-{clock(duration - Math.min(at, duration))}</span>
+      </div>
     </div>
+  )
+  const shuffle = !off && has(MEDIA.shuffle) && (
+    <Control
+      icon="ph:shuffle"
+      label="Shuffle"
+      className="fp-media-small"
+      role="radio"
+      checked={attributes.shuffle === true}
+      onPress={() =>
+        callService(env.hass, 'media_player.shuffle_set', {
+          entity_id: config.entity,
+          shuffle: attributes.shuffle !== true,
+        })
+      }
+    />
+  )
+  const repeat = !off && has(MEDIA.repeat) && (
+    <Control
+      icon={attributes.repeat === 'one' ? 'ph:repeat-once' : 'ph:repeat'}
+      label="Repeat"
+      className="fp-media-small"
+      role="radio"
+      checked={attributes.repeat === 'all' || attributes.repeat === 'one'}
+      onPress={() =>
+        callService(env.hass, 'media_player.repeat_set', {
+          entity_id: config.entity,
+          repeat: attributes.repeat === 'off' ? 'all' : attributes.repeat === 'all' ? 'one' : 'off',
+        })
+      }
+    />
+  )
+  const volume = entity && !off && has(MEDIA.volumeSet) && (
+    <div className="fp-feature">
+      <VolumeSlider env={env} config={config} entity={entity} />
+    </div>
+  )
+  return (
+    <Panel
+      env={env}
+      config={{ ...config, name: off ? name : (title ?? name) }}
+      entity={entity}
+      state={off ? formatState(env.hass, entity) : (artist ?? (title ? name : formatState(env.hass, entity)))}
+      className="fp-media-control"
+      style={picture ? ({ '--_art': `url("${picture}")` } as CSSProperties) : undefined}
+      controls={
+        entity && (
+          <>
+            {!off && has(MEDIA.previous) && (
+              <Control icon="ph:skip-back" label="Previous" onPress={run('media_previous_track')} />
+            )}
+            {!off && has(playing ? MEDIA.pause : MEDIA.play) && (
+              <Control
+                icon={playing ? 'ph:pause' : 'ph:play'}
+                label={playing ? 'Pause' : 'Play'}
+                onPress={run('media_play_pause')}
+              />
+            )}
+            {!off && has(MEDIA.next) && (
+              <Control icon="ph:skip-forward" label="Next" onPress={run('media_next_track')} />
+            )}
+            {has(off ? MEDIA.turnOn : MEDIA.turnOff) && (
+              <Control
+                icon="ph:power-bold"
+                label={off ? 'Turn on' : 'Turn off'}
+                onPress={run(off ? 'turn_on' : 'turn_off')}
+              />
+            )}
+          </>
+        )
+      }
+    >
+      {(progress || shuffle || repeat || volume) && (
+        <div className="fp-media-side" data-art={picture ? true : undefined}>
+          {progress}
+          {(shuffle || repeat || volume) && (
+            <div className="fp-media-row">
+              {shuffle}
+              {volume}
+              {repeat}
+            </div>
+          )}
+        </div>
+      )}
+    </Panel>
   )
 }

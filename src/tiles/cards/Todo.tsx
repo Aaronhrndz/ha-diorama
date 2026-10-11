@@ -1,4 +1,5 @@
 import { callService, haptic, type TileEnv } from '#/tiles/actions.ts'
+import { Control } from '#/tiles/Control.tsx'
 import { insideTile } from '#/tiles/gestures.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
@@ -37,13 +38,15 @@ function useItems(hass: HomeAssistant, entityId: string | undefined) {
   return items
 }
 
-// A to-do list, the whole width: a field to add to it, what is left to do
-// with a round check to tick each off, and what is done under it, with a
-// button to clear it all away.
+// A to-do list: what is left to do with a round check to tick each off, and
+// what is done under it, in the bottom right corner across from the name.
+// Plus in the top right opens a field over the list to add to it, and a
+// broom beside it clears away what is done.
 export default function Todo({ env, config }: { env: TileEnv; config: TileConfig }) {
   const entity = env.hass.states[config.entity!]
   const items = useItems(env.hass, config.entity)
   const [draft, setDraft] = useState('')
+  const [adding, setAdding] = useState(false)
   const open = (items ?? []).filter(item => item.status === 'needs_action')
   const done = (items ?? []).filter(item => item.status === 'completed')
   const language = env.hass.locale?.language ?? env.hass.language
@@ -98,8 +101,24 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
       state={!items ? 'Loading' : open.length === 0 ? 'All done' : `${open.length} to do`}
       accent="var(--_accent-light)"
       className="fp-todo"
+      controls={
+        (supports(entity, CREATE) || (done.length > 0 && supports(entity, DELETE))) && (
+          <>
+            {done.length > 0 && supports(entity, DELETE) && (
+              <Control
+                icon="ph:broom"
+                label="Clear done"
+                onPress={() => callService(env.hass, 'todo.remove_completed_items', target)}
+              />
+            )}
+            {supports(entity, CREATE) && (
+              <Control icon="ph:plus-bold" label="Add an item" onPress={() => setAdding(true)} />
+            )}
+          </>
+        )
+      }
     >
-      {supports(entity, CREATE) && (
+      {adding && (
         <form
           className="fp-todo-add"
           onSubmit={e => {
@@ -114,6 +133,8 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
             placeholder="Add an item"
             aria-label="Add an item"
             enterKeyHint="done"
+            autoFocus
+            onBlur={() => !draft.trim() && setAdding(false)}
             onChange={e => setDraft(e.target.value)}
             onKeyDown={e => e.stopPropagation()}
           />
@@ -127,16 +148,6 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
         <>
           <div className="fp-todo-head">
             <span>Done</span>
-            {supports(entity, DELETE) && (
-              <button
-                {...insideTile}
-                type="button"
-                className="fp-link"
-                onClick={() => callService(env.hass, 'todo.remove_completed_items', target)}
-              >
-                Clear
-              </button>
-            )}
           </div>
           <ul className="fp-todo-list">{done.map(row)}</ul>
         </>

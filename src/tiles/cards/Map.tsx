@@ -1,5 +1,7 @@
-import { entityName, type TileEnv } from '#/tiles/actions.ts'
+import { formatState, type TileEnv } from '#/tiles/actions.ts'
+import { insideTile } from '#/tiles/gestures.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
+import { Panel } from '#/tiles/Panel.tsx'
 import { useEffect, useRef, useState } from 'react'
 
 export type MapConfig = TileConfig & {
@@ -9,9 +11,9 @@ export type MapConfig = TileConfig & {
 
 type Card = HTMLElement & { hass?: unknown; setConfig?: (config: Record<string, unknown>) => void }
 
-// Where a person, a tracker or a zone is, on Home Assistant's own map,
-// framed as a tile with the name over its top left corner. The map takes
-// its own drags and pinches.
+// Where a person, a tracker or a zone is: the name and the place in the
+// bottom left corner like every tile, and Home Assistant's own map filling
+// the right of it. The map takes its own drags and pinches.
 export default function MapCard({ env, config }: { env: TileEnv; config: MapConfig }) {
   const entity = env.hass.states[config.entity!]
   const box = useRef<HTMLDivElement>(null)
@@ -48,9 +50,8 @@ export default function MapCard({ env, config }: { env: TileEnv; config: MapConf
   }, [card, env.hass])
 
   return (
-    <div className="fp-tile fp-map" data-unavailable={!entity || undefined}>
-      <div ref={box} className="fp-map-box" />
-      <div className="fp-map-name">{entityName(config, entity)}</div>
-    </div>
+    <Panel env={env} config={config} entity={entity} state={formatState(env.hass, entity)} className="fp-map">
+      <div {...insideTile} ref={box} className="fp-map-box" />
+    </Panel>
   )
 }

@@ -29,8 +29,9 @@ export const isNumeric = (entity: EntityState | undefined) =>
 const counts = (entity: EntityState | undefined) =>
   entity?.attributes.state_class === 'total_increasing' || entity?.attributes.state_class === 'total'
 
-// The history of an entity, as wide as the card and four rows tall, the
-// value now in large type over it. A reading is a line over the last day
+// The history of an entity, four rows tall, the chart in the bottom right
+// corner across from the name and the value now, and how far back it goes
+// in the top right. A reading is a line over the last day
 // with its shade, or bars for its last days. Anything else, like a door, is
 // a strip lit for the times it was on.
 export default function Graph({ env, config }: { env: TileEnv; config: GraphConfig }) {
@@ -46,7 +47,7 @@ export default function Graph({ env, config }: { env: TileEnv; config: GraphConf
       config={config}
       entity={entity}
       state={formatState(env.hass, entity)}
-      aside={<span className="fp-graph-range">{range}</span>}
+      controls={<span className="fp-graph-range">{range}</span>}
       className="fp-graph"
     >
       {bars ? (
