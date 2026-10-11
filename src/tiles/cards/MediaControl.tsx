@@ -1,14 +1,16 @@
 import { cn } from '#/lib/utils.ts'
-import { callService, entityName, formatState, type TileEnv } from '#/tiles/actions.ts'
+import { callService, entityName, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { MEDIA, VolumeSlider } from '#/tiles/features/media.tsx'
 import { numberOf, supports } from '#/tiles/features/parts.tsx'
 import { useNow } from '#/tiles/history.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
-import type { CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 
 const OFF = ['off', 'standby', 'unavailable', 'unknown']
+// How far a finger goes sideways before the press is a drag along the song.
+const SLOP_PX = 8
 
 const clock = (seconds: number) => {
   const whole = Math.max(0, Math.floor(seconds))
@@ -25,10 +27,13 @@ export type MediaControlConfig = TileConfig & {
 }
 
 // What is playing, with the cover art washed large and blurred behind the
-// whole card, or square in place of the icon: the title and the artist in the bottom left corner where a
-// tile has its name, the buttons to play it in the top right, and across
-// from the title how far into it it is and its volume, with shuffle and
-// repeat on either side. A tap opens the player's dialog.
+// whole card, or square in place of the icon: the title and the artist in
+// the bottom left corner where a tile has its name, the buttons to play it
+// in the top right with how far into it it is on their left, and across
+// from the title its volume, with shuffle and repeat on either side. The
+// card fills from the left as far into the song as it is, faintly, and a
+// drag sideways anywhere on it moves along the song when the player can.
+// A tap plays or pauses it, or opens the player's dialog while it is off.
 export default function MediaControl({ env, config }: { env: TileEnv; config: MediaControlConfig }) {
   const entity = env.hass.states[config.entity!]
   const attributes = entity?.attributes ?? {}
@@ -51,23 +56,58 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   const has = (bit: number) => supports(entity, bit)
   const name = entityName(config, entity)
   const timed = !off && duration !== null && duration > 0 && at !== null
-  const progress = timed && (
-    <div className="fp-progress">
-      <div
-        className="fp-progress-bar"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={duration}
-        aria-valuenow={Math.round(Math.min(at, duration))}
-      >
-        <span style={{ width: `${Math.min(at / duration, 1) * 100}%` }} />
-      </div>
-      <div className="fp-progress-times">
-        <span>{clock(Math.min(at, duration))}</span>
-        <span>-{clock(duration - Math.min(at, duration))}</span>
-      </div>
-    </div>
-  )
+  const seekable = timed && has(MEDIA.seek)
+  // Where a drag along the song is, from 0 to 1, until it lets go.
+  const [drag, setDrag] = useState<number | null>(null)
+  const box = useRef<HTMLDivElement>(null)
+  const start = useRef<{ x: number; y: number; from: number; dragging: boolean } | null>(null)
+  const share = drag ?? (timed ? Math.min(at / duration, 1) : 0)
+  // The window listeners outlive a render, so they reach the latest ones
+  // through here.
+  const latest = useRef({ drag, duration, entityId: config.entity, hass: env.hass })
+  useEffect(() => {
+    latest.current = { drag, duration, entityId: config.entity, hass: env.hass }
+  })
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      const s = start.current
+      if (!s || !box.current) return
+      const along = e.clientX - s.x
+      if (!s.dragging) {
+        if (Math.abs(along) < SLOP_PX || Math.abs(along) < Math.abs(e.clientY - s.y)) return
+        s.dragging = true
+      }
+      setDrag(Math.min(1, Math.max(0, s.from + along / box.current.getBoundingClientRect().width)))
+    }
+    const up = () => {
+      const s = start.current
+      start.current = null
+      if (!s?.dragging) return
+      const { drag, duration, entityId, hass } = latest.current
+      setDrag(null)
+      if (drag === null || !duration) return
+      haptic('selection')
+      void callService(hass, 'media_player.media_seek', {
+        entity_id: entityId,
+        seek_position: Math.round(drag * duration),
+      })
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+    return () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+    }
+  }, [])
+  // A drag that starts on the volume or a button is theirs.
+  const down = (e: ReactPointerEvent) => {
+    if (e.button !== 0 || !seekable) return
+    if ((e.target as Element).closest('button, [role="slider"], .fp-feature, .fp-control')) return
+    start.current = { x: e.clientX, y: e.clientY, from: share, dragging: false }
+  }
+  const time = timed && <span className="fp-media-time">{clock(share * duration)}</span>
   const shuffle = !off && has(MEDIA.shuffle) && (
     <Control
       icon="ph:shuffle"
@@ -104,54 +144,66 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
     </div>
   )
   return (
-    <Panel
-      env={env}
-      config={{ ...config, name: off ? name : (title ?? name) }}
-      entity={entity}
-      state={off ? formatState(env.hass, entity) : (artist ?? (title ? name : formatState(env.hass, entity)))}
-      accent="var(--_accent-media)"
-      className={cn('fp-media-control', cover && 'fp-media-cover')}
-      picture={cover ?? undefined}
-      style={picture && !square ? ({ '--_art': `url("${picture}")` } as CSSProperties) : undefined}
-      controls={
-        entity && (
-          <>
-            {!off && has(MEDIA.previous) && (
-              <Control icon="ph:skip-back" label="Previous" onPress={run('media_previous_track')} />
-            )}
-            {!off && has(playing ? MEDIA.pause : MEDIA.play) && (
-              <Control
-                icon={playing ? 'ph:pause' : 'ph:play'}
-                label={playing ? 'Pause' : 'Play'}
-                onPress={run('media_play_pause')}
-              />
-            )}
-            {!off && has(MEDIA.next) && (
-              <Control icon="ph:skip-forward" label="Next" onPress={run('media_next_track')} />
-            )}
-            {has(off ? MEDIA.turnOn : MEDIA.turnOff) && (
-              <Control
-                icon="ph:power-bold"
-                label={off ? 'Turn on' : 'Turn off'}
-                onPress={run(off ? 'turn_on' : 'turn_off')}
-              />
-            )}
-          </>
-        )
-      }
+    <div
+      ref={box}
+      className="fp-media-seek"
+      data-seekable={seekable || undefined}
+      data-dragging={drag !== null || undefined}
+      onPointerDownCapture={down}
     >
-      {(progress || shuffle || repeat || volume) && (
-        <div className="fp-media-side" data-art={picture && !square ? true : undefined}>
-          {progress}
-          {(shuffle || repeat || volume) && (
-            <div className="fp-media-row">
-              {shuffle}
-              {volume}
-              {repeat}
-            </div>
-          )}
-        </div>
-      )}
-    </Panel>
+      <Panel
+        env={env}
+        config={{ ...config, name: off ? name : (title ?? name) }}
+        entity={entity}
+        state={off ? formatState(env.hass, entity) : (artist ?? (title ? name : formatState(env.hass, entity)))}
+        accent="var(--_accent-media)"
+        onTap={!off && has(playing ? MEDIA.pause : MEDIA.play) ? run('media_play_pause') : undefined}
+        className={cn('fp-media-control', cover && 'fp-media-cover')}
+        picture={cover ?? undefined}
+        style={
+          {
+            '--_art': picture && !square ? `url("${picture}")` : undefined,
+            '--_progress': timed ? `${share * 100}%` : undefined,
+          } as CSSProperties
+        }
+        controls={
+          entity && (
+            <>
+              {time}
+              <div className="fp-media-buttons">
+                {!off && has(MEDIA.previous) && (
+                  <Control icon="ph:skip-back" label="Previous" onPress={run('media_previous_track')} />
+                )}
+                {!off && has(playing ? MEDIA.pause : MEDIA.play) && (
+                  <Control
+                    icon={playing ? 'ph:pause' : 'ph:play'}
+                    label={playing ? 'Pause' : 'Play'}
+                    onPress={run('media_play_pause')}
+                  />
+                )}
+                {!off && has(MEDIA.next) && (
+                  <Control icon="ph:skip-forward" label="Next" onPress={run('media_next_track')} />
+                )}
+                {has(off ? MEDIA.turnOn : MEDIA.turnOff) && (
+                  <Control
+                    icon="ph:power-bold"
+                    label={off ? 'Turn on' : 'Turn off'}
+                    onPress={run(off ? 'turn_on' : 'turn_off')}
+                  />
+                )}
+              </div>
+            </>
+          )
+        }
+      >
+        {(shuffle || repeat || volume) && (
+          <div className="fp-media-row">
+            {shuffle}
+            {volume}
+            {repeat}
+          </div>
+        )}
+      </Panel>
+    </div>
   )
 }

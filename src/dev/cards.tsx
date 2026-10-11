@@ -318,11 +318,15 @@ const SERVICES: Record<string, (id: string, service: string, data: Record<string
   },
   media_player: (id, service, data) => {
     const s = states[id]
-    const at = { media_position_updated_at: iso() }
+    // Where the song is now, so pausing or playing keeps it there.
+    const since = Date.parse(String(s.attributes.media_position_updated_at))
+    const now = Number(s.attributes.media_position) + (s.state === 'playing' && since ? (Date.now() - since) / 1000 : 0)
+    const at = { media_position_updated_at: iso(), media_position: now }
     if (service === 'media_play_pause') update(id, s.state === 'playing' ? 'paused' : 'playing', at)
     if (service === 'media_play') update(id, 'playing', at)
     if (service === 'media_pause') update(id, 'paused', at)
     if (service === 'media_stop') update(id, 'idle')
+    if (service === 'media_seek') update(id, s.state, { ...at, media_position: data.seek_position })
     if (service === 'media_next_track' || service === 'media_previous_track')
       update(id, 'playing', { ...at, media_position: 0 })
     if (service === 'volume_set') update(id, s.state, { volume_level: data.volume_level })

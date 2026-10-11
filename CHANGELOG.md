@@ -45,6 +45,7 @@ moves that section under the new version and uses it as the release notes.
 - Eight larger cards come with the tiles and are offered beside them when a card is added by entity: an alarm panel with a keypad, a dial for a thermostat, a water heater, a humidifier or a light's brightness, a media control with the cover art, a calendar agenda, a to-do list, a history graph, a gauge and a map.
 - The larger cards are laid out like a wide tile, with the icon in the top left, their buttons in the top right, the name and the state in the bottom left and what they show in the bottom right, and a tap on a light's or a humidifier's dial turns it on or off.
 - The Now Playing card can show the cover art square in place of its icon, as large as the card leaves it above the title and as tall a card as with the art blurred behind it, chosen in its editor, and the card picker offers both.
+- The Now Playing card fills from the left with a faint dark shade as the song goes on, shows the time played beside its buttons, seeks when swiped sideways anywhere on it, and plays or pauses with a tap.
 - The dial's ring is bigger and reaches down beside the name, with plus over minus on its left, and its number stays still as it changes, like from 21° to 21.5°, with the two ends of a range large and one over the other inside the ring.
 - The alarm panel is a wide tile like the others, with its modes in the top right, a keypad beside a large line saying what the code will do, a red lock key to arm and a green open lock to disarm, and a red or green wash for armed or disarmed.
 

@@ -2147,6 +2147,7 @@
 }
 
 .fp-media-control > .fp-tile {
+  min-height: 168px;
   isolation: isolate;
 }
 
@@ -2193,59 +2194,73 @@
   align-self: end;
 }
 
-/* How far in and the volume, across from the title, with shuffle and
-   repeat on either side of the volume. */
+/* The card fills from the left as far into the song as it is, with a
+   faint shade between what is behind it and the words, and a drag sideways
+   anywhere on it moves along the song. */
+.fp-media-seek {
+  height: 100%;
+}
+
+.fp-media-seek[data-seekable] {
+  touch-action: pan-y;
+}
+
+.fp-media-control[style*='--_progress'] > .fp-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  width: var(--_progress);
+  background: var(--fp-media-progress, color-mix(in srgb, #000 20%, transparent));
+  transition: width 1s linear;
+  pointer-events: none;
+}
+
+.fp-media-seek[data-dragging] .fp-tile::after {
+  transition: none;
+}
+
+/* How far in, on the left of the buttons. */
+.fp-media-control .fp-controls {
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  background: none;
+}
+
+.fp-media-time {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: var(--_secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.fp-media-buttons {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* The volume across from the title, with shuffle and repeat on either
+   side. */
 .fp-media-control .fp-aside {
   flex: 0 1 55%;
   min-width: 0;
 }
 
-.fp-media-side {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
 .fp-media-row {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: 4px;
+  min-width: 0;
 }
 
 .fp-media-row > .fp-feature {
   flex: 1;
   min-width: 0;
-}
-
-.fp-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.fp-progress-bar {
-  height: 6px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: color-mix(in srgb, currentColor 22%, transparent);
-}
-
-.fp-progress-bar > span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: currentColor;
-}
-
-.fp-progress-times {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  font-weight: 600;
-  opacity: var(--_secondary);
-  font-variant-numeric: tabular-nums;
 }
 
 .fp-tile .fp-media-small > .fp-icon {
