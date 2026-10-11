@@ -125,6 +125,10 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
       <div className="fp-todo-body">
         {adding && (
           <form
+            // The tile takes a click as its own tap and cancels it, and Enter
+            // in the field clicks the add button, so the form keeps its
+            // clicks to itself or it would never be sent.
+            onClick={e => e.stopPropagation()}
             className="fp-todo-add"
             onSubmit={e => {
               e.preventDefault()
