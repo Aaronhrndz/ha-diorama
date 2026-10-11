@@ -10,6 +10,8 @@ Before starting any task, check the state of the branch you are working on again
 
 Check this on every new session and again right before every commit: fetch, confirm the branch's pull request is still open and the remote branch has not moved. Never commit on stale assumptions.
 
+Whenever a pull request is merged, and whenever you check the state of the branches, fetch with `--prune` and delete every local branch whose pull request was merged and whose remote branch is gone. Never delete a local branch with commits that were not merged.
+
 Keep working on the same branch and pull request while it is open, whatever the task. Only start a new branch when the pull request was merged or the user asks for one.
 
 ## Project
