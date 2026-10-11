@@ -2221,11 +2221,16 @@
 .fp-media-control[style*='--_progress'] > .fp-tile::after {
   content: '';
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: 0;
   z-index: -1;
-  width: var(--_progress);
   background: var(--fp-media-progress, color-mix(in srgb, #000 var(--_progress-shade, 20%), transparent));
-  transition: width 1s linear;
+  /* As wide as the song has gone, and clear behind the boxes of buttons
+     and of the volume, so they stay the same glass as the rest. */
+  mask:
+    linear-gradient(#000 0 0) 0 0 / var(--_progress) 100% no-repeat,
+    var(--_holes, linear-gradient(#000 0 0)) 0 0 / 100% 100% no-repeat;
+  mask-composite: intersect;
+  transition: mask-size 1s linear;
   pointer-events: none;
 }
 

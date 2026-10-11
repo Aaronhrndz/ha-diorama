@@ -6,7 +6,14 @@ import { numberOf, supports } from '#/tiles/features/parts.tsx'
 import { useNow } from '#/tiles/history.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
 
 const OFF = ['off', 'standby', 'unavailable', 'unknown']
 // How far a finger goes sideways before the press is a drag along the song.
@@ -18,6 +25,31 @@ const clock = (seconds: number) => {
   const hours = Math.floor(minutes / 60)
   const pad = (n: number) => String(n).padStart(2, '0')
   return hours ? `${hours}:${pad(minutes % 60)}:${pad(whole % 60)}` : `${minutes}:${pad(whole % 60)}`
+}
+
+// What the progress leaves out: the boxes that hold the buttons and the
+// volume, so it passes behind them without showing through.
+const HOLES = '.fp-media-buttons, .fp-slider, .fp-media-small[aria-checked="true"]'
+
+// A mask the size of the card, clear where each box is, with its corners.
+const holes = (tile: HTMLElement) => {
+  const card = tile.getBoundingClientRect()
+  if (!card.width || !card.height) return undefined
+  const rects = [...tile.querySelectorAll<HTMLElement>(HOLES)].map(hole => {
+    const box = hole.getBoundingClientRect()
+    // A box that grows while it is pressed is measured at its own size.
+    const width = hole.offsetWidth
+    const height = hole.offsetHeight
+    const x = box.left + box.width / 2 - width / 2 - card.left
+    const y = box.top + box.height / 2 - height / 2 - card.top
+    const radius = Math.min(parseFloat(getComputedStyle(hole).borderTopLeftRadius) || 0, height / 2)
+    return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="${radius}"/>`
+  })
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${card.width}" height="${card.height}">` +
+    `<mask id="m"><rect width="100%" height="100%" fill="#fff"/><g fill="#000">${rects.join('')}</g></mask>` +
+    `<rect width="100%" height="100%" mask="url(#m)"/></svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
 }
 
 export type MediaControlConfig = TileConfig & {
@@ -101,6 +133,21 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
       window.removeEventListener('pointercancel', up)
     }
   }, [])
+  // The boxes move when the card changes size or shows other buttons, so
+  // they are measured again after every render and on every resize.
+  const [mask, setMask] = useState<string>()
+  const measure = useRef(() => {})
+  measure.current = () => {
+    const tile = box.current?.querySelector<HTMLElement>('.fp-tile')
+    if (tile) setMask(holes(tile))
+  }
+  useLayoutEffect(() => measure.current())
+  useEffect(() => {
+    if (!box.current) return
+    const observer = new ResizeObserver(() => measure.current())
+    observer.observe(box.current)
+    return () => observer.disconnect()
+  }, [])
   // A drag that starts on the volume or a button is theirs.
   const down = (e: ReactPointerEvent) => {
     if (e.button !== 0 || !seekable) return
@@ -164,6 +211,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
           {
             '--_art': picture && !square ? `url("${picture}")` : undefined,
             '--_progress': timed ? `${share * 100}%` : undefined,
+            '--_holes': timed ? mask : undefined,
           } as CSSProperties
         }
         controls={
