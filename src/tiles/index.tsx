@@ -21,6 +21,7 @@ import MediaControl, { type MediaControlConfig } from '#/tiles/cards/MediaContro
 import Todo from '#/tiles/cards/Todo.tsx'
 import Weather, { type WeatherConfig } from '#/tiles/cards/Weather.tsx'
 import { featuresFor, isWide } from '#/tiles/features/index.tsx'
+import { supports } from '#/tiles/features/parts.tsx'
 import type { HomeAssistant } from '#/types.ts'
 import type { ReactNode } from 'react'
 
@@ -52,6 +53,9 @@ const DIAL_DOMAINS = ['climate', 'water_heater', 'humidifier', 'light']
 const MAP_DOMAINS = ['person', 'device_tracker', 'zone']
 
 // What the dial is called for each domain in the card picker.
+// Pause, seek, volume set, previous, next, volume step, stop and play.
+const PLAYS = 1 | 2 | 4 | 16 | 32 | 1024 | 4096 | 16384
+
 const DIAL_NAMES: Record<string, string> = {
   climate: 'Drag the ring for the temperature',
   water_heater: 'Drag the ring for the temperature',
@@ -334,16 +338,21 @@ const CARDS: Card[] = [
     domains: MEDIA_DOMAINS,
     name: 'Floorplan Now Playing',
     description: 'What is playing, with its art, how far in it is, its buttons and volume',
-    suggest: (_, entityId) => [
-      {
-        label: 'Its art blurred behind it, progress, buttons and volume',
-        config: { type: 'custom:fp-media-control', entity: entityId },
-      },
-      {
-        label: 'Its art in place of the icon, progress, buttons and volume',
-        config: { type: 'custom:fp-media-control', entity: entityId, art: 'icon' },
-      },
-    ],
+    // Only for a player that plays, pauses, skips or changes its volume,
+    // since one that only browses or searches would show next to nothing.
+    suggest: (hass, entityId) =>
+      !supports(hass.states[entityId], PLAYS)
+        ? []
+        : [
+            {
+              label: 'Its art blurred behind it, progress, buttons and volume',
+              config: { type: 'custom:fp-media-control', entity: entityId },
+            },
+            {
+              label: 'Its art in place of the icon, progress, buttons and volume',
+              config: { type: 'custom:fp-media-control', entity: entityId, art: 'icon' },
+            },
+          ],
   },
   {
     type: 'fp-calendar',

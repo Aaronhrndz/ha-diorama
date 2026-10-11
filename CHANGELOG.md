@@ -53,6 +53,8 @@ moves that section under the new version and uses it as the release notes.
 - The to-do list card lists its items across the whole card down to just over its name, in the same teal as the calendar, without lines between them, and fades out at its edges when it scrolls.
 - The calendar card lists its events across the whole card down to just over its name, with a thin, quiet scrollbar, and can show only today's events, offered as its own card in the card picker.
 - The Now Playing card fills from the left with a faint dark shade as the song goes on, passing behind its buttons and its volume without showing through them, shows the time played beside its buttons, seeks when swiped sideways anywhere on it, and plays or pauses with a tap.
+- The Now Playing card blurs the cover art behind it less, so it can still be made out.
+- The card picker no longer offers the Now Playing card for a media player that can only browse or search, as it would show next to nothing.
 - The Now Playing card's volume fills white on a dark card and black on a light one, with shuffle and repeat to its right, and its level no longer gets cut off on a phone.
 - The dial's ring is bigger and reaches down beside the name, with plus over minus on its left, and its number stays still as it changes, like from 21° to 21.5°, with the two ends of a range large and one over the other inside the ring.
 - The alarm panel is a wide tile like the others, with its modes in the top right, a keypad beside a large line saying what the code will do, a red lock key to arm and a green open lock to disarm, and a red or green wash for armed or disarmed.
