@@ -7,13 +7,20 @@ import { useEffect, useRef, useState } from 'react'
 export type MapConfig = TileConfig & {
   // How many hours of a person's path the map draws behind them.
   hours_to_show?: number
+  // Where the map goes: beside the name, the default, across the top over
+  // a bar with the name and the state, over the whole card with them on
+  // it, or over the whole card alone.
+  layout?: 'beside' | 'top' | 'caption' | 'full'
 }
 
 type Card = HTMLElement & { hass?: unknown; setConfig?: (config: Record<string, unknown>) => void }
 
 // Where a person, a tracker or a zone is: the name and the place in the
 // bottom left corner like every tile, and Home Assistant's own map filling
-// the right of it. The map takes its own drags and pinches.
+// the right of it. Laid out otherwise, there is no icon, and the map fills
+// all of the card over a bar along its bottom with the name and the place,
+// or the whole card, with them on it or with nothing. The map takes its
+// own drags and pinches.
 export default function MapCard({ env, config }: { env: TileEnv; config: MapConfig }) {
   const entity = env.hass.states[config.entity!]
   const box = useRef<HTMLDivElement>(null)
@@ -50,7 +57,13 @@ export default function MapCard({ env, config }: { env: TileEnv; config: MapConf
   }, [card, env.hass])
 
   return (
-    <Panel env={env} config={config} entity={entity} state={formatState(env.hass, entity)} className="fp-map">
+    <Panel
+      env={env}
+      config={config}
+      entity={entity}
+      state={formatState(env.hass, entity)}
+      className={`fp-map fp-map-${config.layout ?? 'beside'}`}
+    >
       <div {...insideTile} ref={box} className="fp-map-box" />
     </Panel>
   )

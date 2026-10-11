@@ -36,6 +36,7 @@ const LABELS: Record<string, string> = {
   min: 'Minimum',
   max: 'Maximum',
   hours_to_show: 'Path of the last hours',
+  layout: 'Layout',
   forecast_type: 'Forecast',
   interactions: 'Interactions',
 }
@@ -123,7 +124,23 @@ const EXTRAS: Record<Extra, Field[]> = {
     { name: 'min', selector: { number: { mode: 'box' } } },
     { name: 'max', selector: { number: { mode: 'box' } } },
   ],
-  map: [{ name: 'hours_to_show', selector: { number: { min: 0, max: 168, mode: 'box' } } }],
+  map: [
+    {
+      name: 'layout',
+      selector: {
+        select: {
+          mode: 'dropdown',
+          options: [
+            { value: 'beside', label: 'Beside the name, with the icon' },
+            { value: 'top', label: 'Across the top, over the name' },
+            { value: 'caption', label: 'Over the whole card, with the name on it' },
+            { value: 'full', label: 'Over the whole card, alone' },
+          ],
+        },
+      },
+    },
+    { name: 'hours_to_show', selector: { number: { min: 0, max: 168, mode: 'box' } } },
+  ],
   forecast: [
     {
       name: 'forecast_type',
