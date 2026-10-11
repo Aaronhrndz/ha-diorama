@@ -108,6 +108,7 @@ moves that section under the new version and uses it as the release notes.
 - Each thermostat mode has its own color: orange for heating, blue for cooling, yellow for drying and teal for the fan alone, while auto and keeping a range look plain like off. Water heaters, humidifiers and the alarm panel's warning share the same orange and blue. In the 3D view, the air out of an air conditioner and the glow of a thermostat take the same color as its tiles.
 - The side panel's tiles fade out at its top and bottom edges as they scroll, showing the background, instead of being cut off.
 - The camera tile shows the camera's state under its name.
+- Covers, vacuums, thermostats and media players are offered as a small tile that only answers a tap, as well as wide with their buttons.
 - A calendar or a to-do list in the side panel shows as the calendar or the to-do card, and Floorplan Any Entity is no longer offered for a calendar.
 
 ### Fixed

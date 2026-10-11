@@ -428,10 +428,9 @@ export function registerTiles() {
 }
 
 // The suggestions of a card for an entity picked in Home Assistant's card
-// picker: the tile, wide for a tile with controls, since the editor can
-// make it small, then the tile with each control it can show beside its
-// icon, as Home Assistant offers its own tile with each of its features.
-// Each is labelled with all the tile does, since the picker shows no
+// picker: the tile, then wide with its controls for a tile with them, then
+// the tile with each control it can show beside its icon, as Home
+// Assistant offers its own tile with each of its features. Each is labelled with all the tile does, since the picker shows no
 // description.
 function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggestion[] | null {
   if (!shows(card, entityId)) return null
@@ -440,11 +439,10 @@ function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggest
   const config = { type, entity: entityId }
   const domain = entityId.split('.')[0]
   const tap = typeof card.does === 'function' ? card.does(domain) : card.does
+  // A tile with controls comes small, the tap alone, and wide with them.
   const base = [
-    {
-      label: card.controls ? `${tap}, with ${card.controls}` : tap,
-      config: card.wide ? { ...config, size: 'wide' } : config,
-    },
+    { label: tap, config },
+    ...(card.wide ? [{ label: `${tap}, with ${card.controls}`, config: { ...config, size: 'wide' } }] : []),
   ]
   if (card.extra) return base
   const features = featuresFor(hass.states[entityId])
