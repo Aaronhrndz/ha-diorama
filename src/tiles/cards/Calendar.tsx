@@ -17,7 +17,7 @@ type RawEvent = { summary?: string; start: When; end: When; location?: string }
 type Event = { title: string; start: Date; end: Date; allDay: boolean; location?: string; calendar: number }
 
 // The color of each calendar, in the order the config lists them.
-const COLORS = ['#0a84ff', '#ff9f0a', '#30d158', '#bf5af2', '#ff375f', '#64d2ff']
+const COLORS = ['#12a594', '#0a84ff', '#ff9f0a', '#bf5af2', '#ff375f', '#ffd60a']
 
 // How often the events are read again while the card shows.
 const REFRESH_MS = 5 * 60_000
@@ -76,8 +76,8 @@ function useEvents(hass: HomeAssistant, ids: string[], days: number) {
 
 // The coming events of one calendar or more, across the whole card from
 // under the icon down to the name: day by day, the events that last all
-// day as round pills first, then each other event with its time, all
-// tinted in their calendar's color. With a single day it shows only
+// day as plain grey round pills first, then each other event with its
+// time, tinted in its calendar's color. With a single day it shows only
 // today's. The line under the name says what
 // is next.
 export default function Calendar({ env, config }: { env: TileEnv; config: CalendarConfig }) {
@@ -135,7 +135,6 @@ export default function Calendar({ env, config }: { env: TileEnv; config: Calend
                       key={`${event.calendar}-${event.start.getTime()}-${i}`}
                       role="listitem"
                       className="fp-agenda-pill"
-                      style={{ '--_event': COLORS[event.calendar % COLORS.length] } as CSSProperties}
                     >
                       {event.title}
                     </div>

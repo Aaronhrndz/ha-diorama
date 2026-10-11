@@ -1704,22 +1704,22 @@
 /* Each event is tinted in its calendar's color. On a light dashboard the
    tint sits on white, so it reads as a light card of the color rather
    than as a muddy one. */
-:is(.fp-agenda-event, .fp-agenda-pill) {
+.fp-agenda-event {
   --_event-bg: color-mix(in srgb, var(--_event, currentColor) 14%, transparent);
-  --_event-now: color-mix(in srgb, var(--_event, currentColor) 26%, transparent);
+  --_event-now: color-mix(in srgb, var(--_event, currentColor) 34%, transparent);
 }
 
-:host([data-light]) :is(.fp-agenda-event, .fp-agenda-pill) {
+:host([data-light]) .fp-agenda-event {
   --_event-bg: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 16%, #fff) 75%, transparent);
-  --_event-now: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 30%, #fff) 85%, transparent);
+  --_event-now: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 42%, #fff) 90%, transparent);
 }
 
 .fp-agenda-event[data-now] {
   background: var(--_event-now);
 }
 
-/* The events that last all day: just their names, in round pills over the
-   day's other events. */
+/* The events that last all day: just their names, in plain grey round
+   pills over the day's other events. */
 .fp-agenda-pills {
   display: flex;
   flex-wrap: wrap;
@@ -1731,7 +1731,7 @@
   overflow: hidden;
   padding: 6px 12px;
   border-radius: 999px;
-  background: var(--_event-bg);
+  background: color-mix(in srgb, currentColor 10%, transparent);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
