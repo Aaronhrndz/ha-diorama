@@ -1701,17 +1701,22 @@
   background: var(--_event-bg);
 }
 
-/* Each event is tinted in its calendar's color. On a light dashboard the
-   tint sits on white, so it reads as a light card of the color rather
-   than as a muddy one. */
+/* Each event is tinted in its calendar's color, a little darker than the
+   card behind it so it never reads lighter than the card. */
 .fp-agenda-event {
   --_event-bg: color-mix(in srgb, var(--_event, currentColor) 14%, transparent);
   --_event-now: color-mix(in srgb, var(--_event, currentColor) 34%, transparent);
 }
 
 :host([data-light]) .fp-agenda-event {
-  --_event-bg: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 16%, #fff) 75%, transparent);
-  --_event-now: color-mix(in srgb, color-mix(in srgb, var(--_event, currentColor) 42%, #fff) 90%, transparent);
+  --_event-bg: color-mix(in srgb, var(--_event, currentColor) 22%, transparent);
+  --_event-now: color-mix(in srgb, var(--_event, currentColor), #000 12%);
+}
+
+/* On a light dashboard the event going on now is its color itself, with
+   white words, the way a tile that is on is dark there. */
+:host([data-light]) .fp-agenda-event[data-now] {
+  color: #fff;
 }
 
 .fp-agenda-event[data-now] {
