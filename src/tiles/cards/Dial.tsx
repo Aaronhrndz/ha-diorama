@@ -44,6 +44,9 @@ type Model = {
   ends?: [string, string]
   format: (value: number) => string
   send: (values: number[]) => void
+  // Whether it heads for a single value from either side, like a
+  // thermostat on auto that heats or cools to it.
+  both?: boolean
   // Off, the ring is dim and drags nothing.
   off?: boolean
 }
@@ -142,6 +145,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
         ? 'var(--_accent-climate)'
         : (climateColor(mode, action) ?? (mode === 'off' ? 'currentColor' : 'var(--_accent-climate)')),
     fill: domain === 'water_heater' ? 'start' : climateFill(entity),
+    both: ['auto', 'heat_cool'].includes(mode),
     ends: range && domain === 'climate' ? [HVAC_MODES.heat.color!, HVAC_MODES.cool.color!] : undefined,
     label: action
       ? optionWord(hass, entity, action, 'hvac_action')
@@ -178,20 +182,25 @@ function arc(from: number, to: number) {
   return `M${a.x} ${a.y}A${RADIUS} ${RADIUS} 0 ${large} ${to > from ? 1 : 0} ${b.x} ${b.y}`
 }
 
-// How far apart the arrows along that stretch are, and how far from its
-// start and from the knob they stay, along the ring.
-const ARROW_GAP = 13
-const ARROW_CLEAR = 10
+// How far apart the arrows along that stretch are, how far from its start
+// they begin, and how far from the knob they stop so it never hides them,
+// along the ring.
+const ARROW_GAP = 8
+const ARROW_START = 4
+const ARROW_KNOB = 14
 
-// Arrows along the stretch from one place to another, each pointing the
-// way it goes.
+// Arrows close together along the stretch from one place to another, each
+// pointing the way it goes. One too short for them all keeps at least one,
+// near where it starts.
 function arrows(from: number, to: number) {
-  const length = Math.abs(to - from) * LENGTH - 2 * ARROW_CLEAR
-  const count = Math.max(1, Math.floor(length / ARROW_GAP) + 1)
+  const span = Math.abs(to - from) * LENGTH
+  const room = span - ARROW_START - ARROW_KNOB
+  const count = room > 0 ? Math.floor(room / ARROW_GAP) + 1 : 1
   const way = to > from ? 1 : -1
   return Array.from({ length: count }, (_, i) => {
-    const along = count === 1 ? Math.abs(to - from) / 2 : (ARROW_CLEAR + (i * length) / (count - 1)) / LENGTH
-    const share = from + way * along
+    const length =
+      room <= 0 ? Math.min(ARROW_START, span / 2) : ARROW_START + (count === 1 ? room / 2 : (i * room) / (count - 1))
+    const share = from + way * (length / LENGTH)
     const angle = START + share * SWEEP + way * 90
     return { ...point(share), angle }
   })
@@ -201,7 +210,7 @@ function arrows(from: number, to: number) {
 // not there yet: below a range it heads for its low end, above it for its
 // high end, and inside it for nowhere. A single value is headed for only
 // from the side the ring fills, so a heater below it or a cooler above it,
-// and a ring filled all round heads nowhere.
+// or from either side by one that both heats and cools.
 function heading(m: Model, values: number[]) {
   if (m.off || m.current === undefined) return null
   const target =
@@ -211,11 +220,17 @@ function heading(m: Model, values: number[]) {
         : m.current > values[1]
           ? values[1]
           : null
-      : (m.fill === 'start' && m.current < values[0]) || (m.fill === 'end' && m.current > values[0])
+      : m.both || (m.fill === 'start' && m.current < values[0]) || (m.fill === 'end' && m.current > values[0])
         ? values[0]
         : null
   if (target === null || Math.abs(target - m.current) < m.step / 2) return null
-  return { from: shareOf(m, m.current), to: shareOf(m, target) }
+  // A stretch too short to show an arrow past the knob starts a little
+  // further back, so one always shows.
+  const to = shareOf(m, target)
+  const from = shareOf(m, m.current)
+  const shortest = (ARROW_START + ARROW_KNOB + 8) / LENGTH
+  if (Math.abs(to - from) >= shortest) return { from, to }
+  return { from: Math.min(Math.max(to - Math.sign(to - from) * shortest, 0), 1), to }
 }
 
 // One stretch of the ring that fills, in its own color or the ring's, and
@@ -367,7 +382,8 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   // one the room is heading for fills only as far as the room is. Any
   // other range fills between its ends. A single value fills its side of
   // the ring, only as far as the room is while it is heading there, and
-  // the rest of the way is the stretch it is heading along.
+  // the rest of the way is the stretch it is heading along. A ring filled
+  // all round leaves out the stretch the room is heading along.
   const reached = toward ? toward.from : shareOf(m, values[0])
   const segments: Segment[] =
     ends && m.ends
@@ -385,18 +401,23 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
             toward: toward && toward.to === ends[1] ? toward : null,
           },
         ]
-      : [
-          {
-            ...(ends
-              ? { from: ends[0], to: ends[1] }
-              : m.fill === 'full'
-                ? { from: 0, to: 1 }
-                : m.fill === 'end'
-                  ? { from: reached, to: 1 }
-                  : { from: 0, to: reached }),
-            toward,
-          },
-        ]
+      : !ends && m.fill === 'full' && toward
+        ? [
+            { from: 0, to: Math.min(toward.from, toward.to), toward },
+            { from: Math.max(toward.from, toward.to), to: 1, toward: null },
+          ]
+        : [
+            {
+              ...(ends
+                ? { from: ends[0], to: ends[1] }
+                : m.fill === 'full'
+                  ? { from: 0, to: 1 }
+                  : m.fill === 'end'
+                    ? { from: reached, to: 1 }
+                    : { from: 0, to: reached }),
+              toward,
+            },
+          ]
   return (
     <Panel {...panel}>
       <div
