@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-11
+
 ### Added
 
 - A toggle or a button tile can be set to Two taps, so it only turns on, turns off or runs on a second tap and a stray tap does nothing.
@@ -310,7 +312,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.5...v1.3.0
 [1.2.5]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.3...v1.2.4
