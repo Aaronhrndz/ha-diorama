@@ -1,7 +1,8 @@
 import { entityArea } from '#/devices/catalog.ts'
-import { ReactHost } from '#/host.tsx'
+import { injectProperties, ReactHost } from '#/host.tsx'
 import { onRoomFilter, roomFilter } from '#/lib/roomFilter.ts'
 import type { ActionConfig } from '#/tiles/actions.ts'
+import { isWide, tileRows } from '#/tiles/features/index.tsx'
 import tilesCss from '#/tiles/tiles.css?inline'
 import type { HomeAssistant } from '#/types.ts'
 
@@ -19,6 +20,12 @@ export type TileConfig = {
   // Replaces the line under the name.
   state_text?: string
   size?: 'small' | 'wide'
+  // A row of controls along the bottom, like a brightness slider or the
+  // modes of an alarm, by the names Home Assistant gives its own tile
+  // features. It makes the tile a row taller.
+  feature?: string
+  // The positions in percent a favorite positions feature offers.
+  favorites?: number[]
   // The area the tile belongs to for the room filter, when its entity's
   // own is not the right one.
   area?: string
@@ -109,6 +116,7 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
   constructor() {
     super()
     injectFonts()
+    injectProperties(tilesCss, 'floorplan-tiles-properties')
     const style = document.createElement('style')
     style.textContent = tilesCss
     this.shadowRoot!.appendChild(style)
@@ -129,12 +137,16 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
     this.render()
   }
 
-  getCardSize() {
-    return 2
+  getCardSize(): number {
+    return this._config ? tileRows(this._config, this._hass?.states[this._config.entity ?? '']) : 2
   }
 
   getGridOptions(): GridOptions {
-    return this._config?.size === 'wide' ? { columns: 12, rows: 2 } : { columns: 6, rows: 2 }
+    const rows = this._config ? tileRows(this._config, this._hass?.states[this._config.entity ?? '']) : 2
+    return {
+      columns: this._config && isWide(this._config, this._hass?.states[this._config.entity ?? '']) ? 12 : 6,
+      rows,
+    }
   }
 
   // Set by Home Assistant while the dashboard is edited, when every card

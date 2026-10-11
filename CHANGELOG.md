@@ -28,16 +28,45 @@ moves that section under the new version and uses it as the release notes.
 - The side panel can have a section for the whole home, set in the card's editor above the tiles by room, with a heading that reads Home unless it is renamed and any entities, such as a scene, a script, the weather or a group of lights; with any there, the whole home shows only those tiles and each room's tiles show only while that room is in view.
 - A tile with no icon of its own shows the icon picked for its entity in Home Assistant.
 - A TV or a monitor that is on lights the room around it in the colors on its screen, so it shows it is on even when the screen faces away.
-- The tile cards show a preview in Home Assistant's card picker, and the ones made for an entity show up under Community when a card is added by entity, with the cover, media, vacuum and climate tiles offered wide with their buttons and also small.
+- The tile cards show a preview in Home Assistant's card picker, and the ones made for an entity show up under Community when a card is added by entity, with the cover, media, vacuum and climate tiles offered wide with their buttons. Each suggestion says all the tile does, like Floorplan Toggle - Tap to turn on or off, drag for brightness.
 - A tile's `room_filter` can be `room`, to show only while its room is in view, or `home`, to show only while the whole home is.
 - A leak sensor to put on the floor: it glows blue and a puddle spreads round it when it gets wet.
 - A device removed from Home Assistant is dropped from the card the next time its editor is opened, along with its bindings, so the card never keeps pointing at an entity that is gone.
 - A lowered projection screen shows the same moving colors as a TV that is on when a projector that is on faces it, from either side, and the room around the end of a projector's beam is lit in those colors.
 - Every setting of a piece or a room, its sizes, rotation, colors, style and floor included, has a button beside it that puts it back to its default, and the button only shows once the setting has changed.
 - The 3D preview of a selected piece in the editor can be zoomed and panned as well as turned, and a button in its corner brings the view back.
+- When a card is added by entity, every tile is also offered with each control it can show beside its icon, like a fan's direction, a thermostat's modes, an alarm's modes or a media player's volume, the same way Home Assistant offers its own tile.
+- A light tile can be its own brightness slider: the whole tile fills as far as the light is bright, a drag sideways anywhere on it dims or brightens it, and a tap still turns it on or off.
+- A fan tile can be its own speed slider the same way, moving freely under the finger and settling on the nearest speed the fan has when it lifts.
+- A lock tile turns green while it is unlocked and shows a red icon and a red wash while it is locked, and it can open the door with the whole tile in two taps: the first lights half of it in white, which runs back while it waits, and a second tap lights it all, fades the green in and opens the door. In the card picker it is Floorplan Lock - Tap twice to open the door.
+- A cover or a valve tile can be its own position slider the same way, filling as far as it is open, or as far as its slats are tilted, and a tap opens or closes it.
+- A tile's control sits in its top right corner beside the icon, so a tile with one is as short as a plain tile, and the few with too many buttons for a small tile, like favorite positions, an alarm's modes or a vacuum's commands, always make it wide.
+- A light tile can show a slim color temperature or color bar beside its icon, with a round handle, so it stays as short as a plain tile, and its state line says the light's white in kelvin or the name of its color, whichever the light is in, with a faint handle on the bar for the other one, and while the bar is dragged the tile takes that color and keeps it until the light answers.
+- Eight larger cards come with the tiles and are offered beside them when a card is added by entity: an alarm panel with a keypad, a dial for a thermostat, a water heater, a humidifier or a light's brightness, a media control with the cover art, a calendar agenda, a to-do list, a history graph, a gauge and a map.
+- The larger cards are laid out like a wide tile, with the icon in the top left, their buttons in the top right, the name and the state in the bottom left and what they show in the bottom right, and a tap on a light's or a humidifier's dial turns it on or off.
+- The Now Playing card can show the cover art square in place of its icon, as large as the card leaves it above the title and as tall a card as with the art blurred behind it, chosen in its editor, and the card picker offers both.
+- The calendar card shows the events that last all day as round pills with just their names over each day's other events, drops the colored bar beside each event, and tints its events lighter on a light dashboard.
+- The first calendar of a calendar card is teal, then blue, orange, purple, pink and yellow, the event going on now stands out more, on a light dashboard the events are a deeper tint and the one going on now is solid, and the all day pills are plain grey, and the card with only today's events says Today over them too.
+- The calendar's list and the option menus fade out at their top and bottom edges as they scroll, with the same thin, quiet scrollbar.
+- The to-do list card lists its items across the whole card down to just over its name, in the same teal as the calendar, without lines between them, and fades out at its edges when it scrolls.
+- The calendar card lists its events across the whole card down to just over its name, with a thin, quiet scrollbar, and can show only today's events, offered as its own card in the card picker.
+- The Now Playing card fills from the left with a faint dark shade as the song goes on, passing behind its buttons and its volume without showing through them, shows the time played beside its buttons, seeks when swiped sideways anywhere on it, and plays or pauses with a tap.
+- The Now Playing card's volume fills white on a dark card and black on a light one, with shuffle and repeat to its right, and its level no longer gets cut off on a phone.
+- The dial's ring is bigger and reaches down beside the name, with plus over minus on its left, and its number stays still as it changes, like from 21° to 21.5°, with the two ends of a range large and one over the other inside the ring.
+- The alarm panel is a wide tile like the others, with its modes in the top right, a keypad beside a large line saying what the code will do, a red lock key to arm and a green open lock to disarm, and a red or green wash for armed or disarmed.
 
 ### Changed
 
+- A media player that is playing shows its icon and its volume in a green leaning to teal.
+- A media player tile with the volume is its volume across the whole tile, dragged sideways like a light's brightness, while a tap still plays or pauses it.
+- A media player tile with the volume buttons says how loud it plays before what is playing.
+- A number on an entity tile is its value across the whole tile, dragged sideways like a light's brightness, unless it has too many steps for a slider.
+- A percentage on an entity tile, like a battery's charge, fills the whole tile from the left as far, in place of a bar beside the icon.
+- The rainbow of a light's color bar and its favorite colors are softer and even in lightness, so no color glares on the tile.
+- A fan's oscillate control is now a pill that fills in while on, in place of a switch.
+- A cover that cannot stop shows only up and down on its wide tile.
+- The weather tile can show the next hours or the next days, and the card picker offers both.
+- The camera tile also shows an image entity.
 - The shower's glass door stays shut, so a click on the shower always goes to the device behind it, like any other piece.
 
 - The editor's Discard button is now Close: it closes straight away when there is nothing to save, and asks before throwing changes away when there is.
@@ -66,13 +95,28 @@ moves that section under the new version and uses it as the release notes.
 - A room flown to is fitted to the card the same way, with almost no margin: its saved view keeps its angle and backs off until the whole room shows, on a phone the room is centered and fills the card, and a room with no saved view is centered in the card. The camera flies straight to that view, and keeps the room fitted while the card changes size until it is turned, panned or zoomed.
 - A second click on the floor of the room in view always takes the camera back to the whole home, even after turning, panning or zooming inside the room, where it used to fly back to the room's view.
 - In the card's settings, pressing or changing the tiles of a room flies the preview to that room, and the Home tiles take it back to the whole home.
+- A button, script or scene tile lights up when pressed, stays lit for half a second and then fades slowly back, and its Press pill does the same on its own.
+- On a small tile, a pill that does something, like Press, is as wide as its words and sits at the right, as on a wide tile.
+- The position tile of a blind, a shutter, a garage door or another cover that goes up and down fills from the bottom as it rises and is dragged up and down, an inverted one like a projector screen fills from the top as it comes down, and curtains, gates, doors and valves still fill from the left.
+- A slider tile that is empty shows a faint handle at the side to pull it from, and the handles at both ends sit exactly halfway across the tile's padding.
+- A thermostat's target temperature tile is always wide when it holds a range of two temperatures, since a small one had no room for them.
+- A wide thermostat is three rows tall, with its mode buttons across from its name so the name and the state stay in the bottom left corner like on every other tile.
+- A thermostat's modes tile is always wide, since a small one had no room for every mode.
+- Temperatures on thermostats and dials show a degree sign, like 22°, and a thermostat's state reads as one phrase, like 20.5° to 22°.
+- A thermostat's icon takes the color of the mode it runs in on every one of its tiles, and that color washes down from the top of the tile while it is on. In auto, or keeping a range, it takes the color of what it is doing, like orange while it heats, and no color while it waits.
+- Each thermostat mode has its own color: orange for heating, blue for cooling, yellow for drying and teal for the fan alone, while auto and keeping a range look plain like off. Water heaters, humidifiers and the alarm panel's warning share the same orange and blue. In the 3D view, the air out of an air conditioner and the glow of a thermostat take the same color as its tiles.
 
 ### Fixed
 
+- Adding an item to the to-do list card with Enter or the plus beside the field now adds it to the list.
+- Buttons keep their fill and stay readable under the pointer, on a tile that is on or off and on a light or a dark dashboard.
+- Colored icons, words and lines on the tiles, like the chosen mode, the Clear link of a to-do list or a light's icon, now stand out clearly from the tile in light and in dark, and the dimmer second lines are a little stronger.
 - The editor's Discard changes dialog shows its buttons in their proper colors.
 - When picking a device for a blind, window, projector screen or other piece, the devices of its own type are listed first, so a cover without a position is no longer lost among switches.
 - A speaker, floor speaker or soundbar on pause stops sending out sound waves, and keeps its lights until it is switched off.
 - A piece can be set on top of a basin, where it used to sink into it.
+- Picking an option from a menu on a tile, like the mode of a humidifier, or typing an alarm code, no longer also turns the tile on or off.
+- A small tile with a menu where nothing is chosen, like a fan running without a preset, now says what the menu picks instead of showing an empty pill.
 
 ## [1.2.5] - 2026-10-08
 
