@@ -6,11 +6,11 @@ import { GAP_PX, ROW_PX, span } from '#/tiles/sidePanel.ts'
 import type { HomeAssistant, TileChoice } from '#/types.ts'
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-// The fewest and the most rows a card across the whole panel can be made.
-const MIN_ROWS = 1
-const MAX_ROWS = 16
+// The most rows a card across the whole panel can be made. It can never be
+// made shorter than it is by itself, as it is already as small as it goes.
+const MAX_ROWS = 12
 
 // What tells two setups of a card apart: everything in its config but the
 // entity, what the panel adds to every tile, and the rows it was made taller
@@ -32,7 +32,7 @@ const setRows = (config: Record<string, unknown> | undefined) => {
 
 // A card's setup with its rows set, or left to the card when they are what
 // it takes anyway.
-function withRows(config: Record<string, unknown>, rows: number | undefined, own: number | 'auto') {
+function withRows(config: Record<string, unknown>, rows: number | undefined, own?: number) {
   const { rows: _, ...grid } = (config.grid_options ?? {}) as Record<string, unknown>
   const next = rows === undefined || rows === own ? grid : { ...grid, rows }
   const { grid_options: __, ...rest } = config
@@ -63,8 +63,9 @@ export function tileName(hass: HomeAssistant, auto: AutoCard, chosen: TileChoice
 // it. The one it is now has a tick in its corner. Picking the one the
 // panel would pick anyway leaves the choice out of the YAML.
 // A card across the whole panel has a minus and a plus beside its name,
-// that make it a row shorter or taller, picking it as they do. A card that
-// takes the height of what is in it starts from the rows it has now.
+// that make it a row taller or back shorter, picking it as they do, never
+// shorter than it is by itself. A card that takes the height of what is in
+// it counts the rows that height stands in.
 export function TilePicker({
   hass,
   auto,
@@ -93,7 +94,7 @@ export function TilePicker({
         const { type: _, size: __, ...kept } = auto
         const plain: AutoCard = { ...kept, ...option.config, type: String(option.config.type), entity: auto.entity }
         const own = span(plain, hass).rows
-        const shown = (picked ? withRows(plain, setRows(chosen), own) : plain) as AutoCard
+        const shown = (picked ? withRows(plain, setRows(chosen)) : plain) as AutoCard
         const { columns, rows } = span(shown, hass)
         const pick = (config: Record<string, unknown>, stay?: boolean) => {
           const { entity: _, ...choice } = config
@@ -109,9 +110,11 @@ export function TilePicker({
             columns={columns}
             rows={rows}
             shown={shown}
+            plain={plain}
+            own={own}
             hass={hass}
             onPick={() => pick(option.config)}
-            onRows={columns === 12 ? next => pick(withRows(option.config, next, own), true) : undefined}
+            onRows={columns === 12 ? (next, base) => pick(withRows(option.config, next, base), true) : undefined}
           />
         )
       })}
@@ -126,6 +129,8 @@ function Option({
   columns,
   rows,
   shown,
+  plain,
+  own,
   hass,
   onPick,
   onRows,
@@ -136,19 +141,37 @@ function Option({
   columns: number
   rows: number | 'auto'
   shown: AutoCard
+  plain: AutoCard
+  own: number | 'auto'
   hass: HomeAssistant
   onPick: () => void
-  onRows?: (rows: number) => void
+  // The rows to set, and the rows the card takes by itself.
+  onRows?: (rows: number, base: number) => void
 }) {
   const preview = useRef<HTMLSpanElement>(null)
-  // The rows the card stands in now, worked out from its height when it
-  // takes the height of what is in it.
-  const now = () => {
-    if (rows !== 'auto') return rows
-    const height = preview.current?.getBoundingClientRect().height ?? ROW_PX
-    return Math.max(MIN_ROWS, Math.round((height + GAP_PX) / (ROW_PX + GAP_PX)))
+  const measure = useRef<HTMLSpanElement>(null)
+  // The rows the card takes by itself. One that takes the height of what is
+  // in it is measured, from its preview while that is at its own height and
+  // from a hidden copy of it once it is set taller.
+  const [measured, setMeasured] = useState<number | null>(null)
+  const sizing = onRows !== undefined && own === 'auto'
+  const copy = sizing && rows !== 'auto'
+  useEffect(() => {
+    const target = copy ? measure.current : preview.current
+    if (!sizing || !target) return
+    const observer = new ResizeObserver(() => {
+      const height = target.getBoundingClientRect().height
+      if (height > 0) setMeasured(Math.max(1, Math.round((height + GAP_PX) / (ROW_PX + GAP_PX))))
+    })
+    observer.observe(target)
+    return () => observer.disconnect()
+  }, [sizing, copy])
+  const base = own === 'auto' ? measured : own
+  const now = rows === 'auto' ? base : rows
+  const step = (by: number) => {
+    if (base === null || now === null) return
+    onRows?.(Math.min(MAX_ROWS, Math.max(base, now + by)), base)
   }
-  const step = (by: number) => onRows?.(Math.min(MAX_ROWS, Math.max(MIN_ROWS, now() + by)))
   const stepper =
     'bg-fill-strong text-label-2 flex size-7 cursor-pointer items-center justify-center rounded-full transition-[color,transform] hover:text-(--primary-text-color) active:scale-95 disabled:cursor-default disabled:opacity-40'
   return (
@@ -182,13 +205,18 @@ function Option({
           {option.label && <span className="text-label-2 line-clamp-2 text-[11px] leading-snug">{option.label}</span>}
         </span>
       </button>
+      {copy && (
+        <span ref={measure} aria-hidden className="invisible absolute inset-x-0 top-0 -z-10">
+          <TilePreview hass={hass} config={plain} />
+        </span>
+      )}
       {onRows && (
         <span className="absolute right-0 bottom-0 flex gap-1.5">
           <button
             type="button"
             aria-label={`${option.name} a row shorter`}
             onClick={() => step(-1)}
-            disabled={rows !== 'auto' && rows <= MIN_ROWS}
+            disabled={base === null || now === null || now <= base}
             className={stepper}
           >
             <FontAwesomeIcon icon={faMinus} className="size-3" />
@@ -197,7 +225,7 @@ function Option({
             type="button"
             aria-label={`${option.name} a row taller`}
             onClick={() => step(1)}
-            disabled={rows !== 'auto' && rows >= MAX_ROWS}
+            disabled={now === null || now >= MAX_ROWS}
             className={stepper}
           >
             <FontAwesomeIcon icon={faPlus} className="size-3" />
