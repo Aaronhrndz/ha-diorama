@@ -141,9 +141,11 @@ const CSS = `
 .split:not([data-panel]):not([data-stacked]) .side {
   contain: size;
 }
+/* Stacked, the tiles start right under the floorplan, with no space
+   kept between them past what the heading has of its own. */
 .split[data-stacked] {
   grid-template-columns: 1fr;
-  gap: 8px;
+  gap: 0;
   height: auto;
   padding: 0;
 }
@@ -163,10 +165,10 @@ const CSS = `
 .split[data-stacked] .side {
   margin-inline: 0;
   padding-inline: 0;
-  --_fade-top: 12px;
+  --_fade-top: 0px;
 }
 .split[data-stacked] .cards {
-  padding: 12px 12px 24px;
+  padding: 0 12px 24px;
 }
 `
 
