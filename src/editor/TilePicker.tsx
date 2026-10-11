@@ -1,5 +1,6 @@
 import { cn } from '#/lib/utils.ts'
 import type { AutoCard } from '#/tiles/auto.ts'
+import { Icon } from '#/tiles/Icon.tsx'
 import { tileOptions, type TileOption } from '#/tiles/index.tsx'
 import { GAP_PX, ROW_PX, span } from '#/tiles/sidePanel.ts'
 import type { HomeAssistant, TileChoice } from '#/types.ts'
@@ -34,7 +35,8 @@ export function tileName(hass: HomeAssistant, auto: AutoCard, chosen: TileChoice
 
 // Every card of ours the entity can be, each shown as it would be in the
 // panel, at the size it takes there, with its name and what it does under
-// it. The one it is now is ringed. Picking the one the panel would pick
+// it, on the dashboard's own background so a dim tile still stands out.
+// The one it is now is tinted and ticked. Picking the one the panel would pick
 // anyway leaves the choice out of the YAML.
 export function TilePicker({
   hass,
@@ -53,7 +55,7 @@ export function TilePicker({
       role="radiogroup"
       aria-label="Card"
       className="grid grid-cols-12 items-start pt-1 pb-2"
-      style={{ gap: `14px ${GAP_PX}px` }}
+      style={{ gap: `${GAP_PX}px` }}
     >
       {options.map(option => {
         const key = setupKey(option.config)
@@ -74,19 +76,20 @@ export function TilePicker({
               const { entity: _, ...choice } = option.config
               onChoose(choice as TileChoice)
             }}
-            className="group flex min-w-0 cursor-pointer flex-col gap-1.5 text-left"
+            className={cn(
+              'flex min-w-0 cursor-pointer flex-col gap-2 rounded-[22px] p-1.5 pb-2.5 text-left transition-[background-color,transform] outline-none active:scale-[0.98]',
+              picked
+                ? 'bg-tint/15'
+                : 'hover:bg-fill-strong focus-visible:bg-fill-strong bg-(--primary-background-color)',
+            )}
             style={{ gridColumn: `span ${columns}` }}
           >
-            <span
-              className={cn(
-                'block rounded-[18px] ring-offset-2 ring-offset-(--card-background-color) transition-[box-shadow,transform] group-active:scale-[0.98]',
-                picked ? 'ring-tint ring-[2.5px]' : 'group-hover:ring-separator group-hover:ring-2',
-              )}
-            >
-              <TilePreview hass={hass} config={shown} height={rows === 'auto' ? undefined : rows} />
-            </span>
-            <span className="flex min-w-0 flex-col px-0.5">
+            <TilePreview hass={hass} config={shown} height={rows === 'auto' ? undefined : rows} />
+            <span className="flex min-w-0 flex-col px-1.5">
               <span className={cn('flex items-center gap-1.5 text-xs font-semibold', picked && 'text-tint')}>
+                {picked && (
+                  <Icon icon="ph:check-circle-fill" className="size-3.5 [--mdc-icon-size:14px] [&>svg]:size-full" />
+                )}
                 {option.name}
                 {key === autoKey && (
                   <span className="bg-fill-strong text-label-2 rounded px-1 py-px text-[10px] font-medium">Auto</span>

@@ -1455,6 +1455,24 @@
   margin: 0;
 }
 
+/* Beside a dial, the name and the state are never cut short. Where they
+   run longer than the room it leaves them, they go on over it, in front,
+   and let a drag through to what is under them. */
+.fp-big-dial .fp-bottom > .fp-text {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  width: 0;
+  pointer-events: none;
+}
+
+.fp-big-dial .fp-bottom :is(.fp-name, .fp-state) {
+  display: block;
+  overflow: visible;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+
 /* A card of a set height, like the calendar or the graph, gives what it
    shows all the height under the icon, and as much of the width as it
    can leave the name. */
