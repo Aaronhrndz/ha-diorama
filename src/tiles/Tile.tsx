@@ -145,7 +145,7 @@ export function Tile({
               config.piece_icon ??
               defaultIcon(config.entity, entity?.attributes.device_class, entity?.state)
             }
-            on={(on && !looksOff) || fading}
+            on={on && !looksOff}
           />
         )}
         {beside ? (

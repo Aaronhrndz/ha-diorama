@@ -403,9 +403,15 @@
 }
 
 /* The icon drawn, and while it changes the one before it on top, the two
-   fading across each other. */
+   fading across each other. A button fading back to off swaps its icon as
+   slowly as the rest of the tile. */
 .fp-icon {
   position: relative;
+  --_icon-fade: 300ms;
+}
+
+.fp-tile[data-fading] .fp-icon {
+  --_icon-fade: var(--_duration);
 }
 
 .fp-icon-layer {
@@ -423,11 +429,11 @@
 .fp-icon-layer[data-out] {
   position: absolute;
   inset: 0;
-  animation: fp-icon-out 300ms ease forwards;
+  animation: fp-icon-out var(--_icon-fade) ease forwards;
 }
 
 .fp-icon-layer[data-in] {
-  animation: fp-icon-in 300ms ease;
+  animation: fp-icon-in var(--_icon-fade) ease;
 }
 
 @keyframes fp-icon-out {
@@ -2775,6 +2781,10 @@
   .fp-mode-picked,
   .fp-icon-layer {
     animation: none;
+  }
+
+  .fp-icon-layer[data-out] {
+    display: none;
   }
 
   /* With no growth to show focus, a ring inside the edge shows it. */

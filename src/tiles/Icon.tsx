@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 
 const warned = new Set<string>()
 
-// As long as the fade from one icon to the next in tiles.css.
-const FADE_MS = 300
+// Longer than the slowest fade from one icon to the next in tiles.css, to
+// clear the old one should its fade never end, as with reduced motion.
+const FADE_MS = 1500
 
 type Props = { icon: string; on?: boolean; className?: string }
 type Drawn = { icon: string; on: boolean }
@@ -30,7 +31,13 @@ export function Icon({ icon, on = false, className }: Props) {
     return () => clearTimeout(timer)
   }, [old])
   return (
-    <span aria-hidden className={cn('fp-icon', className)}>
+    <span
+      aria-hidden
+      className={cn('fp-icon', className)}
+      onAnimationEnd={event => {
+        if (event.target instanceof HTMLElement && event.target.dataset.out !== undefined) setOld(null)
+      }}
+    >
       {old && <Layer key={`${old.icon}:${old.on}:out`} drawn={old} out />}
       <Layer key={`${shown.icon}:${shown.on}`} drawn={shown} fresh={!!old} />
     </span>
