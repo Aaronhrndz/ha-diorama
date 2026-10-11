@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-11
+
 ### Added
 
 - A slider tile with a few stops, like a fan's speeds, shows a faint short tick at each stop hanging from its top edge.
@@ -295,7 +297,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.5...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.5...v1.3.0
 [1.2.5]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.2...v1.2.3
