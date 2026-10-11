@@ -179,6 +179,9 @@ type Card = {
   // Toggle - Tap to turn on or off, drag for brightness. Home Assistant shows
   // no description there, so it says all the tile does.
   does?: string | ((domain: string) => string)
+  // What the tile does when set to act only on a second tap, for a tile
+  // that can.
+  twice?: string | ((domain: string) => string)
   // What a wide tile adds, after the tap, for a tile with controls.
   controls?: string
   // The features the card picker leaves out, since they only repeat what
@@ -201,19 +204,21 @@ const CARDS: Card[] = [
   },
   {
     type: 'fp-toggle',
-    element: entityCard(TOGGLE_DOMAINS, Toggle),
+    element: entityCard(TOGGLE_DOMAINS, Toggle, ['confirm']),
     domains: TOGGLE_DOMAINS,
     name: 'Floorplan Toggle',
     does: domain => (domain === 'valve' ? 'Tap to open or close' : 'Tap to turn on or off'),
+    twice: domain => (domain === 'valve' ? 'Tap twice to open or close' : 'Tap twice to turn on or off'),
     description: 'Light, switch, fan, valve or anything else on or off',
   },
   {
     type: 'fp-button',
-    element: entityCard(BUTTON_DOMAINS, Button),
+    element: entityCard(BUTTON_DOMAINS, Button, ['confirm']),
     domains: BUTTON_DOMAINS,
     name: 'Floorplan Button',
     repeats: ['button'],
     does: 'Tap to run it',
+    twice: 'Tap twice to run it',
     description: 'Button, script or scene tile',
   },
   {
@@ -477,9 +482,12 @@ function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggest
   const config = { type, entity: entityId }
   const domain = entityId.split('.')[0]
   const tap = typeof card.does === 'function' ? card.does(domain) : card.does
+  const twice = typeof card.twice === 'function' ? card.twice(domain) : card.twice
   // A tile with controls comes small, the tap alone, and wide with them.
+  // One that can act only on a second tap comes that way too.
   const base = [
     { label: tap, config },
+    ...(twice ? [{ label: twice, config: { ...config, confirm: true } }] : []),
     ...(card.wide ? [{ label: `${tap}, with ${card.controls}`, config: { ...config, size: 'wide' } }] : []),
   ]
   if (card.extra) return base

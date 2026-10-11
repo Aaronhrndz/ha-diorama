@@ -1,4 +1,5 @@
 import { callService, type TileEnv } from '#/tiles/actions.ts'
+import { ConfirmTile } from '#/tiles/cards/Confirm.tsx'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { useFlash } from '#/tiles/features/parts.tsx'
 import { Tile } from '#/tiles/Tile.tsx'
@@ -45,6 +46,7 @@ function relative(when: number, now: number, language: string | undefined) {
 
 // A button, a script or a scene. A tap runs it and the tile lights up for
 // a moment, then slowly fades back. The line under the name says when it last ran.
+// With confirm it runs only on a second tap.
 export default function Button({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const domain = config.entity!.split('.')[0]
@@ -60,6 +62,24 @@ export default function Button({ env, config }: Props) {
       : Number.isNaN(when)
         ? 'Never'
         : relative(when, Math.max(now, when), language)
+  const press = () => {
+    start()
+    callService(env.hass, PRESS[domain], { entity_id: config.entity })
+  }
+  if (config.confirm)
+    return (
+      <ConfirmTile
+        env={env}
+        config={config}
+        entity={entity}
+        on={flash === 'lit'}
+        fading={flash === 'fading'}
+        unknownIsUnavailable={false}
+        state={state}
+        prompt="Tap again to run"
+        onConfirm={press}
+      />
+    )
   return (
     <Tile
       env={env}
@@ -69,10 +89,7 @@ export default function Button({ env, config }: Props) {
       fading={flash === 'fading'}
       unknownIsUnavailable={false}
       state={state}
-      onTap={() => {
-        start()
-        callService(env.hass, PRESS[domain], { entity_id: config.entity })
-      }}
+      onTap={press}
     />
   )
 }

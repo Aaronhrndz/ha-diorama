@@ -1,7 +1,7 @@
 import { callService, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { HvacModes, MENUS, ModeMenu } from '#/tiles/features/climate.tsx'
-import { BigDegrees, formatDegrees, listOf, numberOf, optionWord } from '#/tiles/features/parts.tsx'
+import { BigDegrees, formatDegrees, listOf, membersOn, numberOf, optionWord } from '#/tiles/features/parts.tsx'
 import { insideTile } from '#/tiles/gestures.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { climateColor, HVAC_MODES } from '#/tiles/modes.ts'
@@ -84,6 +84,9 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
             .map(c => Math.round(c * 255))
             .join(',')})`
         : 'var(--_accent-light)'
+    // A light group that is on says under its brightness how many of its
+    // lights are.
+    const members = on ? membersOn(hass, entity) : null
     return {
       values: [on && brightness !== null ? Math.max(1, Math.round((brightness / 255) * 100)) : 0],
       min: 0,
@@ -92,6 +95,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
       color,
       fill: 'start',
       label: 'Brightness',
+      now: members !== null ? `${members} on` : undefined,
       format: value => (value > 0 ? `${Math.round(value)}%` : 'Off'),
       send: ([value]) =>
         callService(

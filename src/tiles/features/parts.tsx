@@ -64,6 +64,14 @@ export const numberOf = (entity: EntityState | undefined, attribute: string) => 
   return typeof value === 'number' ? value : null
 }
 
+// How many of a group's members are on, like the lights of a light group,
+// or null for an entity that is not a group.
+export function membersOn(hass: HomeAssistant, entity: EntityState | undefined) {
+  const members = listOf(entity, 'entity_id')
+  if (members.length === 0) return null
+  return members.filter(id => hass.states[id]?.state === 'on').length
+}
+
 export const supports = (entity: EntityState | undefined, bit: number) =>
   (Number(entity?.attributes.supported_features ?? 0) & bit) !== 0
 

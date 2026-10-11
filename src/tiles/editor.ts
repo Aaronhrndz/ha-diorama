@@ -6,7 +6,17 @@ import { PHOSPHOR_ICONS, phosphor } from '#/tiles/icons.ts'
 
 type Field = { name: string; required?: boolean; selector?: Record<string, unknown>; [key: string]: unknown }
 export type Extra =
-  'invert' | 'battery_entity' | 'tap_behavior' | 'camera' | 'calendar' | 'graph' | 'gauge' | 'map' | 'forecast' | 'art'
+  | 'invert'
+  | 'battery_entity'
+  | 'tap_behavior'
+  | 'camera'
+  | 'calendar'
+  | 'graph'
+  | 'gauge'
+  | 'map'
+  | 'forecast'
+  | 'art'
+  | 'confirm'
 
 const LABELS: Record<string, string> = {
   entity: 'Entity',
@@ -40,6 +50,7 @@ const LABELS: Record<string, string> = {
   layout: 'Layout',
   forecast_type: 'Forecast',
   interactions: 'Interactions',
+  confirm: 'Two taps',
 }
 
 const HELPERS: Record<string, string> = {
@@ -53,6 +64,7 @@ const HELPERS: Record<string, string> = {
   aspect_ratio: 'Width to height, like 16:9',
   title: 'The area name when empty',
   feature: 'A control beside the icon. Some only fit a wide tile and make it wide',
+  confirm: 'Acts only on a second tap, so a stray one does nothing',
 }
 
 const NEVER_HIDE: Field = { name: 'never_hide', selector: { boolean: {} } }
@@ -73,6 +85,8 @@ const ROOM_FILTER: Field = {
 
 const EXTRAS: Record<Extra, Field[]> = {
   invert: [{ name: 'invert', selector: { boolean: {} } }],
+  // Asked with the other interactions instead.
+  confirm: [],
   battery_entity: [
     { name: 'battery_entity', selector: { entity: { filter: { domain: 'sensor', device_class: 'battery' } } } },
   ],
@@ -236,6 +250,7 @@ export function tileForm(domains: string[] | 'any', extras: Extra[] = [], panel 
       schema: [
         { name: 'tap_action', selector: { ui_action: {} } },
         { name: 'hold_action', selector: { ui_action: {} } },
+        ...(extras.includes('confirm') ? [{ name: 'confirm', selector: { boolean: {} } }] : []),
         { name: 'haptic', selector: { boolean: {} } },
       ],
     },

@@ -11,10 +11,13 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
+- A toggle or a button tile can be set to Two taps, so it only turns on, turns off or runs on a second tap and a stray tap does nothing.
+- A light group's toggle tile and dial say how many of its lights are on, like 3 on.
 - The card's settings have a Framed rooms section to pick the rooms the view of the whole home zooms in on, while the others still show and can be clicked.
 
 ### Changed
 
+- A lock tile that opens the door in two taps locks it again with one tap while the door is open.
 - The home and a room flown to fill the card with only a thin margin on any screen, not only on a phone.
 - A room a door leads into gets an arrow on the floor just past the door too, with its own switch in the editor to turn it off.
 

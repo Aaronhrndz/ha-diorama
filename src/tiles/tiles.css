@@ -2748,14 +2748,17 @@
   }
 }
 
-/* A lock tile that opens the door in two taps: the half the first tap
-   lights runs back frame by frame, with no easing of its own. The green
-   wash waits for the second tap and fades in then. */
-.fp-confirm[data-step='1'] .fp-fill-lit {
+/* A tile that acts only on a second tap: the part the first tap lights
+   or cuts runs frame by frame, with no easing of its own. A button that
+   ran fades back from the plain tile under it, with the lit copy gone at
+   once. */
+.fp-confirm[data-step='1'] .fp-fill-lit,
+.fp-confirm[data-fading] .fp-fill-lit {
   transition: none;
 }
 
-.fp-confirm .fp-tile {
+/* The lock's green wash waits for the second tap and fades in then. */
+.fp-open-door .fp-tile {
   --_wash: 0;
   transition:
     background-color var(--_duration) ease,
@@ -2765,6 +2768,6 @@
     --_wash 600ms ease;
 }
 
-.fp-confirm[data-done] .fp-tile {
+.fp-open-door[data-done] .fp-tile {
   --_wash: 1;
 }
