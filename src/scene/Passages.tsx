@@ -21,7 +21,8 @@ import { Color, SRGBColorSpace, type Mesh } from 'three'
 // The signs on the floor that lead from a focused room into the room open
 // beside it. Each is a triangle as thick as a floor, rounded all over and
 // made of the floor it leads onto, lying just past the stretch the two
-// share, and only shows around the room it leads out of. A press on one
+// share or the door between them, and only shows around the room it leads
+// out of. A press on one
 // goes to the room it points at, as a press on a door between them would.
 
 type Props = {

@@ -5,7 +5,7 @@ import type { DecorationConfig, Point, RoomConfig } from '#/types.ts'
 // Two rooms that share a stretch of outline with no door in it are open to
 // each other, a living room and the dining room beside it. From either one
 // a sign on the floor just past that stretch leads to the other, the way a
-// press on a door leads through it.
+// press on a door leads through it. A door gets a sign too, just past it.
 
 // How near another room's outline has to run to count as shared, and the
 // shortest stretch a person could walk through, in meters.
@@ -25,11 +25,12 @@ export const PASSAGE_ARROW: Point[] = [
 export const PASSAGE_CORNER_RADIUS_M = 0.03
 
 // The kinds a person walks through. A window in the shared stretch leaves
-// it open, a door closes it off and leads through itself instead.
+// it open, a door closes it off and the sign goes just past the door.
 const DOOR_KINDS = new Set(['door', 'sliding_door', 'garage_door'])
 
 // A way from one room into the next: the middle of the stretch they share,
-// and the way out of `from` across it, as a unit vector on the plan.
+// or the door between them, and the way out of `from` there, as a unit
+// vector on the plan.
 export type Passage = { from: string; to: string; at: Point; out: Point }
 
 // The middle of the longest stretch of `a`'s outline that `b`'s runs along,
@@ -62,29 +63,49 @@ function sharedStretch(a: Point[], b: Point[]): { at: Point; out: Point } | null
   return best && { at: best.at, out: best.out }
 }
 
+// Where `at` meets the nearest edge of `points`, and the way out of them
+// across that edge.
+function nearestEdge(points: Point[], at: Point): { at: Point; out: Point } {
+  const outline = ensureCounterClockwise(points)
+  let best = { at, out: [0, 1] as Point, distance: Infinity }
+  for (let i = 0; i < outline.length; i++) {
+    const p = outline[i]
+    const q = outline[(i + 1) % outline.length]
+    const length = Math.hypot(q[0] - p[0], q[1] - p[1])
+    if (length === 0) continue
+    const dx = (q[0] - p[0]) / length
+    const dy = (q[1] - p[1]) / length
+    const t = Math.max(0, Math.min(length, (at[0] - p[0]) * dx + (at[1] - p[1]) * dy))
+    const foot: Point = [p[0] + dx * t, p[1] + dy * t]
+    const distance = Math.hypot(at[0] - foot[0], at[1] - foot[1])
+    if (distance < best.distance) best = { at: foot, out: [dy, -dx], distance }
+  }
+  return { at: best.at, out: best.out }
+}
+
 // A room beside `room`: the door kind that leads into it, when one does,
-// and else the sign that would, when they share a stretch long enough.
+// and the sign that leads into it, past the door or the stretch they share.
 export type Neighbour = { id: string; door: string | null; passage: Passage | null }
 
 // Every room beside `room`, through a door or open to it.
 export function neighboursOf(room: RoomConfig, rooms: RoomConfig[], decorations: DecorationConfig[]): Neighbour[] {
   const doors = decorations
     .filter(item => DOOR_KINDS.has(item.kind))
-    .map(item => ({ kind: item.kind, rooms: betweenOf(item, rooms)?.rooms ?? [] }))
+    .map(item => ({ kind: item.kind, position: item.position, rooms: betweenOf(item, rooms)?.rooms ?? [] }))
     .filter(door => door.rooms.includes(room.id))
   const result: Neighbour[] = []
   for (const other of rooms) {
     if (other.id === room.id) continue
-    const door = doors.find(d => d.rooms.includes(other.id))?.kind ?? null
-    const stretch = door ? null : sharedStretch(room.points, other.points)
-    if (!door && !stretch) continue
-    result.push({ id: other.id, door, passage: stretch && { from: room.id, to: other.id, ...stretch } })
+    const door = doors.find(d => d.rooms.includes(other.id))
+    const stretch = door ? nearestEdge(room.points, door.position) : sharedStretch(room.points, other.points)
+    if (!stretch) continue
+    result.push({ id: other.id, door: door?.kind ?? null, passage: { from: room.id, to: other.id, ...stretch } })
   }
   return result
 }
 
-// Every way out of `room` into a room beside it with no door between them,
-// leaving out the ones the room hides.
+// Every way out of `room` into a room beside it, leaving out the ones the
+// room hides.
 export function passagesOf(room: RoomConfig, rooms: RoomConfig[], decorations: DecorationConfig[]): Passage[] {
   return neighboursOf(room, rooms, decorations).flatMap(neighbour =>
     neighbour.passage && !room.hide_arrows?.includes(neighbour.id) ? [neighbour.passage] : [],

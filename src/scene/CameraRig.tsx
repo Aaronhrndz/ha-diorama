@@ -163,13 +163,13 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     shown: RoomConfig[],
     items: DecorationConfig[],
     margin = CAMERA_FIT_MARGIN,
-    spill = CAMERA_SPILL,
+    whole: RoomConfig[] = [],
   ): CameraView => {
     const aspect = size.width / size.height
     const height = sceneHeight(items)
     const { position, target } = saved
-      ? fitView(saved, shown, aspect, height, margin, true, spill)
-      : frameRooms(shown, aspect, height, undefined, margin, true, spill)
+      ? fitView(saved, shown, aspect, height, margin, true, CAMERA_SPILL, whole)
+      : frameRooms(shown, aspect, height, undefined, margin, true, CAMERA_SPILL, whole)
     return { position: triple(position), target: triple(target) }
   }
 
@@ -197,13 +197,14 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     const from = A.set(...opening.position).sub(B.set(...opening.target))
     const height = sceneHeight(decorations.filter(d => d.room === room.id))
     const { position, target } = frameRooms(
-      [room, ...signs],
+      [room],
       size.width / size.height,
       height,
       [from.x, from.y, from.z],
       CAMERA_ROOM_FIT_MARGIN,
       true,
       CAMERA_SPILL,
+      signs,
     )
     return { position: triple(position), target: triple(target) }
   }
@@ -212,8 +213,8 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
   // off so the flight goes straight there: its saved view fitted to this
   // card the way the opening view is, or without one, the room framed from
   // the opening view's side.
-  // The signs on the floor that lead out of it into the rooms open beside
-  // it are kept in the picture too.
+  // The signs on the floor that lead out of it into the rooms beside it are
+  // kept wholly in the picture too, never past its sides.
   const show = (room: RoomConfig): CameraView => {
     const signs = passagesOf(room, rooms, decorations).map((passage): RoomConfig => ({
       id: '',
@@ -222,9 +223,10 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     return room.camera
       ? fit(
           room.camera,
-          [room, ...signs],
+          [room],
           decorations.filter(d => d.room === room.id),
           CAMERA_ROOM_FIT_MARGIN,
+          signs,
         )
       : frame(room, signs)
   }

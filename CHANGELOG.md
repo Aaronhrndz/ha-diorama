@@ -12,6 +12,7 @@ moves that section under the new version and uses it as the release notes.
 ### Changed
 
 - The home and a room flown to fill the card with only a thin margin on any screen, not only on a phone.
+- A room a door leads into gets an arrow on the floor just past the door too, with its own switch in the editor to turn it off.
 
 ## [1.3.0] - 2026-10-11
 

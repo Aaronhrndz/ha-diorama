@@ -54,7 +54,8 @@ export function planBounds(rooms: RoomConfig[]) {
 // more empty space than the others, and fits the rooms' own corners rather
 // than the box around them all, whose empty corners pushed a room off to
 // one side. `spill` lets them run past the sides of the view by that factor
-// of its width, while the top and the bottom still fit.
+// of its width, while the top and the bottom still fit. `whole` are shapes
+// on the floor, like the signs out of a room, that never run past them.
 export function frameRooms(
   rooms: RoomConfig[],
   aspect: number,
@@ -63,12 +64,13 @@ export function frameRooms(
   margin = CAMERA_FIT_MARGIN,
   center = false,
   spill = 1,
+  whole: RoomConfig[] = [],
 ): Framing {
   let minX = Infinity
   let minY = Infinity
   let maxX = -Infinity
   let maxY = -Infinity
-  for (const room of rooms) {
+  for (const room of [...rooms, ...whole]) {
     for (const [x, y] of room.points) {
       minX = Math.min(minX, x)
       minY = Math.min(minY, y)
@@ -91,22 +93,34 @@ export function frameRooms(
 
   const vFov = MathUtils.degToRad(CAMERA_FOV_DEG)
   const tanV = Math.tan(vFov / 2)
-  const tanH = tanV * aspect * spill
+  const tanH = tanV * aspect
 
   // For each corner, the distance the camera needs so that the corner
   // still fits horizontally and vertically. The farthest wins.
   const corners: Vector3[] = []
+  const spills: number[] = []
   const floor = center ? rooms.flatMap(room => room.points) : [minX, maxX].flatMap(x => [minY, maxY].map(y => [x, y]))
-  for (const [x, y] of floor) for (const z of [-ROOM_SLAB_THICKNESS_M, height]) corners.push(new Vector3(x, z, -y))
+  const add = (points: number[][], by: number) => {
+    for (const [x, y] of points)
+      for (const z of [-ROOM_SLAB_THICKNESS_M, height]) {
+        corners.push(new Vector3(x, z, -y))
+        spills.push(by)
+      }
+  }
+  add(floor, spill)
+  add(
+    whole.flatMap(shape => shape.points),
+    1,
+  )
   const fit = () => {
     let distance = 0
-    for (const point of corners) {
+    corners.forEach((point, i) => {
       const corner = point.clone().sub(target)
       const depth = corner.dot(forward)
       const dx = Math.abs(corner.dot(right))
       const dy = Math.abs(corner.dot(up))
-      distance = Math.max(distance, dx / tanH - depth, dy / tanV - depth)
-    }
+      distance = Math.max(distance, dx / (tanH * spills[i]) - depth, dy / tanV - depth)
+    })
     return distance
   }
 
@@ -154,6 +168,7 @@ export function fitView(
   // a card too small to spare the room the saved view leaves around it.
   closeIn = false,
   spill = 1,
+  whole: RoomConfig[] = [],
 ): Framing {
   const position = new Vector3(...view.position)
   const target = new Vector3(...view.target)
@@ -165,7 +180,7 @@ export function fitView(
 
   let fits = true
   const corner = new Vector3()
-  for (const room of rooms) {
+  for (const room of [...rooms, ...whole]) {
     for (const [x, y] of room.points) {
       for (const z of [-ROOM_SLAB_THICKNESS_M, height]) {
         corner.set(x, z, -y).sub(position)
@@ -177,5 +192,5 @@ export function fitView(
   }
   if (fits && !closeIn) return { position, target }
   const from = position.clone().sub(target)
-  return frameRooms(rooms, aspect, height, [from.x, from.y, from.z], margin, closeIn, spill)
+  return frameRooms(rooms, aspect, height, [from.x, from.y, from.z], margin, closeIn, spill, whole)
 }
