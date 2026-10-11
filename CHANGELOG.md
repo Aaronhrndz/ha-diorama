@@ -64,6 +64,7 @@ moves that section under the new version and uses it as the release notes.
 - The dial's ring is bigger and reaches down beside the name, with plus over minus on its left, and its number stays still as it changes, like from 21° to 21.5°, with the two ends of a range large and one over the other inside the ring.
 - The alarm panel is a wide tile like the others, with its modes in the top right, a keypad beside a large line saying what the code will do, a red lock key to arm and a green open lock to disarm, and a red or green wash for armed or disarmed.
 - Each tile in the side panel's home and room lists in the card's editor shows which card it is, and a press on that opens live previews of every floorplan card the entity can be, to pick another one.
+- The weather tile comes in two more sizes: a square half as wide with only the weather now, and one twice as tall that lists the next days under the hours, each with its low and high on a bar across the week, and the card picker offers both.
 
 ### Changed
 

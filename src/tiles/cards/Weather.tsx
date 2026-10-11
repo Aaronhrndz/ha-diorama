@@ -1,3 +1,4 @@
+import { cn } from '#/lib/utils.ts'
 import { entityName, formatState, moreInfo, runAction, type TileEnv } from '#/tiles/actions.ts'
 import { useTileGestures } from '#/tiles/gestures.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
@@ -83,11 +84,16 @@ const degrees = (value: number | undefined) => (typeof value === 'number' ? `${M
 // White icons, but for the sun, which is yellow.
 const iconColor = (condition: string | undefined) => (condition === 'sunny' ? '#ffd60a' : undefined)
 
+// Small is half the width and square, with only the weather now. Large is
+// twice as tall, with the next hours and then the next days.
 export type WeatherConfig = TileConfig & {
   // Which forecast runs along the bottom. The hours when the entity has
   // them, and the days when it does not.
   forecast_type?: Kind
 }
+
+// How many days a large tile lists under the hours.
+const DAYS = 5
 
 type Props = { env: TileEnv; config: WeatherConfig }
 
@@ -95,7 +101,10 @@ type Props = { env: TileEnv; config: WeatherConfig }
 // in large type, what the sky is doing and the day's high and low on the
 // right, and the next hours along the bottom, or the next days when the
 // entity has no hourly forecast. Its background is the sky. A tap opens the
-// entity's dialog.
+// entity's dialog. Small, it is a square half as wide with the temperature
+// under the name and the sky, the high and the low at its foot. Large, it
+// is six rows tall, with the next hours and under them the next days, each
+// with its low and high on a bar across the week's range.
 export default function Weather({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const attributes = entity?.attributes ?? {}
@@ -104,8 +113,19 @@ export default function Weather({ env, config }: Props) {
     ...(features & HOURLY ? ['hourly' as const] : []),
     ...(features & DAILY ? ['daily' as const] : []),
   ]
-  const strip: Kind | null =
-    config.forecast_type && offered.includes(config.forecast_type) ? config.forecast_type : (offered[0] ?? null)
+  const small = config.size === 'small'
+  const large = config.size === 'large'
+  // Large shows the hours along the strip, when there are any, and the days
+  // under it.
+  const strip: Kind | null = small
+    ? null
+    : large
+      ? features & HOURLY
+        ? 'hourly'
+        : null
+      : config.forecast_type && offered.includes(config.forecast_type)
+        ? config.forecast_type
+        : (offered[0] ?? null)
   const steps = useForecast(env.hass, config.entity, strip)
   const days = useForecast(env.hass, config.entity, features & DAILY ? 'daily' : null)
   const open = () => moreInfo(env.host, config.entity)
@@ -129,6 +149,44 @@ export default function Weather({ env, config }: Props) {
       : date.toLocaleDateString(language, { weekday: 'short' })
   }
   const unavailable = !entity || entity.state === 'unavailable' || entity.state === 'unknown'
+  const now = attributes.temperature as number | undefined
+  const stateText = unavailable ? 'Unavailable' : formatState(env.hass, entity)
+  const range = today && (
+    <div className="fp-weather-condition fp-weather-range">
+      H:{degrees(today.temperature)} L:{degrees(today.templow)}
+    </div>
+  )
+  const skyIcon = (
+    <span className="fp-weather-icon" style={{ color: iconColor(looks) }}>
+      <Icon icon={config.icon ?? defaultIcon(config.entity, undefined, looks)} on />
+    </span>
+  )
+  // The days under the hours of a large tile, more of them with no hours.
+  const list = large ? days?.slice(0, strip ? DAYS : DAYS + 2) : undefined
+
+  if (small)
+    return (
+      <div
+        {...handlers}
+        role="button"
+        tabIndex={0}
+        aria-label={entityName(config, entity)}
+        data-pressed={pressed || undefined}
+        data-unavailable={unavailable || undefined}
+        className="fp-tile fp-weather fp-weather-small"
+        style={{ background: sky(condition, night) }}
+      >
+        <div className="fp-text">
+          <div className="fp-name">{entityName(config, entity)}</div>
+          <div className="fp-weather-temp">{degrees(now)}</div>
+        </div>
+        <div className="fp-weather-foot">
+          {skyIcon}
+          <div className="fp-weather-condition">{stateText}</div>
+          {range}
+        </div>
+      </div>
+    )
 
   return (
     <div
@@ -138,26 +196,20 @@ export default function Weather({ env, config }: Props) {
       aria-label={entityName(config, entity)}
       data-pressed={pressed || undefined}
       data-unavailable={unavailable || undefined}
-      className="fp-tile fp-weather"
+      className={cn('fp-tile fp-weather', large && 'fp-weather-large')}
       style={{ background: sky(condition, night) }}
     >
       <div className="fp-weather-now">
         <div className="fp-text">
           <div className="fp-name">{entityName(config, entity)}</div>
-          <div className="fp-weather-temp">{degrees(attributes.temperature as number | undefined)}</div>
+          <div className="fp-weather-temp">{degrees(now)}</div>
         </div>
         <div className="fp-weather-sky">
           <div>
-            <div className="fp-weather-condition">{unavailable ? 'Unavailable' : formatState(env.hass, entity)}</div>
-            {today && (
-              <div className="fp-weather-condition fp-weather-range">
-                H:{degrees(today.temperature)} L:{degrees(today.templow)}
-              </div>
-            )}
+            <div className="fp-weather-condition">{stateText}</div>
+            {range}
           </div>
-          <span className="fp-weather-icon" style={{ color: iconColor(looks) }}>
-            <Icon icon={config.icon ?? defaultIcon(config.entity, undefined, looks)} on />
-          </span>
+          {skyIcon}
         </div>
       </div>
       {steps && steps.length > 0 && (
@@ -176,6 +228,52 @@ export default function Weather({ env, config }: Props) {
           })}
         </div>
       )}
+      {list && list.length > 0 && <Days days={list} now={now} entity={config.entity} language={language} />}
+    </div>
+  )
+}
+
+// The next days, one to a row: the day, its sky, its low, a bar for where
+// its low and high fall in the week's range, and its high. Today's bar has
+// a dot for the temperature now.
+function Days({
+  days,
+  now,
+  entity,
+  language,
+}: {
+  days: Forecast[]
+  now: number | undefined
+  entity: string | undefined
+  language: string | undefined
+}) {
+  const lows = days.map(day => day.templow ?? day.temperature ?? 0)
+  const highs = days.map(day => day.temperature ?? 0)
+  const bottom = Math.min(...lows, now ?? Infinity)
+  const top = Math.max(...highs, now ?? -Infinity)
+  const at = (value: number) => (top > bottom ? ((value - bottom) / (top - bottom)) * 100 : 50)
+  return (
+    <div className="fp-weather-days">
+      {days.map((day, i) => {
+        const low = lows[i]
+        const high = highs[i]
+        return (
+          <div key={day.datetime} className="fp-weather-day">
+            <div className="fp-weather-day-name">
+              {i === 0 ? 'Today' : new Date(day.datetime).toLocaleDateString(language, { weekday: 'short' })}
+            </div>
+            <span className="fp-weather-icon" style={{ color: iconColor(day.condition) }}>
+              <Icon icon={defaultIcon(entity, undefined, day.condition)} on />
+            </span>
+            <div className="fp-weather-low">{degrees(day.templow)}</div>
+            <div className="fp-weather-bar">
+              <span style={{ left: `${at(low)}%`, right: `${100 - at(high)}%` }} />
+              {i === 0 && typeof now === 'number' && <i style={{ left: `${at(now)}%` }} />}
+            </div>
+            <div className="fp-weather-high">{degrees(day.temperature)}</div>
+          </div>
+        )
+      })}
     </div>
   )
 }

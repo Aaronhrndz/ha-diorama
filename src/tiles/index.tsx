@@ -133,11 +133,12 @@ class CameraCard extends entityCard<CameraConfig>(CAMERA_DOMAINS, Camera, ['came
 
 class WeatherCard extends entityCard<WeatherConfig>(WEATHER_DOMAINS, Weather, ['forecast']) {
   getCardSize() {
-    return 3
+    return this._config?.size === 'large' ? 6 : 3
   }
 
   getGridOptions(): GridOptions {
-    return { columns: 'full', rows: 3 }
+    const size = this._config?.size
+    return { columns: size === 'small' ? 6 : 'full', rows: size === 'large' ? 6 : 3 }
   }
 }
 
@@ -292,11 +293,28 @@ const CARDS: Card[] = [
     suggest: (hass, entityId) => {
       const features = Number(hass.states[entityId]?.attributes.supported_features ?? 0)
       const config = { type: 'custom:fp-weather', entity: entityId }
+      const small = { label: 'The weather now, half as wide', config: { ...config, size: 'small' } }
+      // A large tile lists the days, under the hours when there are any.
+      const sized =
+        features & 1
+          ? [
+              small,
+              {
+                label:
+                  features & 2
+                    ? 'The weather now, the next hours and the next days'
+                    : 'The weather now and the next days',
+                config: { ...config, size: 'large' },
+              },
+            ]
+          : [small]
       // Both forecasts offered, one suggestion each, the hours first.
-      if (!(features & 1) || !(features & 2)) return [{ label: 'The weather now and what comes next', config }]
+      if (!(features & 1) || !(features & 2))
+        return [{ label: 'The weather now and what comes next', config }, ...sized]
       return [
         { label: 'The weather now and the next hours', config: { ...config, forecast_type: 'hourly' } },
         { label: 'The weather now and the next days', config: { ...config, forecast_type: 'daily' } },
+        ...sized,
       ]
     },
   },

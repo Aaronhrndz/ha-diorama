@@ -19,7 +19,8 @@ export type TileConfig = {
   color?: string
   // Replaces the line under the name.
   state_text?: string
-  size?: 'small' | 'wide'
+  // Large only means something to the weather tile.
+  size?: 'small' | 'wide' | 'large'
   // A row of controls along the bottom, like a brightness slider or the
   // modes of an alarm, by the names Home Assistant gives its own tile
   // features. It makes the tile a row taller.
@@ -138,7 +139,8 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
       if (this.domains !== 'any' && !this.domains.includes(domain))
         throw new Error(`${config.entity} is not one of ${this.domains.map(d => `${d}.*`).join(', ')}`)
     }
-    if (config.size && config.size !== 'small' && config.size !== 'wide') throw new Error('size must be small or wide')
+    if (config.size && !['small', 'wide', 'large'].includes(config.size))
+      throw new Error('size must be small, wide or large')
     if (config.room_filter && !['hide', 'show', 'room', 'home'].includes(config.room_filter))
       throw new Error('room_filter must be hide, show, room or home')
     this._config = config

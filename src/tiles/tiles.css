@@ -896,6 +896,107 @@
   font-weight: 600;
 }
 
+/* Small, a square: the temperature under the name, and the sky, the
+   high and the low at its foot. */
+.fp-weather-small {
+  justify-content: space-between;
+}
+
+.fp-weather-small .fp-weather-temp {
+  font-size: 44px;
+}
+
+.fp-weather-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fp-weather-foot .fp-icon {
+  width: 24px;
+  height: 24px;
+  --mdc-icon-size: 24px;
+}
+
+.fp-weather-foot .fp-weather-icon {
+  margin-bottom: 2px;
+}
+
+.fp-weather-small .fp-weather-condition {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Large, the days under the hours, apart from them by a faint line. */
+.fp-weather-large {
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.fp-weather-days {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-variant-numeric: tabular-nums;
+}
+
+.fp-weather-day {
+  display: grid;
+  grid-template-columns: 3.4em 28px 2.4em minmax(0, 1fr) 2.4em;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.fp-weather-day .fp-icon {
+  width: 22px;
+  height: 22px;
+  --mdc-icon-size: 22px;
+}
+
+.fp-weather-day-name {
+  white-space: nowrap;
+}
+
+.fp-weather-low {
+  text-align: right;
+  opacity: 0.6;
+}
+
+.fp-weather-bar {
+  position: relative;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.fp-weather-bar > span {
+  position: absolute;
+  inset-block: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #64d2ff, #ffd60a 60%, #ff9f0a);
+}
+
+/* The temperature now, on today's bar. */
+.fp-weather-bar > i {
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+  transform: translate(-50%, -50%);
+}
+
 /* A feature along the bottom of a tile, at any size: a bar, a menu, a
    switch or a set of buttons, the whole width of the tile. */
 .fp-feature {

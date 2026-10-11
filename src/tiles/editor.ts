@@ -211,6 +211,7 @@ export function tileForm(domains: string[] | 'any', extras: Extra[] = [], panel 
                         options: [
                           { value: 'small', label: 'Small' },
                           { value: 'wide', label: 'Wide' },
+                          ...(extras.includes('forecast') ? [{ value: 'large', label: 'Large' }] : []),
                         ],
                       },
                     },
