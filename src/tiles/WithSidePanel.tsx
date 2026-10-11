@@ -21,5 +21,6 @@ export default function WithSidePanel({ hass, config }: { hass: HomeAssistant | 
   useEffect(() => {
     if (hass && panel.current) panel.current.hass = hass
   }, [hass])
-  return <div ref={holder} />
+  // As tall as the card is given, so the panel can fit in it.
+  return <div ref={holder} style={{ height: '100%' }} />
 }

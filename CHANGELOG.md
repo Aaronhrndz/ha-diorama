@@ -108,6 +108,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Fixed
 
+- In a sections dashboard, a floorplan card with its side panel and a set number of rows keeps the tiles inside the card when they drop under the floorplan on a narrow screen, scrolling them there instead of covering the editor and the cards below.
 - Adding an item to the to-do list card with Enter or the plus beside the field now adds it to the list.
 - Buttons keep their fill and stay readable under the pointer, on a tile that is on or off and on a light or a dark dashboard.
 - Colored icons, words and lines on the tiles, like the chosen mode, the Clear link of a to-do list or a light's icon, now stand out clearly from the tile in light and in dark, and the dimmer second lines are a little stronger.

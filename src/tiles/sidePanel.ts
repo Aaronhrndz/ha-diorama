@@ -1,4 +1,4 @@
-import { closest, inPanelView } from '#/lib/panelView.ts'
+import { closest, closestClass, inPanelView } from '#/lib/panelView.ts'
 import { onRoomFilter, roomFilter } from '#/lib/roomFilter.ts'
 import { autoGroups } from '#/tiles/auto.ts'
 import { isWide, tileRows } from '#/tiles/features/index.tsx'
@@ -10,6 +10,10 @@ type CardConfig = {
   grid_options?: { columns?: number | 'full'; rows?: number | 'auto' }
   [key: string]: unknown
 }
+
+// Whether a grid of sections gives the card a set height, from its rows,
+// rather than letting it grow to fit.
+const setHeight = (element: HTMLElement) => !!closestClass(element, 'fit-rows')
 
 const PLAN_TYPE = 'custom:floorplan-3d'
 export const SIDE_PANEL = 'fp-side-panel'
@@ -52,6 +56,7 @@ function span(config: CardConfig, hass: HomeAssistant | null) {
 const CSS = `
 :host {
   display: block;
+  height: 100%;
   --_gap: var(--fp-tile-gap, ${GAP_PX}px);
 }
 .split {
@@ -139,10 +144,22 @@ const CSS = `
 .split[data-stacked] .main[data-fill] {
   aspect-ratio: 1 / 1;
 }
+/* In a card given a set height, the tiles under the floorplan take what
+   they need of it, up to all but 45% left to the floorplan, and scroll
+   in that rather than spill over what is under the card. */
+.split[data-fit] {
+  height: 100%;
+  grid-template-rows: minmax(45%, 1fr) minmax(0, auto);
+}
+.split[data-fit] .main[data-fill] {
+  aspect-ratio: auto;
+}
+.split[data-fit] .cards {
+  padding-bottom: 8px;
+}
 .split[data-stacked] .side {
   margin-inline: 0;
   padding-inline: 0;
-  overflow: visible;
 }
 .split[data-stacked] .cards {
   padding: 8px 12px 24px;
@@ -167,6 +184,9 @@ export class SidePanel extends HTMLElement {
   private observer: ResizeObserver
   private unsubscribe: (() => void) | null = null
   private panel = false
+  // Whether the floorplan fills what the tiles under it leave of a card of
+  // a set height, rather than keeping its own shape.
+  private fit = false
   // The room whose tiles show, null for the whole home, and undefined
   // before any show.
   private shown: string | null | undefined = undefined
@@ -258,9 +278,10 @@ export class SidePanel extends HTMLElement {
     if (config !== this._config) return
     // In a panel view the floorplan fills its column, at the full height of
     // the screen. Anywhere else it keeps the shape it is given.
-    this.mainSlot.toggleAttribute('data-fill', this.panel)
+    const fill = this.panel || this.fit
+    this.mainSlot.toggleAttribute('data-fill', fill)
     const main: CardConfig = { ...config, type: PLAN_TYPE, side_panel: false }
-    if (this.panel) main.aspect_ratio = 'fill'
+    if (fill) main.aspect_ratio = 'fill'
     this.main = this.create(main)
     this.mainSlot.replaceChildren(this.main)
     // Each card knows its room, so only the room in view shows.
@@ -373,8 +394,18 @@ export class SidePanel extends HTMLElement {
     this.root.style.setProperty('--_reserved', `${Math.round(above + below)}px`)
   }
 
+  // A card given a set height, like one a grid of sections sizes to its
+  // rows, has the panel under the floorplan fit in it, and the floorplan
+  // fills what the tiles leave, so nothing spills over what is under it.
   private updateStacked() {
-    this.root.toggleAttribute('data-stacked', this.clientWidth > 0 && this.clientWidth < STACK_PX)
+    const stacked = this.clientWidth > 0 && this.clientWidth < STACK_PX
+    this.root.toggleAttribute('data-stacked', stacked)
+    const fit = stacked && !this.panel && setHeight(this)
+    this.root.toggleAttribute('data-fit', fit)
+    if (fit !== this.fit) {
+      this.fit = fit
+      if (this._config) void this.build()
+    }
   }
 }
 
