@@ -290,8 +290,25 @@ export class SidePanel extends HTMLElement {
     this.mainSlot.toggleAttribute('data-fill', fill)
     const main: CardConfig = { ...config, type: PLAN_TYPE, side_panel: false }
     if (fill) main.aspect_ratio = 'fill'
-    this.main = this.create(main)
-    this.mainSlot.replaceChildren(this.main)
+    // The floorplan already there takes the new config as it is, so a
+    // change to the tiles, like their order, leaves its camera where it is
+    // rather than opening it again on the whole home. Home Assistant would
+    // build it anew while the dashboard is edited.
+    const plan = this.main?.firstElementChild as (HTMLElement & { setConfig?: (c: CardConfig) => void }) | null
+    // One that will not take it is built anew, to show Home Assistant's error.
+    let kept = false
+    if (plan?.setConfig && plan.localName === PLAN_TYPE.replace(/^custom:/, '')) {
+      try {
+        plan.setConfig(main)
+        kept = true
+      } catch {
+        // Left to the new one below.
+      }
+    }
+    if (!kept) {
+      this.main = this.create(main)
+      this.mainSlot.replaceChildren(this.main)
+    }
     // Each card knows its room, so only the room in view shows.
     const children = autoGroups(config).flatMap(group => group.cards.map(card => ({ card, room: group.room })))
     this.side = children.map(({ card: child, room }) => {
