@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- A click on a door or sliding door into another room takes you there even with a blind over it, instead of working the blind.
+
 ### Fixed
 
 - A piece picked in the editor shows its blue outline in the 3D view again, and the outline is a little more subtle.

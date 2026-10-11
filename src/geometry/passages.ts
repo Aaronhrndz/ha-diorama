@@ -26,7 +26,7 @@ export const PASSAGE_CORNER_RADIUS_M = 0.03
 
 // The kinds a person walks through. A window in the shared stretch leaves
 // it open, a door closes it off and the sign goes just past the door.
-const DOOR_KINDS = new Set(['door', 'sliding_door', 'garage_door'])
+export const DOOR_KINDS = new Set(['door', 'sliding_door', 'garage_door'])
 
 // A way from one room into the next: the middle of the stretch they share,
 // or the door between them, and the way out of `from` there, as a unit

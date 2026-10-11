@@ -1,6 +1,7 @@
 import { betweenOf, coverAt, coversOver, roomLookedFrom } from '#/decoration/between.ts'
 import { decorationKind, type DecorationKind } from '#/decoration/catalog.ts'
 import { canTry, initialTry, tryItemState, type TryState, type TryStates } from '#/editor/tryState.ts'
+import { DOOR_KINDS } from '#/geometry/passages.ts'
 import DecorationModel from '#/scene/decor/DecorationModel.tsx'
 import type { PressAction } from '#/scene/decor/press.ts'
 import { deskRise } from '#/scene/decor/state.ts'
@@ -296,8 +297,11 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
         // A window or a door with no device and a blind or a curtain over
         // it takes that cover's presses, so a press on the glass works the
         // blind whichever of the two is in front. With more than one over
-        // it, the press is for the one over the stretch it landed on.
+        // it, the press is for the one over the stretch it landed on. A door
+        // into another room still leads there first, and only its long press
+        // goes to the cover.
         const covers = !device && !onPick && !tried ? coversOver(item, decorations, id => boundTo.has(id)) : []
+        const leads = !!between && !!onRoom && DOOR_KINDS.has(item.kind)
         const covering = (at?: Vector3) => {
           const cover = coverAt(covers, at ? [at.x, -at.z] : item.position)
           return cover && boundTo.get(cover.id)
@@ -311,7 +315,7 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
                   if (tried && !(device && roomFirst?.(roomOf()))) onTry(item.id)
                 } else if (device && !roomFirst?.(roomOf())) act(device.entity_id)
               }
-            : covers.length > 0
+            : covers.length > 0 && !leads
               ? at => {
                   const over = covering(at)
                   if (over && !roomFirst?.(roomOf())) act(over.entity_id)
