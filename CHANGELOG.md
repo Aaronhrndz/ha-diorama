@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-10-11
+
 ### Changed
 
 - A click on a door or sliding door into another room takes you there even with a blind over it, instead of working the blind.
@@ -320,7 +322,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.2...HEAD
+[1.3.2]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.5...v1.3.0
 [1.2.5]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.4...v1.2.5
