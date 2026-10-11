@@ -24,6 +24,7 @@ import {
   CustomBlending,
   HalfFloatType,
   OneMinusConstantAlphaFactor,
+  Mesh,
   type Material,
   type Object3D,
 } from 'three'
@@ -62,8 +63,21 @@ const AO_FALLOFF = 1
 const AO_INTENSITY = 2.5
 // The outline's thickness and the edge where something stands in front of
 // the picked one.
-const OUTLINE_STRENGTH = 4
-const OUTLINE_HIDDEN_SHARE = 0.35
+const OUTLINE_STRENGTH = 2.5
+const OUTLINE_HIDDEN_SHARE = 0.25
+
+// The meshes that draw a picked object. The outline only takes in what is
+// added to it, not the parts under it, and a piece is a group of parts.
+// Steam, a glow and the like are left out, so the edge is of the piece.
+function parts(object: Object3D) {
+  const found: Mesh[] = []
+  object.traverseVisible(part => {
+    if (!(part instanceof Mesh)) return
+    const materials = Array.isArray(part.material) ? part.material : [part.material]
+    if (materials.every(material => material.depthWrite)) found.push(part)
+  })
+  return found
+}
 
 type Props = {
   // The name of the object to outline, as the scene gives it, `null` for
@@ -197,13 +211,18 @@ export default function Effects({ selected, focus = null }: Props) {
     if (!run) return
     if (run.outline) {
       const held = found.current
+      const selection = run.outline.selection
       if (!selected) {
-        if (held) run.outline.selection.clear()
+        if (held) selection.clear()
         found.current = null
-      } else if (!held || held.name !== selected || !held.parent) {
-        found.current = scene.getObjectByName(selected) ?? null
-        run.outline.selection.clear()
-        if (found.current) run.outline.selection.add(found.current)
+      } else {
+        if (!held || held.name !== selected || !held.parent) found.current = scene.getObjectByName(selected) ?? null
+        // Again on every frame, for parts built or shown since.
+        const now = found.current ? parts(found.current) : []
+        if (now.length !== selection.size || now.some(part => !selection.has(part))) {
+          selection.clear()
+          for (const part of now) selection.add(part)
+        }
       }
     }
     const cutTo = (room: string | null) => {
