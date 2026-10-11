@@ -61,6 +61,7 @@ moves that section under the new version and uses it as the release notes.
 ### Changed
 
 - While the room is heading for the value set on a dial, the stretch of its ring from where the room is now is paler, with faint arrows pointing the way it goes.
+- A dial fills on the same side as Home Assistant's own, from the value to the end of the ring for cooling or a dehumidifier and all the way round on auto.
 - A humidifier tile says how humid the room is beside On or Off, a fan tile says its speed while it is on, and a valve tile how far it is open.
 - A media player that is playing shows its icon and its volume in a green leaning to teal.
 - A media player tile with the volume is its volume across the whole tile, dragged sideways like a light's brightness, while a tap still plays or pauses it.

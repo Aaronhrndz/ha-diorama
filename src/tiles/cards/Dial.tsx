@@ -35,10 +35,28 @@ type Model = {
   now?: string
   // What the room is at now, where the paler stretch starts.
   current?: number
+  // Which side of the value the ring fills: from its start up to it, from
+  // it to its end, or all of it.
+  fill: Fill
   format: (value: number) => string
   send: (values: number[]) => void
   // Off, the ring is dim and drags nothing.
   off?: boolean
+}
+
+type Fill = 'start' | 'end' | 'full'
+
+// The side a thermostat fills for each mode, as Home Assistant fills it:
+// heating fills up to the value, cooling from it, and the rest all round.
+const HVAC_FILL: Record<string, Fill> = { heat: 'start', cool: 'end' }
+
+// Off or on auto, a thermostat that only heats or only cools fills as it
+// would when doing that.
+function climateFill(entity: EntityState): Fill {
+  const modes = Array.isArray(entity.attributes.hvac_modes) ? entity.attributes.hvac_modes.map(String) : []
+  const doing = modes.filter(mode => ['heat', 'cool', 'heat_cool'].includes(mode))
+  const mode = doing.length === 1 && ['off', 'auto'].includes(entity.state) ? doing[0] : entity.state
+  return HVAC_FILL[mode] ?? 'full'
 }
 
 function model(hass: HomeAssistant, entity: EntityState): Model | null {
@@ -62,6 +80,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
       max: 100,
       step: 1,
       color,
+      fill: 'start',
       label: 'Brightness',
       format: value => (value > 0 ? `${Math.round(value)}%` : 'Off'),
       send: ([value]) =>
@@ -80,8 +99,11 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
       values: [humidity],
       min: numberOf(entity, 'min_humidity') ?? 0,
       max: numberOf(entity, 'max_humidity') ?? 100,
-      step: 1,
+      step: numberOf(entity, 'target_humidity_step') ?? 1,
       color: 'var(--_accent-cool)',
+      // A dehumidifier fills from the value up, as it brings the air down
+      // to it.
+      fill: entity.attributes.device_class === 'dehumidifier' ? 'end' : 'start',
       label:
         entity.state === 'on'
           ? optionWord(
@@ -115,6 +137,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
       domain === 'water_heater'
         ? 'var(--_accent-climate)'
         : (climateColor(mode, action) ?? (mode === 'off' ? 'currentColor' : 'var(--_accent-climate)')),
+    fill: domain === 'water_heater' ? 'start' : climateFill(entity),
     label: action
       ? optionWord(hass, entity, action, 'hvac_action')
       : mode === 'off'
@@ -171,11 +194,21 @@ function arrows(from: number, to: number) {
 
 // Where the room is now and the end it is heading for, while it is on and
 // not there yet: below a range it heads for its low end, above it for its
-// high end, and inside it for nowhere.
+// high end, and inside it for nowhere. A single value is headed for only
+// from the side the ring fills, so a heater below it or a cooler above it,
+// and a ring filled all round heads nowhere.
 function heading(m: Model, values: number[]) {
   if (m.off || m.current === undefined) return null
   const target =
-    values.length === 2 ? (m.current < values[0] ? values[0] : m.current > values[1] ? values[1] : null) : values[0]
+    values.length === 2
+      ? m.current < values[0]
+        ? values[0]
+        : m.current > values[1]
+          ? values[1]
+          : null
+      : (m.fill === 'start' && m.current < values[0]) || (m.fill === 'end' && m.current > values[0])
+        ? values[0]
+        : null
   if (target === null || Math.abs(target - m.current) < m.step / 2) return null
   return { from: shareOf(m, m.current), to: shareOf(m, target) }
 }
@@ -199,10 +232,12 @@ function useHeldValues(reported: number[]) {
 
 // A thermostat, a water heater, a humidifier or a light on a big ring: drag the ring's knob, or press minus and plus, to set the
 // temperature, the humidity or the brightness it holds. The ring fills in
-// the color of what it is doing, like orange to heat. While the room is
+// the color of what it is doing, like orange to heat, on the side Home
+// Assistant fills: up to the knob to heat or to humidify, from the knob
+// on to cool or to dry the air, and all round on auto. While the room is
 // on its way to the knob, the stretch from where it is now to the knob is
-// paler, with arrows along it that point at the
-// knob and light up one after another toward it. The ring sits in the
+// paler, with arrows along it that point at the knob and light up one
+// after another toward it. The ring sits in the
 // bottom right corner across from the name with minus and plus stacked on
 // its left, and the modes in the top right.
 export default function Dial({ env, config }: { env: TileEnv; config: TileConfig }) {
@@ -312,11 +347,18 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   const width = (text: string) => [...text].reduce((sum, char) => sum + (/\d/.test(char) ? 1 : 0.55), 0)
   const widest = Math.max(...[m.min, m.max, m.min + m.step, m.max - m.step].map(value => width(m.format(snap(value)))))
   const toward = heading(m, values)
-  const first = shareOf(m, values.length === 2 ? values[0] : m.min)
-  // A single value fills only as far as the room is, or the value when the
-  // room is past it, and the rest of the way is the stretch it is heading
-  // along.
-  const last = values.length === 1 && toward ? Math.min(toward.from, toward.to) : shareOf(m, values[values.length - 1])
+  // A range fills between its ends. A single value fills its side of the
+  // ring, only as far as the room is while it is heading there, and the
+  // rest of the way is the stretch it is heading along.
+  const reached = toward ? toward.from : shareOf(m, values[0])
+  const [first, last] =
+    values.length === 2
+      ? [shareOf(m, values[0]), shareOf(m, values[1])]
+      : m.fill === 'full'
+        ? [0, 1]
+        : m.fill === 'end'
+          ? [reached, 1]
+          : [0, reached]
   return (
     <Panel {...panel}>
       <div
