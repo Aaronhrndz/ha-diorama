@@ -123,7 +123,7 @@ export default function TrySection({ kind, state, start, accent, onChange }: Pro
         <>
           <div className={cn(row, 'grid-cols-[96px_1fr]')}>
             Light
-            <div className="bg-fill-strong flex rounded-lg p-0.5">
+            <div className="bg-fill-strong flex rounded-[8px] p-0.5">
               {TINTS.map(t => (
                 <button
                   key={t.mode}
@@ -140,7 +140,7 @@ export default function TrySection({ kind, state, start, accent, onChange }: Pro
                     })
                   }
                   className={cn(
-                    'flex-1 rounded-md py-1 text-xs font-medium transition-colors',
+                    'flex-1 rounded-[6px] py-1 text-xs font-medium transition-colors',
                     tintMode === t.mode
                       ? 'bg-raised text-(--primary-text-color) shadow-[0_1px_3px_rgba(0,0,0,0.2)]'
                       : 'text-label-2 hover:text-(--primary-text-color)',
