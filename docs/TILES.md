@@ -264,7 +264,7 @@ The tiles look finished without it, and change with any theme that sets these:
 | `fp-accent`                   | `#0a84ff`                  | The icon of an `input_boolean`, script or select that is on                       |
 | `fp-accent-light`             | `#ffb340`                  | The icon of a light or a switch that is on                                        |
 | `fp-accent-cover`             | `#32ade6`                  | The icon of an open cover                                                         |
-| `fp-accent-media`             | `#1f63ff`                  | The icon and the volume of a media player that is playing                         |
+| `fp-accent-media`             | `#0a9a7c`                  | The icon and the volume of a media player that is playing                         |
 | `fp-accent-climate`           | `#ff6422`                  | A water heater that is on, and the heating mode unless it is set                  |
 | `fp-accent-cool`              | `#5ab0ff`                  | A humidifier, and the cooling mode unless it is set                               |
 | `fp-mode-heat`                | `fp-accent-climate`        | A thermostat that heats                                                           |

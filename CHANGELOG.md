@@ -48,7 +48,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-- A media player that is playing shows its icon and its volume in a more vivid blue.
+- A media player that is playing shows its icon and its volume in a green leaning to teal.
 - A media player tile with the volume is its volume across the whole tile, dragged sideways like a light's brightness, while a tap still plays or pauses it.
 - A media player tile with the volume buttons says how loud it plays before what is playing.
 - A number on an entity tile is its value across the whole tile, dragged sideways like a light's brightness, unless it has too many steps for a slider.
