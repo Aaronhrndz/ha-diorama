@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A piece picked in the editor shows its blue outline in the 3D view again, and the outline is a little more subtle.
+
 ## [1.3.1] - 2026-10-11
 
 ### Added
