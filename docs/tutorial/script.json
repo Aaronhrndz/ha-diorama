@@ -1,0 +1,80 @@
+[
+  {
+    "id": "01-intro",
+    "title": "What Diorama is",
+    "screen": "The finished demo flat in the card, slowly orbiting, then a lamp turned on.",
+    "say": "This is Diorama, a card for Home Assistant that turns your home into a small 3D model you can click. In the next few minutes we will build one from an empty card: two rooms, a lamp that really works, a sofa, a camera view for each room, and the side panel with its tiles."
+  },
+  {
+    "id": "02-add-card",
+    "title": "Add the card",
+    "screen": "An empty dashboard. Edit dashboard, Add card, search Diorama, pick it, Open editor.",
+    "say": "Start on any dashboard. Open edit mode, add a card and search for Diorama. The card starts empty, so press Open editor."
+  },
+  {
+    "id": "03-tour",
+    "title": "The editor",
+    "screen": "The editor fullscreen. The cursor points at the plan, the 3D preview and the catalog in turn.",
+    "say": "The editor fills the screen. The plan is on top, a live 3D preview sits under it, and the catalog of furniture and devices is on the right."
+  },
+  {
+    "id": "04-first-room",
+    "title": "Draw the first room",
+    "screen": "Draw tool, four corners, Enter. Name Living room, area Living room, floor Wood.",
+    "say": "Pick the draw tool, or press D, and click the corners of your first room. Corners snap to the grid. Press Enter, or click the first corner again, to close it. The new room is selected, so its settings are on the right. Give it a name, link it to its Home Assistant area, and choose a floor."
+  },
+  {
+    "id": "05-device",
+    "title": "Add a device",
+    "screen": "Search Floor lamp, click it, drag it to a corner. Device list, pick the living room light. Click the lamp in the 3D preview and it lights up.",
+    "say": "Now a device. Search the catalog for a floor lamp and click it. It lands in the selected room, and you can drag it where it belongs. In its settings, the Device list shows every entity this lamp can stand for. Pick your living room light. Click the lamp in the preview: the real light turns on, and so does the lamp."
+  },
+  {
+    "id": "06-decoration",
+    "title": "Add a decoration",
+    "screen": "Click Sofa, drag it into place, press R to turn it, change its style and its color.",
+    "say": "Decorations work the same way, just without a device. Add a sofa, drag it into place and press R to turn it. Every piece has its own styles, sizes and colors."
+  },
+  {
+    "id": "07-second-room",
+    "title": "A second room",
+    "screen": "Draw a second room against the first. Name Bedroom, area Bedroom, floor Carpet. Add a door on the shared wall and a table lamp bound to the bedroom light.",
+    "say": "Draw a second room next to the first. Its corners snap onto the walls that are already there. Call it Bedroom, link its area and give it a carpet. Add a door on the wall the two rooms share, and a table lamp for the bedside light."
+  },
+  {
+    "id": "08-cameras",
+    "title": "A camera for each room",
+    "screen": "Select the living room, orbit the preview, Use current view. Same for the bedroom. Frame the whole home, Save opening view.",
+    "say": "Each room gets its own camera view. Select the living room, orbit the preview until it looks right, and press Use current view. Do the same for the bedroom. Then frame the whole home and press Save opening view. That is the view the card opens with."
+  },
+  {
+    "id": "09-try-it",
+    "title": "Try it in the card",
+    "screen": "Save & Close, close the card dialog. Click the bedroom, the camera flies in. Click the lamp. Click the floor again to come back.",
+    "say": "Press Save and Close. Back on the dashboard, click a room, and the camera flies there while the rest of the home fades away. Click the lamp to switch it. Click the floor again, or any empty space, to come back."
+  },
+  {
+    "id": "10-side-panel",
+    "title": "Turn on the side panel",
+    "screen": "Edit the card, switch on Show the side panel. The preview shows the tiles beside the model.",
+    "say": "Now the tiles. Edit the card and turn on Show the side panel. The model moves to the left, and its tiles come in on the right: a heading for each room, and a tile for each device you placed."
+  },
+  {
+    "id": "11-tile-type",
+    "title": "Pick another card for a tile",
+    "screen": "Under Tiles by room, click the card name under the living room light. The picker opens, pick the dial. Add a scene with the entity picker.",
+    "say": "Under Tiles by room, each entity shows the card it uses. Click that name to see every card it can be, live, and pick one. Here the living room light becomes a dial. You can also add entities that have no piece on the plan, like a scene, and drag the rows into order."
+  },
+  {
+    "id": "12-panel-follows",
+    "title": "The panel follows the room",
+    "screen": "Save. Click the bedroom: the tiles fade to the bedroom's. Click back: every room returns.",
+    "say": "Save, and click a room. The panel follows the camera and fades to that room's tiles. Go back, and they all return."
+  },
+  {
+    "id": "13-outro",
+    "title": "Wrap up",
+    "screen": "The demo flat with the side panel, a slow orbit.",
+    "say": "That is all it takes. Keep adding rooms and pieces from the catalog, and your whole home is a click away. You can get Diorama from HACS. Thanks for watching."
+  }
+]
