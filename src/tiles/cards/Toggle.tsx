@@ -21,7 +21,7 @@ type Props = { env: TileEnv; config: TileConfig }
 // valve with the position feature how far it is open, and a humidifier
 // with the humidity slider the humidity it holds the room at. A group,
 // like a light group, says how many of its members are on. With confirm
-// it turns on or off only on a second tap.
+// it turns on or off only on a second tap, and has no other control.
 export default function Toggle({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const domain = config.entity!.split('.')[0]
@@ -71,6 +71,30 @@ export default function Toggle({ env, config }: Props) {
   const unavailable = !entity || entity.state === 'unavailable' || entity.state === 'unknown'
   const toggle = () => callService(env.hass, `${domain}.toggle`, { entity_id: config.entity })
   const { feature: _, ...plain } = config
+  // Two taps only turn it on or off, over any control it was set to have.
+  if (config.confirm)
+    return (
+      <ConfirmTile
+        env={env}
+        config={plain}
+        entity={entity}
+        on={on}
+        role="switch"
+        accent={accent}
+        glow={glow}
+        state={state}
+        prompt={
+          valve
+            ? on
+              ? 'Tap again to close'
+              : 'Tap again to open'
+            : on
+              ? 'Tap again to turn off'
+              : 'Tap again to turn on'
+        }
+        onConfirm={toggle}
+      />
+    )
   if (domain === 'light' && config.feature === 'brightness' && !unavailable && dims(entity)) {
     return (
       <FillTile
@@ -132,29 +156,6 @@ export default function Toggle({ env, config }: Props) {
       />
     )
   }
-  if (config.confirm)
-    return (
-      <ConfirmTile
-        env={env}
-        config={config}
-        entity={entity}
-        on={on}
-        role="switch"
-        accent={accent}
-        glow={glow}
-        state={state}
-        prompt={
-          valve
-            ? on
-              ? 'Tap again to close'
-              : 'Tap again to open'
-            : on
-              ? 'Tap again to turn off'
-              : 'Tap again to turn on'
-        }
-        onConfirm={toggle}
-      />
-    )
   return (
     <Tile
       env={env}
