@@ -83,6 +83,12 @@ export function resolveArea(hass: HomeAssistant, area: string | undefined, entit
   return entityId ? entityArea(hass, entityId) : null
 }
 
+// A section of a dashboard about as wide as Home Assistant makes one, in
+// twelve columns with a gap between each, and the height of one of its rows.
+const SECTION_WIDTH = 360
+const GRID_GAP = 8
+const ROW_HEIGHT = 56
+
 // The states of an entity that is not in use.
 const IDLE = ['off', 'standby', 'idle', 'unavailable', 'unknown']
 
@@ -112,6 +118,7 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
   protected abstract readonly domains: string[] | 'any' | null
   private _preview = false
   private unsubscribe: (() => void) | null = null
+  private pickerBox: ResizeObserver | null = null
 
   constructor() {
     super()
@@ -134,6 +141,7 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
       throw new Error('room_filter must be hide, show, room or home')
     this._config = config
     this.applyFilter()
+    this.fitPicker()
     this.render()
   }
 
@@ -164,6 +172,7 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
     this._hass = hass
     this.toggleAttribute('data-light', hass.themes?.darkMode === false)
     this.applyFilter()
+    this.fitPicker()
     this.render()
   }
 
@@ -175,12 +184,45 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
     super.connectedCallback()
     this.unsubscribe ??= onRoomFilter(() => this.applyFilter())
     this.applyFilter()
+    const box = this.pickerPreview()
+    if (box) {
+      this.pickerBox = new ResizeObserver(() => this.fitPicker())
+      this.pickerBox.observe(box)
+    }
   }
 
   disconnectedCallback() {
     this.unsubscribe?.()
     this.unsubscribe = null
+    this.pickerBox?.disconnect()
+    this.pickerBox = null
     super.disconnectedCallback()
+  }
+
+  // The box Home Assistant shows the card in while a card is picked, by
+  // card or as a suggestion for an entity, where the card sits in a hui-card.
+  private pickerPreview() {
+    const box = this.parentElement?.localName === 'hui-card' ? this.parentElement.parentElement : this.parentElement
+    const picker = (box?.getRootNode() as ShadowRoot | undefined)?.host?.localName
+    return box?.classList.contains('preview') && (picker === 'hui-card-picker' || picker === 'hui-suggestion-card')
+      ? box
+      : null
+  }
+
+  // Home Assistant's card picker shows each card in a narrow box that gives
+  // it no height. There the card takes the width and rows it would in a
+  // section and shrinks to fit the box, so it looks as it will once added.
+  private fitPicker() {
+    const box = this.pickerPreview()
+    if (!this.pickerBox || !box || !this._config) return
+    const { columns: wanted, rows } = { ...this.getGridOptions(), ...this._config.grid_options }
+    const columns = typeof wanted === 'number' ? Math.min(wanted, 12) : 12
+    const column = (SECTION_WIDTH - 11 * GRID_GAP) / 12
+    const width = columns * column + (columns - 1) * GRID_GAP
+    this.style.width = `${width}px`
+    this.style.marginInline = 'auto'
+    this.style.height = typeof rows === 'number' ? `${rows * ROW_HEIGHT + (rows - 1) * GRID_GAP}px` : ''
+    this.style.zoom = `${Math.min(1, box.clientWidth / width)}`
   }
 
   protected area() {

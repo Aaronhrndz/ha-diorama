@@ -66,6 +66,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
+- In Home Assistant's card picker and its suggestions for an entity, each tile card shows at the width and height it takes once added to a section, shrunk to fit, so a map, a graph or a dial no longer looks squashed.
 - The arrows on a dial's paler stretch sit closer together, and at least one always shows past the knob even when the room is only a degree away.
 - A thermostat's dial with a range of two temperatures fills from its start up to the low end in orange and from the high end on in blue, like Home Assistant's, with the arrows toward whichever end the room is heading for.
 - While the room is heading for the value set on a dial, the stretch of its ring from where the room is now is paler, with faint arrows pointing the way it goes.
