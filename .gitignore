@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# The card config of the author's own home, kept here to update by hand.
+/home.yaml
