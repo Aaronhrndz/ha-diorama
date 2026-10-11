@@ -1,25 +1,53 @@
 import { cn } from '#/lib/utils.ts'
 import { PHOSPHOR_ICONS, phosphor } from '#/tiles/icons.ts'
+import { useEffect, useState } from 'react'
 
 const warned = new Set<string>()
 
+// As long as the fade from one icon to the next in tiles.css.
+const FADE_MS = 300
+
 type Props = { icon: string; on?: boolean; className?: string }
+type Drawn = { icon: string; on: boolean }
+
+const same = (a: Drawn, b: Drawn) => a.icon === b.icon && (a.on === b.on || !a.icon.startsWith('ph:'))
 
 // An icon written as `ph:<name>` is drawn from the bundled Phosphor set.
 // Anything else, like `mdi:lightbulb`, goes to Home Assistant's own icon
-// element, which knows every icon Home Assistant does.
+// element, which knows every icon Home Assistant does. When it changes,
+// to another icon or to filled, the old one fades out as the new one fades
+// in over it, so there is always an icon.
 export function Icon({ icon, on = false, className }: Props) {
-  if (icon.startsWith('ph:')) {
-    const name = icon.slice(3)
-    let svg = phosphor(name, on)
-    if (!svg) {
-      if (!warned.has(name)) {
-        warned.add(name)
-        console.warn(`Floorplan tiles: ph:${name} is not one of the bundled icons: ${PHOSPHOR_ICONS.join(', ')}`)
-      }
-      svg = phosphor('question', on)
-    }
-    return <span aria-hidden className={cn('fp-icon', className)} dangerouslySetInnerHTML={{ __html: svg ?? '' }} />
+  const [shown, setShown] = useState<Drawn>({ icon, on })
+  const [old, setOld] = useState<Drawn | null>(null)
+  if (!same(shown, { icon, on })) {
+    setOld(shown)
+    setShown({ icon, on })
   }
-  return <ha-icon aria-hidden className={cn('fp-icon', className)} icon={icon} />
+  useEffect(() => {
+    if (!old) return
+    const timer = setTimeout(() => setOld(null), FADE_MS)
+    return () => clearTimeout(timer)
+  }, [old])
+  return (
+    <span aria-hidden className={cn('fp-icon', className)}>
+      {old && <Layer key={`${old.icon}:${old.on}:out`} drawn={old} out />}
+      <Layer key={`${shown.icon}:${shown.on}`} drawn={shown} fresh={!!old} />
+    </span>
+  )
+}
+
+function Layer({ drawn, out, fresh }: { drawn: Drawn; out?: boolean; fresh?: boolean }) {
+  const flags = { 'data-out': out || undefined, 'data-in': fresh || undefined }
+  if (!drawn.icon.startsWith('ph:')) return <ha-icon className="fp-icon-layer" icon={drawn.icon} {...flags} />
+  const name = drawn.icon.slice(3)
+  let svg = phosphor(name, drawn.on)
+  if (!svg) {
+    if (!warned.has(name)) {
+      warned.add(name)
+      console.warn(`Floorplan tiles: ph:${name} is not one of the bundled icons: ${PHOSPHOR_ICONS.join(', ')}`)
+    }
+    svg = phosphor('question', drawn.on)
+  }
+  return <span className="fp-icon-layer" {...flags} dangerouslySetInnerHTML={{ __html: svg ?? '' }} />
 }

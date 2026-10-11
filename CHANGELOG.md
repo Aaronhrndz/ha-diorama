@@ -20,6 +20,7 @@ moves that section under the new version and uses it as the release notes.
 - A lock tile that opens the door in two taps locks it again with one tap while the door is open.
 - The home and a room flown to fill the card with only a thin margin on any screen, not only on a phone.
 - A room a door leads into gets an arrow on the floor just past the door too, with its own switch in the editor to turn it off.
+- A tile's icon fades smoothly into the next one when it changes or fills in, instead of swapping at once.
 
 ## [1.3.0] - 2026-10-11
 

@@ -402,9 +402,44 @@
   transition: color var(--_duration) ease;
 }
 
-.fp-icon > svg {
+/* The icon drawn, and while it changes the one before it on top, the two
+   fading across each other. */
+.fp-icon {
+  position: relative;
+}
+
+.fp-icon-layer {
+  display: block;
   width: 100%;
   height: 100%;
+}
+
+.fp-icon-layer > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.fp-icon-layer[data-out] {
+  position: absolute;
+  inset: 0;
+  animation: fp-icon-out 300ms ease forwards;
+}
+
+.fp-icon-layer[data-in] {
+  animation: fp-icon-in 300ms ease;
+}
+
+@keyframes fp-icon-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fp-icon-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* A picture in place of the icon, square, with its corners rounded to sit
@@ -2737,7 +2772,8 @@
     transform: none;
   }
 
-  .fp-mode-picked {
+  .fp-mode-picked,
+  .fp-icon-layer {
     animation: none;
   }
 
