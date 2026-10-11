@@ -11,6 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
+- A slider tile with a few stops, like a fan's speeds, shows a faint dot at each stop across its middle.
 - The card's settings have a Height on a phone slider that sets how tall the floorplan is on a narrow card, over the side panel too, so the tiles under it start higher.
 - Any Floorplan tile can be set to Never hide, `never_hide: true`, to keep showing whatever room the floorplan card is in.
 - A dial that is not heading for its knob shows a small dot on the ring where the room is now, in place of the arrows.
@@ -69,6 +70,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
+- On a phone, the tiles start right under the floorplan, with no gap between them.
 - Picking the card for a tile in the side panel opens a page of its own in place of the settings, with the device's name and a Back button at the top, and the picked card ticked in its corner.
 - A dial's name and state are never cut short, and run over the dial when they need the room.
 - A dial shows the tenths of a degree small under the degree sign, and keeps their room when there are none, so the number no longer shifts as it changes.

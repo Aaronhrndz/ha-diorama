@@ -326,6 +326,37 @@
   top: calc(100% - var(--_inset) - 4px);
 }
 
+/* A dot at each stop a fill with few of them snaps to, faint over the
+   empty part and over the filled one alike. */
+.fp-fill-dot {
+  position: absolute;
+  top: 50%;
+  left: var(--_at);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--_text-inactive);
+  opacity: 0.3;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.fp-fill-lit .fp-fill-dot {
+  background: var(--_text-active);
+}
+
+.fp-fill[data-vertical] .fp-fill-dot {
+  left: 50%;
+}
+
+.fp-fill[data-from='top'] .fp-fill-dot {
+  top: var(--_at);
+}
+
+.fp-fill[data-from='bottom'] .fp-fill-dot {
+  top: calc(100% - var(--_at));
+}
+
 .fp-top {
   display: flex;
   align-items: flex-start;
