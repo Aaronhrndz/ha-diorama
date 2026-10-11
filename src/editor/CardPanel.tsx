@@ -109,6 +109,17 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     onChange(on ? { ...rest, filter_tiles: true } : rest)
   }
 
+  // The rooms the view of the whole home frames. None chosen frames them
+  // all, so an empty list is not written down.
+  const framed = config.frame_rooms ?? []
+  const setFramed = (id: string, on: boolean) => {
+    const next = on ? [...framed, id] : framed.filter(other => other !== id)
+    const { frame_rooms: _, ...rest } = config
+    onChange(
+      next.length > 0 ? { ...rest, frame_rooms: rooms.map(room => room.id).filter(r => next.includes(r)) } : rest,
+    )
+  }
+
   const setSidePanel = (on: boolean) => {
     const { side_panel: _, ...rest } = config
     onChange(on ? { ...rest, side_panel: true } : rest)
@@ -393,6 +404,36 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
               />
             ))
           )}
+        </Section>
+      )}
+
+      {rooms.length > 0 && (
+        <Section
+          title="Framed rooms"
+          description="The rooms the view of the whole home zooms in on. The others still show around them and can still be clicked. With none on, the whole home is framed."
+        >
+          <div className={cn(group, 'gap-0 py-0')}>
+            {rooms.map((room, i) => {
+              const name = roomName(hass, room)
+              return (
+                <label
+                  key={room.id}
+                  className={cn(
+                    'flex cursor-pointer items-center justify-between gap-4 py-2.5',
+                    i > 0 && 'border-separator border-t',
+                  )}
+                >
+                  <span className="truncate text-[13px]">{name}</span>
+                  <Switch
+                    checked={framed.includes(room.id)}
+                    accent={EDITOR_TINT_COLOR}
+                    label={`Frame ${name}`}
+                    onChange={on => setFramed(room.id, on)}
+                  />
+                </label>
+              )
+            })}
+          </div>
         </Section>
       )}
 

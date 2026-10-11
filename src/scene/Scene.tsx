@@ -142,6 +142,7 @@ export default function Scene({
           rooms={rooms}
           decorations={config.decorations ?? []}
           view={config.camera}
+          framed={config.frame_rooms}
           focus={focus}
           handle={cameraRef}
           onAway={onCameraAway}

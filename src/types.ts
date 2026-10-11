@@ -173,6 +173,10 @@ export type CardConfig = {
   sun_direction?: number
   // The view the card opens with. Without one the camera frames the plan.
   camera?: CameraView
+  // The rooms the view of the whole home frames, as room ids, as if they
+  // were the only ones. The others still show where they fall in it and
+  // still take clicks. Every room when empty or not set.
+  frame_rooms?: string[]
   // What a click on a device goes to first. `device`, the default, acts on
   // the device wherever it is clicked from. `room` takes the click for the
   // room the device stands in while that room is not the one the camera has

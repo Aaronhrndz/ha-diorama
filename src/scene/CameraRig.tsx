@@ -31,6 +31,9 @@ type Props = {
   // The angle to open with, closer in when the whole plan fits. Without one
   // the camera frames the plan from the standard side.
   view?: CameraView
+  // The rooms the view of the whole home frames, as room ids. Every room
+  // when empty or none of them is there.
+  framed?: string[]
   // The room the card has flown to, which the camera keeps fitted to the
   // card as it changes shape until the viewer moves it.
   focus?: string | null
@@ -105,7 +108,16 @@ const triple = (v: Vector3): [number, number, number] => [round(v.x), round(v.y)
 // camera is theirs and is never moved again, so editing the plan does not
 // throw the view away. A flight to a saved view is the one exception, and
 // the camera is the viewer's again the moment it lands.
-export default function CameraRig({ rooms, decorations, view, focus, handle, onAway, wheelZoom = false }: Props) {
+export default function CameraRig({
+  rooms,
+  decorations,
+  view,
+  framed,
+  focus,
+  handle,
+  onAway,
+  wheelZoom = false,
+}: Props) {
   const camera = useThree(state => state.camera)
   const size = useThree(state => state.size)
   const controls = useThree(state => state.controls) as OrbitControlsImpl | null
@@ -173,8 +185,15 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     return { position: triple(position), target: triple(target) }
   }
 
+  // What the view of the whole home frames: the chosen rooms and what is
+  // in them, or all of it.
+  const chosen = rooms.filter(room => framed?.includes(room.id))
+  const homeRooms = chosen.length > 0 ? chosen : rooms
+  const homeItems =
+    chosen.length > 0 ? decorations.filter(item => chosen.some(room => room.id === item.room)) : decorations
+
   // The view the camera opened with.
-  const home = () => fit(view, rooms, decorations)
+  const home = () => fit(view, homeRooms, homeItems)
 
   // One room alone, filling the picture, looked at from the same side and
   // height as the opening view, so flying there only closes in.
@@ -183,9 +202,9 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
   const frame = (room?: RoomConfig, signs: RoomConfig[] = []): CameraView => {
     if (!room) {
       const whole = frameRooms(
-        rooms,
+        homeRooms,
         size.width / size.height,
-        sceneHeight(decorations),
+        sceneHeight(homeItems),
         undefined,
         CAMERA_FIT_MARGIN,
         true,
@@ -634,7 +653,7 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     const { position, target } = home()
     place(C.set(...position), D.set(...target))
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [rooms, decorations, view, room, size.width, size.height, place])
+  }, [rooms, decorations, view, framed, room, size.width, size.height, place])
 
   return null
 }
