@@ -4,14 +4,39 @@ import { Icon } from '#/tiles/Icon.tsx'
 import { tileOptions, type TileOption } from '#/tiles/index.tsx'
 import { GAP_PX, ROW_PX, span } from '#/tiles/sidePanel.ts'
 import type { HomeAssistant, TileChoice } from '#/types.ts'
+import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useEffect, useRef } from 'react'
 
+// The fewest and the most rows a card across the whole panel can be made.
+const MIN_ROWS = 1
+const MAX_ROWS = 16
+
 // What tells two setups of a card apart: everything in its config but the
-// entity and what the panel adds to every tile.
+// entity, what the panel adds to every tile, and the rows it was made taller
+// or shorter by, which leave it the same card.
 const PANEL_KEYS = new Set(['entity', 'room_filter', 'never_hide', 'piece_icon', 'invert'])
 function setupKey(config: Record<string, unknown>) {
-  const entries = Object.entries(config).filter(([key]) => !PANEL_KEYS.has(key))
+  const { rows: _, ...grid } = (config.grid_options ?? {}) as Record<string, unknown>
+  const entries = Object.entries({ ...config, grid_options: Object.keys(grid).length > 0 ? grid : undefined }).filter(
+    ([key, value]) => !PANEL_KEYS.has(key) && value !== undefined,
+  )
   return JSON.stringify(entries.sort(([a], [b]) => a.localeCompare(b)))
+}
+
+// The rows a card was set to, apart from the ones it takes by itself.
+const setRows = (config: Record<string, unknown> | undefined) => {
+  const rows = (config?.grid_options as { rows?: unknown } | undefined)?.rows
+  return typeof rows === 'number' ? rows : undefined
+}
+
+// A card's setup with its rows set, or left to the card when they are what
+// it takes anyway.
+function withRows(config: Record<string, unknown>, rows: number | undefined, own: number | 'auto') {
+  const { rows: _, ...grid } = (config.grid_options ?? {}) as Record<string, unknown>
+  const next = rows === undefined || rows === own ? grid : { ...grid, rows }
+  const { grid_options: __, ...rest } = config
+  return Object.keys(next).length > 0 ? { ...rest, grid_options: next } : rest
 }
 
 type Choices = { options: TileOption[]; auto: string; current: string }
@@ -37,6 +62,9 @@ export function tileName(hass: HomeAssistant, auto: AutoCard, chosen: TileChoice
 // panel, at the size it takes there, with its name and what it does under
 // it. The one it is now has a tick in its corner. Picking the one the
 // panel would pick anyway leaves the choice out of the YAML.
+// A card across the whole panel has a minus and a plus beside its name,
+// that make it a row shorter or taller, picking it as they do. A card that
+// takes the height of what is in it starts from the rows it has now.
 export function TilePicker({
   hass,
   auto,
@@ -46,7 +74,8 @@ export function TilePicker({
   hass: HomeAssistant
   auto: AutoCard
   chosen: TileChoice | undefined
-  onChoose: (choice: TileChoice | undefined) => void
+  // Stays open when the rows change, so the card can be sized further.
+  onChoose: (choice: TileChoice | undefined, stay?: boolean) => void
 }) {
   const { options, auto: autoKey, current } = choices(hass, auto, chosen)
   return (
@@ -59,47 +88,122 @@ export function TilePicker({
       {options.map(option => {
         const key = setupKey(option.config)
         const picked = key === current
-        // Shown as the panel would show it, with the piece's icon kept.
+        // Shown as the panel would show it, with the piece's icon kept, and
+        // the rows it was set to when it is the one picked.
         const { type: _, size: __, ...kept } = auto
-        const shown: AutoCard = { ...kept, ...option.config, type: String(option.config.type), entity: auto.entity }
+        const plain: AutoCard = { ...kept, ...option.config, type: String(option.config.type), entity: auto.entity }
+        const own = span(plain, hass).rows
+        const shown = (picked ? withRows(plain, setRows(chosen), own) : plain) as AutoCard
         const { columns, rows } = span(shown, hass)
+        const pick = (config: Record<string, unknown>, stay?: boolean) => {
+          const { entity: _, ...choice } = config
+          if (setupKey(config) === autoKey && setRows(config) === undefined) return onChoose(undefined, stay)
+          onChoose(choice as TileChoice, stay)
+        }
         return (
-          <button
+          <Option
             key={key}
-            type="button"
-            role="radio"
-            aria-checked={picked}
-            aria-label={option.label ? `${option.name}, ${option.label}` : option.name}
-            onClick={() => {
-              if (key === autoKey) return onChoose(undefined)
-              const { entity: _, ...choice } = option.config
-              onChoose(choice as TileChoice)
-            }}
-            className="group flex min-w-0 cursor-pointer flex-col gap-1.5 text-left outline-none"
-            style={{ gridColumn: `span ${columns}` }}
-          >
-            <span className="relative block transition-[transform,opacity] group-hover:opacity-85 group-focus-visible:opacity-85 group-active:scale-[0.98]">
-              <TilePreview hass={hass} config={shown} height={rows === 'auto' ? undefined : rows} />
-              {picked && (
-                <span className="bg-tint-fill absolute -top-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full text-white shadow-[0_0_0_3px_var(--fp-surface,var(--card-background-color))]">
-                  <Icon icon="ph:check-bold" className="size-3.5 [--mdc-icon-size:14px] [&>svg]:size-full" />
-                </span>
-              )}
-            </span>
-            <span className="flex min-w-0 flex-col px-1">
-              <span className={cn('flex items-center gap-1.5 text-xs font-semibold', picked && 'text-tint')}>
-                {option.name}
-                {key === autoKey && (
-                  <span className="bg-fill-strong text-label-2 rounded px-1 py-px text-[10px] font-medium">Auto</span>
-                )}
-              </span>
-              {option.label && (
-                <span className="text-label-2 line-clamp-2 text-[11px] leading-snug">{option.label}</span>
-              )}
-            </span>
-          </button>
+            option={option}
+            picked={picked}
+            isAuto={key === autoKey}
+            columns={columns}
+            rows={rows}
+            shown={shown}
+            hass={hass}
+            onPick={() => pick(option.config)}
+            onRows={columns === 12 ? next => pick(withRows(option.config, next, own), true) : undefined}
+          />
         )
       })}
+    </div>
+  )
+}
+
+function Option({
+  option,
+  picked,
+  isAuto,
+  columns,
+  rows,
+  shown,
+  hass,
+  onPick,
+  onRows,
+}: {
+  option: TileOption
+  picked: boolean
+  isAuto: boolean
+  columns: number
+  rows: number | 'auto'
+  shown: AutoCard
+  hass: HomeAssistant
+  onPick: () => void
+  onRows?: (rows: number) => void
+}) {
+  const preview = useRef<HTMLSpanElement>(null)
+  // The rows the card stands in now, worked out from its height when it
+  // takes the height of what is in it.
+  const now = () => {
+    if (rows !== 'auto') return rows
+    const height = preview.current?.getBoundingClientRect().height ?? ROW_PX
+    return Math.max(MIN_ROWS, Math.round((height + GAP_PX) / (ROW_PX + GAP_PX)))
+  }
+  const step = (by: number) => onRows?.(Math.min(MAX_ROWS, Math.max(MIN_ROWS, now() + by)))
+  const stepper =
+    'bg-fill-strong text-label-2 flex size-7 cursor-pointer items-center justify-center rounded-full transition-[color,transform] hover:text-(--primary-text-color) active:scale-95 disabled:cursor-default disabled:opacity-40'
+  return (
+    <div className="relative flex min-w-0 flex-col" style={{ gridColumn: `span ${columns}` }}>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={picked}
+        aria-label={option.label ? `${option.name}, ${option.label}` : option.name}
+        onClick={onPick}
+        className="group flex min-w-0 cursor-pointer flex-col gap-1.5 text-left outline-none"
+      >
+        <span
+          ref={preview}
+          className="relative block transition-[transform,opacity] group-hover:opacity-85 group-focus-visible:opacity-85 group-active:scale-[0.98]"
+        >
+          <TilePreview hass={hass} config={shown} height={rows === 'auto' ? undefined : rows} />
+          {picked && (
+            <span className="bg-tint-fill absolute -top-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full text-white shadow-[0_0_0_3px_var(--fp-surface,var(--card-background-color))]">
+              <Icon icon="ph:check-bold" className="size-3.5 [--mdc-icon-size:14px] [&>svg]:size-full" />
+            </span>
+          )}
+        </span>
+        <span className={cn('flex min-w-0 flex-col px-1', onRows && 'pr-[72px]')}>
+          <span className={cn('flex items-center gap-1.5 text-xs font-semibold', picked && 'text-tint')}>
+            {option.name}
+            {isAuto && (
+              <span className="bg-fill-strong text-label-2 rounded px-1 py-px text-[10px] font-medium">Auto</span>
+            )}
+          </span>
+          {option.label && <span className="text-label-2 line-clamp-2 text-[11px] leading-snug">{option.label}</span>}
+        </span>
+      </button>
+      {onRows && (
+        <span className="absolute right-0 bottom-0 flex gap-1.5">
+          <button
+            type="button"
+            aria-label={`${option.name} a row shorter`}
+            onClick={() => step(-1)}
+            disabled={rows !== 'auto' && rows <= MIN_ROWS}
+            className={stepper}
+          >
+            <FontAwesomeIcon icon={faMinus} className="size-3" />
+          </button>
+          <button
+            type="button"
+            aria-label={`${option.name} a row taller`}
+            onClick={() => step(1)}
+            disabled={rows !== 'auto' && rows >= MAX_ROWS}
+            className={stepper}
+          >
+            <FontAwesomeIcon icon={faPlus} className="size-3" />
+          </button>
+        </span>
+      )}
     </div>
   )
 }

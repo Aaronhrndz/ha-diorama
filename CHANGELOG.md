@@ -12,10 +12,15 @@ moves that section under the new version and uses it as the release notes.
 ### Added
 
 - The back button, a phone's own too, takes the camera from a room back to the whole home instead of leaving the dashboard.
+- A card across the whole side panel, like a camera, can be made taller or shorter a row at a time with the minus and plus beside it in the card picker.
 
 ### Changed
 
 - On a wide card, as on a computer, the home and a room flown to fit right to the card's edges instead of running a little past them. A phone keeps them filling its card as before.
+
+### Fixed
+
+- Changing the card in its edit dialog, like reordering a room's devices, no longer sends the preview back to the whole home and flies it to the room again.
 
 ## [1.3.2] - 2026-10-11
 

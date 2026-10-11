@@ -208,9 +208,9 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
           hass={hass}
           auto={auto}
           chosen={tiles?.[id]}
-          onChoose={choice => {
+          onChoose={(choice, stay) => {
             save(choice ? { ...tiles, [id]: choice } : without(tiles, id))
-            close()
+            if (!stay) close()
           }}
         />
       </div>
