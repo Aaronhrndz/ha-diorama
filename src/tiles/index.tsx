@@ -17,7 +17,7 @@ import Dial from '#/tiles/cards/Dial.tsx'
 import Gauge, { type GaugeConfig } from '#/tiles/cards/Gauge.tsx'
 import Graph, { isNumeric, type GraphConfig } from '#/tiles/cards/Graph.tsx'
 import MapCard, { type MapConfig } from '#/tiles/cards/Map.tsx'
-import MediaControl from '#/tiles/cards/MediaControl.tsx'
+import MediaControl, { type MediaControlConfig } from '#/tiles/cards/MediaControl.tsx'
 import Todo from '#/tiles/cards/Todo.tsx'
 import Weather, { type WeatherConfig } from '#/tiles/cards/Weather.tsx'
 import { featuresFor, isWide } from '#/tiles/features/index.tsx'
@@ -329,12 +329,21 @@ const CARDS: Card[] = [
   },
   {
     type: 'fp-media-control',
-    element: panelCard(MEDIA_DOMAINS, MediaControl, { columns: 'full', rows: 'auto' }, 4),
+    element: panelCard<MediaControlConfig>(MEDIA_DOMAINS, MediaControl, { columns: 'full', rows: 'auto' }, 4, ['art']),
     extra: true,
     domains: MEDIA_DOMAINS,
     name: 'Floorplan Now Playing',
-    does: 'Art, progress, buttons and volume',
     description: 'What is playing, with its art, how far in it is, its buttons and volume',
+    suggest: (_, entityId) => [
+      {
+        label: 'Its art blurred behind it, progress, buttons and volume',
+        config: { type: 'custom:fp-media-control', entity: entityId },
+      },
+      {
+        label: 'Its art in place of the icon, progress, buttons and volume',
+        config: { type: 'custom:fp-media-control', entity: entityId, art: 'icon' },
+      },
+    ],
   },
   {
     type: 'fp-calendar',

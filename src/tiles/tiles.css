@@ -370,6 +370,19 @@
   height: 100%;
 }
 
+/* A picture in place of the icon, square, with its corners rounded to sit
+   evenly inside the tile's. */
+.fp-picture {
+  display: block;
+  flex: none;
+  width: var(--_picture-size, 72px);
+  aspect-ratio: 1;
+  border-radius: max(4px, calc(var(--_radius) - var(--_padding)));
+  object-fit: cover;
+  box-shadow: 0 4px 14px color-mix(in srgb, #000 22%, transparent);
+  user-select: none;
+}
+
 .fp-tile[data-active] .fp-icon {
   color: color-mix(in oklab, var(--_tile-accent, var(--_accent)), var(--_ink-to) var(--_deep));
 }

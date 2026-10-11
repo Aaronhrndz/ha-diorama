@@ -16,6 +16,7 @@ type Props = {
   glow?: string
   glowFrom?: ComponentProps<typeof Tile>['glowFrom']
   tint?: string
+  picture?: string
   // What a tap does when the config sets no tap_action, its dialog unless
   // set.
   onTap?: () => void

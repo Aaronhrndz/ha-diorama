@@ -6,7 +6,7 @@ import { PHOSPHOR_ICONS, phosphor } from '#/tiles/icons.ts'
 
 type Field = { name: string; required?: boolean; selector?: Record<string, unknown>; [key: string]: unknown }
 export type Extra =
-  'invert' | 'battery_entity' | 'tap_behavior' | 'camera' | 'calendar' | 'graph' | 'gauge' | 'map' | 'forecast'
+  'invert' | 'battery_entity' | 'tap_behavior' | 'camera' | 'calendar' | 'graph' | 'gauge' | 'map' | 'forecast' | 'art'
 
 const LABELS: Record<string, string> = {
   entity: 'Entity',
@@ -31,6 +31,7 @@ const LABELS: Record<string, string> = {
   entities: 'More calendars',
   days: 'Days',
   chart: 'Chart',
+  art: 'Cover art',
   hours: 'Hours',
   min: 'Minimum',
   max: 'Maximum',
@@ -103,6 +104,20 @@ const EXTRAS: Record<Extra, Field[]> = {
     },
     { name: 'hours', selector: { number: { min: 1, max: 168, mode: 'box' } } },
     { name: 'days', selector: { number: { min: 2, max: 31, mode: 'box' } } },
+  ],
+  art: [
+    {
+      name: 'art',
+      selector: {
+        select: {
+          mode: 'dropdown',
+          options: [
+            { value: 'background', label: 'Blurred behind the whole card' },
+            { value: 'icon', label: 'Square in place of the icon' },
+          ],
+        },
+      },
+    },
   ],
   gauge: [
     { name: 'min', selector: { number: { mode: 'box' } } },

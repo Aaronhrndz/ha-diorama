@@ -17,17 +17,24 @@ const clock = (seconds: number) => {
   return hours ? `${hours}:${pad(minutes % 60)}:${pad(whole % 60)}` : `${minutes}:${pad(whole % 60)}`
 }
 
+export type MediaControlConfig = TileConfig & {
+  // Where the cover art goes: washed large and blurred behind the whole
+  // card, or square in place of the icon.
+  art?: 'background' | 'icon'
+}
+
 // What is playing, with the cover art washed large and blurred behind the
-// whole card: the title and the artist in the bottom left corner where a
+// whole card, or square in place of the icon: the title and the artist in the bottom left corner where a
 // tile has its name, the buttons to play it in the top right, and across
 // from the title how far into it it is and its volume, with shuffle and
 // repeat on either side. A tap opens the player's dialog.
-export default function MediaControl({ env, config }: { env: TileEnv; config: TileConfig }) {
+export default function MediaControl({ env, config }: { env: TileEnv; config: MediaControlConfig }) {
   const entity = env.hass.states[config.entity!]
   const attributes = entity?.attributes ?? {}
   const playing = entity?.state === 'playing'
   const off = !entity || OFF.includes(entity.state)
   const picture = typeof attributes.entity_picture === 'string' ? attributes.entity_picture : null
+  const square = config.art === 'icon'
   const title = typeof attributes.media_title === 'string' ? attributes.media_title : null
   const artist = [attributes.media_artist, attributes.media_album_name, attributes.app_name].find(
     part => typeof part === 'string' && part,
@@ -102,7 +109,8 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Ti
       state={off ? formatState(env.hass, entity) : (artist ?? (title ? name : formatState(env.hass, entity)))}
       accent="var(--_accent-media)"
       className="fp-media-control"
-      style={picture ? ({ '--_art': `url("${picture}")` } as CSSProperties) : undefined}
+      picture={square && !off ? (picture ?? undefined) : undefined}
+      style={picture && !square ? ({ '--_art': `url("${picture}")` } as CSSProperties) : undefined}
       controls={
         entity && (
           <>
@@ -131,7 +139,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Ti
       }
     >
       {(progress || shuffle || repeat || volume) && (
-        <div className="fp-media-side" data-art={picture ? true : undefined}>
+        <div className="fp-media-side" data-art={picture && !square ? true : undefined}>
           {progress}
           {(shuffle || repeat || volume) && (
             <div className="fp-media-row">

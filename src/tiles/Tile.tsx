@@ -29,6 +29,8 @@ type Props = {
   // A color that washes in from the left over a tile that is off, and
   // takes its icon, like the red of a locked lock. It stays glass.
   tint?: string
+  // A picture in place of the icon, like the cover of what is playing.
+  picture?: string
   state: ReactNode
   // What a tap does when the config sets no tap_action.
   onTap?: () => void
@@ -69,6 +71,7 @@ export function Tile({
   glow,
   glowFrom = 'corner',
   tint,
+  picture,
   state,
   onTap,
   role = 'button',
@@ -132,15 +135,19 @@ export function Tile({
       }
     >
       <div className="fp-top">
-        <Icon
-          icon={
-            config.icon ??
-            entityIcon(entity) ??
-            config.piece_icon ??
-            defaultIcon(config.entity, entity?.attributes.device_class, entity?.state)
-          }
-          on={(on && !looksOff) || fading}
-        />
+        {picture ? (
+          <img className="fp-picture" src={picture} alt="" draggable={false} />
+        ) : (
+          <Icon
+            icon={
+              config.icon ??
+              entityIcon(entity) ??
+              config.piece_icon ??
+              defaultIcon(config.entity, entity?.attributes.device_class, entity?.state)
+            }
+            on={(on && !looksOff) || fading}
+          />
+        )}
         {beside ? (
           <div className="fp-beside">
             <Feature env={env} config={config} entity={entity!} onPreview={setPreview} />

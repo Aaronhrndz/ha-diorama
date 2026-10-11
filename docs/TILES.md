@@ -23,7 +23,7 @@ The larger cards are offered beside the tiles when a card is added by entity:
 | ------------------ | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `fp-alarm-panel`   | `alarm_control_panel.*`                                                                                  | a button for each mode it arms in and a keypad for its code                                                            |
 | `fp-dial`          | `climate.*`, `water_heater.*`, `humidifier.*`, and `light.*` that dims                                   | a ring to drag to the temperature, humidity or brightness it aims for, with plus over minus on its left, and its modes |
-| `fp-media-control` | `media_player.*`                                                                                         | what is playing over its cover art, how far into it, its buttons and its volume                                        |
+| `fp-media-control` | `media_player.*`                                                                                         | what is playing over its cover art, or with the art in place of the icon, how far into it, its buttons and its volume  |
 | `fp-calendar`      | `calendar.*`                                                                                             | the events of the next days, as a list by day                                                                          |
 | `fp-todo`          | `todo.*`                                                                                                 | the items to do with a box to tick each and the done items, with a plus to add one                                     |
 | `fp-graph`         | `sensor.*`, `binary_sensor.*`, `counter.*`, `input_number.*`, `number.*`, `person.*`, `device_tracker.*` | a line over the last day, bars for the last days, or a strip lit for the times it was on                               |
@@ -118,7 +118,7 @@ A wide tile shows pause or start, stop, and back to the dock, each only when the
 | `hours` | `24`    | How far back a line or a strip reaches                          |
 | `days`  | `7`     | How many days of bars                                           |
 
-`fp-gauge` takes `min` and `max`, and `fp-calendar` takes `entities`, more calendars to list along with its own, and `days`, how many days ahead it lists. `fp-map` takes `hours_to_show`, how many hours of a person's path it draws behind them, and `fp-weather` takes `forecast_type`, `hourly` or `daily`.
+`fp-gauge` takes `min` and `max`, and `fp-calendar` takes `entities`, more calendars to list along with its own, and `days`, how many days ahead it lists. `fp-map` takes `hours_to_show`, how many hours of a person's path it draws behind them, and `fp-weather` takes `forecast_type`, `hourly` or `daily`. `fp-media-control` takes `art`, `background` to wash the cover art blurred behind the whole card, the default, or `icon` to show it square in place of the icon, its corners rounded to match the card's.
 
 `fp-select`
 
