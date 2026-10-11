@@ -12,7 +12,8 @@ moves that section under the new version and uses it as the release notes.
 ### Added
 
 - The back button, a phone's own too, takes the camera from a room back to the whole home instead of leaving the dashboard.
-- A card across the whole side panel, like a camera, can be made taller or shorter a row at a time with the minus and plus beside it in the card picker.
+- A card across the whole side panel, like a camera, can be made taller a row at a time, and back down to its own size, with the minus and plus beside it in the card picker.
+- The back button in the editor closes it like its Close button, and with changes not yet saved it asks first, with a button to save them and close.
 
 ### Changed
 

@@ -78,10 +78,12 @@ export function AlertDialogAction({
   children,
   onClick,
   variant = 'default',
+  className,
 }: {
   children: ReactNode
   onClick: () => void
   variant?: 'default' | 'destructive'
+  className?: string
 }) {
   return (
     <button
@@ -92,6 +94,7 @@ export function AlertDialogAction({
         variant === 'destructive'
           ? 'bg-danger-fill text-white hover:brightness-[1.06]'
           : 'bg-tint-fill text-white hover:brightness-[1.06]',
+        className,
       )}
     >
       {children}
