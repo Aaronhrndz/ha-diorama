@@ -1,9 +1,9 @@
 import {
   CAMERA_FIT_MARGIN,
   CAMERA_FIT_MARGIN_NARROW,
+  CAMERA_SPILL_NARROW,
   CAMERA_FLIGHT_S,
   CAMERA_ROOM_FIT_MARGIN,
-  CAMERA_ROOM_SPILL_NARROW,
   CAMERA_TURN_S,
   NARROW_CARD_PX,
 } from '#/constants.ts'
@@ -107,6 +107,8 @@ const turn = (from: number, to: number) => MathUtils.euclideanModulo(to - from +
 
 // A card as narrow as a phone frames the home closer to its edges.
 const fitMargin = (width: number) => (width < NARROW_CARD_PX ? CAMERA_FIT_MARGIN_NARROW : CAMERA_FIT_MARGIN)
+// And lets the home run a little past its sides, so it fills the picture.
+const sideSpill = (width: number) => (width < NARROW_CARD_PX ? CAMERA_SPILL_NARROW : 1)
 
 const round = (v: number) => Math.round(v * 100) / 100
 const triple = (v: Vector3): [number, number, number] => [round(v.x), round(v.y), round(v.z)]
@@ -174,7 +176,7 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     shown: RoomConfig[],
     items: DecorationConfig[],
     margin = fitMargin(size.width),
-    spill = 1,
+    spill = sideSpill(size.width),
   ): CameraView => {
     const aspect = size.width / size.height
     const height = sceneHeight(items)
@@ -188,10 +190,6 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
   // The view the camera opened with.
   const home = () => fit(view, rooms, decorations)
 
-  // How far a room runs past the card's sides: on a phone a little, so it
-  // fills the picture.
-  const spill = () => (size.width < NARROW_CARD_PX ? CAMERA_ROOM_SPILL_NARROW : 1)
-
   // One room alone, filling the picture, looked at from the same side and
   // height as the opening view, so flying there only closes in.
   // With no room, the whole plan from the standard side, which is the view
@@ -204,6 +202,8 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
         sceneHeight(decorations),
         undefined,
         fitMargin(size.width),
+        size.width < NARROW_CARD_PX,
+        sideSpill(size.width),
       )
       return { position: triple(whole.position), target: triple(whole.target) }
     }
@@ -217,7 +217,7 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
       [from.x, from.y, from.z],
       CAMERA_ROOM_FIT_MARGIN,
       true,
-      spill(),
+      sideSpill(size.width),
     )
     return { position: triple(position), target: triple(target) }
   }
@@ -239,7 +239,6 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
           [room, ...signs],
           decorations.filter(d => d.room === room.id),
           CAMERA_ROOM_FIT_MARGIN,
-          spill(),
         )
       : frame(room, signs)
   }

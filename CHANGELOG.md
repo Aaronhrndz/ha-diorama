@@ -129,8 +129,8 @@ moves that section under the new version and uses it as the release notes.
 - The camera tile shows the camera's state under its name.
 - Covers, vacuums, thermostats and media players are offered as a small tile that only answers a tap, as well as wide with their buttons.
 - A calendar or a to-do list in the side panel shows as the calendar or the to-do card, and Floorplan Any Entity is no longer offered for a calendar.
+- On a phone, the home and a room you fly to sit in the middle of the card and fill it, running a little past its sides rather than leaving empty space around them.
 
-- On a phone, a room you fly to sits in the middle of the card and fills it, running a little past its sides rather than leaving empty space around it.
 ### Fixed
 
 - A thermostat on auto with a single temperature shows the paler stretch and its arrows toward it from either side, where it showed none.
