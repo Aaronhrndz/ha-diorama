@@ -1964,7 +1964,7 @@
 }
 
 /* The dial: a big ring to drag, open at the bottom, with what it aims for
-   in its middle and the plus over the minus on its right. The ring reaches
+   in its middle and the plus over the minus on its left. The ring reaches
    down into its open bottom, so it takes the height the buttons left. */
 .fp-dial {
   display: flex;
