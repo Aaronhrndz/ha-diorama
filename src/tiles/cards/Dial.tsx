@@ -159,7 +159,7 @@ function useHeldValues(reported: number[]) {
 // temperature, the humidity or the brightness it holds. The ring fills in
 // the color of what it is doing, like orange to heat. The ring sits in the
 // bottom right corner across from the name with minus and plus stacked on
-// its left, and the modes in the top right.
+// its right, and the modes in the top right.
 export default function Dial({ env, config }: { env: TileEnv; config: TileConfig }) {
   const entity = env.hass.states[config.entity!]
   const m = entity ? model(env.hass, entity) : null
@@ -277,10 +277,6 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
         data-range={values.length === 2 || undefined}
         style={{ '--_dial': m.color, '--_digits': `${widest}ch` } as CSSProperties}
       >
-        <div className="fp-dial-buttons">
-          <Control icon="ph:plus-bold" label="Raise" onPress={nudge(1)} />
-          <Control icon="ph:minus-bold" label="Lower" onPress={nudge(-1)} />
-        </div>
         <div className="fp-dial-face">
           <svg
             {...insideTile}
@@ -355,6 +351,10 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
             </div>
             {m.now && <div className="fp-dial-now">{m.now}</div>}
           </div>
+        </div>
+        <div className="fp-dial-buttons">
+          <Control icon="ph:plus-bold" label="Raise" onPress={nudge(1)} />
+          <Control icon="ph:minus-bold" label="Lower" onPress={nudge(-1)} />
         </div>
       </div>
     </Panel>
