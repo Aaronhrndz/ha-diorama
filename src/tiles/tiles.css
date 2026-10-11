@@ -2084,6 +2084,12 @@
   color: color-mix(in oklab, var(--_dial, var(--_accent)), var(--_ink-to) var(--_deep));
 }
 
+/* A stretch with a color of its own, like the heat and the cool ends of a
+   range, deepens it the same way the ring's color is. */
+.fp-dial-segment[style*='--_segment'] {
+  color: color-mix(in oklab, var(--_segment), var(--_ink-to) var(--_deep));
+}
+
 .fp-dial-face {
   display: grid;
   justify-items: center;

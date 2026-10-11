@@ -11,10 +11,12 @@ type Options = { onTap?: () => void; onHold?: () => void; haptics?: boolean }
 
 // Tap, long press, right click and keyboard on a tile. A tap runs on click,
 // so a press that turned into a scroll or a hold never also taps. Inner
-// buttons stop their events so they never reach these.
+// buttons stop their events so they never reach these, and a click that
+// did not start with a press on the tile itself, like the end of a drag
+// along a slider inside it, never taps it.
 export function useTileGestures({ onTap, onHold, haptics = true }: Options) {
   const [pressed, setPressed] = useState(false)
-  const press = useRef({ timer: 0, x: 0, y: 0, held: false, heldAt: 0, moved: false })
+  const press = useRef({ timer: 0, x: 0, y: 0, down: false, held: false, heldAt: 0, moved: false })
 
   const cancel = () => {
     clearTimeout(press.current.timer)
@@ -43,7 +45,7 @@ export function useTileGestures({ onTap, onHold, haptics = true }: Options) {
       onPointerDown: (e: PointerEvent) => {
         if (e.button !== 0) return
         const p = press.current
-        Object.assign(p, { x: e.clientX, y: e.clientY, held: false, moved: false })
+        Object.assign(p, { x: e.clientX, y: e.clientY, down: true, held: false, moved: false })
         setPressed(true)
         clearTimeout(p.timer)
         p.timer = window.setTimeout(() => {
@@ -65,10 +67,9 @@ export function useTileGestures({ onTap, onHold, haptics = true }: Options) {
       onPointerLeave: cancel,
       onClick: (e: MouseEvent) => {
         const p = press.current
-        if (p.held || p.moved) {
-          p.held = p.moved = false
-          return
-        }
+        const pressed = p.down && !p.held && !p.moved
+        p.down = p.held = p.moved = false
+        if (!pressed) return
         e.preventDefault()
         tap()
       },

@@ -4,7 +4,7 @@ import { HvacModes, MENUS, ModeMenu } from '#/tiles/features/climate.tsx'
 import { formatDegrees, listOf, numberOf, optionWord } from '#/tiles/features/parts.tsx'
 import { insideTile } from '#/tiles/gestures.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
-import { climateColor } from '#/tiles/modes.ts'
+import { climateColor, HVAC_MODES } from '#/tiles/modes.ts'
 import { Panel } from '#/tiles/Panel.tsx'
 import { kelvinToRgb } from '#/signals.ts'
 import type { EntityState, HomeAssistant } from '#/types.ts'
@@ -38,6 +38,10 @@ type Model = {
   // Which side of the value the ring fills: from its start up to it, from
   // it to its end, or all of it.
   fill: Fill
+  // The colors of the two ends of a range that each fill out to their own
+  // end of the ring, like heat up to the low end and cool from the high
+  // end on. Without them a range fills between its ends.
+  ends?: [string, string]
   format: (value: number) => string
   send: (values: number[]) => void
   // Off, the ring is dim and drags nothing.
@@ -138,6 +142,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
         ? 'var(--_accent-climate)'
         : (climateColor(mode, action) ?? (mode === 'off' ? 'currentColor' : 'var(--_accent-climate)')),
     fill: domain === 'water_heater' ? 'start' : climateFill(entity),
+    ends: range && domain === 'climate' ? [HVAC_MODES.heat.color!, HVAC_MODES.cool.color!] : undefined,
     label: action
       ? optionWord(hass, entity, action, 'hvac_action')
       : mode === 'off'
@@ -211,6 +216,15 @@ function heading(m: Model, values: number[]) {
         : null
   if (target === null || Math.abs(target - m.current) < m.step / 2) return null
   return { from: shareOf(m, m.current), to: shareOf(m, target) }
+}
+
+// One stretch of the ring that fills, in its own color or the ring's, and
+// the stretch the room is heading along into it.
+type Segment = {
+  from: number
+  to: number
+  color?: string
+  toward: { from: number; to: number } | null
 }
 
 // The values sent, shown until Home Assistant reports them back.
@@ -347,18 +361,42 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   const width = (text: string) => [...text].reduce((sum, char) => sum + (/\d/.test(char) ? 1 : 0.55), 0)
   const widest = Math.max(...[m.min, m.max, m.min + m.step, m.max - m.step].map(value => width(m.format(snap(value)))))
   const toward = heading(m, values)
-  // A range fills between its ends. A single value fills its side of the
-  // ring, only as far as the room is while it is heading there, and the
-  // rest of the way is the stretch it is heading along.
+  const ends = values.length === 2 ? values.map(value => shareOf(m, value)) : null
+  // A range with a color for each end fills from the ring's start up to
+  // its low end and from its high end on, each in its own color, and the
+  // one the room is heading for fills only as far as the room is. Any
+  // other range fills between its ends. A single value fills its side of
+  // the ring, only as far as the room is while it is heading there, and
+  // the rest of the way is the stretch it is heading along.
   const reached = toward ? toward.from : shareOf(m, values[0])
-  const [first, last] =
-    values.length === 2
-      ? [shareOf(m, values[0]), shareOf(m, values[1])]
-      : m.fill === 'full'
-        ? [0, 1]
-        : m.fill === 'end'
-          ? [reached, 1]
-          : [0, reached]
+  const segments: Segment[] =
+    ends && m.ends
+      ? [
+          {
+            from: 0,
+            to: toward && toward.to === ends[0] ? toward.from : ends[0],
+            color: m.ends[0],
+            toward: toward && toward.to === ends[0] ? toward : null,
+          },
+          {
+            from: toward && toward.to === ends[1] ? toward.from : ends[1],
+            to: 1,
+            color: m.ends[1],
+            toward: toward && toward.to === ends[1] ? toward : null,
+          },
+        ]
+      : [
+          {
+            ...(ends
+              ? { from: ends[0], to: ends[1] }
+              : m.fill === 'full'
+                ? { from: 0, to: 1 }
+                : m.fill === 'end'
+                  ? { from: reached, to: 1 }
+                  : { from: 0, to: reached }),
+            toward,
+          },
+        ]
   return (
     <Panel {...panel}>
       <div
@@ -399,27 +437,31 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
             <g transform={`rotate(${START} 100 100)`}>
               <circle className="fp-dial-track" cx="100" cy="100" r={RADIUS} strokeDasharray={`${LENGTH} 999`} />
             </g>
-            {toward && <path className="fp-dial-toward" d={arc(toward.from, toward.to)} />}
-            <g transform={`rotate(${START} 100 100)`}>
-              <circle
-                className="fp-dial-fill"
-                cx="100"
-                cy="100"
-                r={RADIUS}
-                strokeDasharray={`${Math.max(LENGTH * (last - first), 0.01)} 999`}
-                strokeDashoffset={-LENGTH * first}
-              />
-            </g>
-            {toward &&
-              arrows(toward.from, toward.to).map((arrow, i) => (
-                <path
-                  key={i}
-                  className="fp-dial-arrow"
-                  d="M-2.5 -4L2 0L-2.5 4"
-                  transform={`translate(${arrow.x} ${arrow.y}) rotate(${arrow.angle})`}
-                  style={{ '--_i': i } as CSSProperties}
-                />
-              ))}
+            {segments.map((segment, i) => (
+              <g key={i} className="fp-dial-segment" style={{ '--_segment': segment.color } as CSSProperties}>
+                {segment.toward && <path className="fp-dial-toward" d={arc(segment.toward.from, segment.toward.to)} />}
+                <g transform={`rotate(${START} 100 100)`}>
+                  <circle
+                    className="fp-dial-fill"
+                    cx="100"
+                    cy="100"
+                    r={RADIUS}
+                    strokeDasharray={`${Math.max(LENGTH * (segment.to - segment.from), 0.01)} 999`}
+                    strokeDashoffset={-LENGTH * segment.from}
+                  />
+                </g>
+                {segment.toward &&
+                  arrows(segment.toward.from, segment.toward.to).map((arrow, j) => (
+                    <path
+                      key={j}
+                      className="fp-dial-arrow"
+                      d="M-2.5 -4L2 0L-2.5 4"
+                      transform={`translate(${arrow.x} ${arrow.y}) rotate(${arrow.angle})`}
+                      style={{ '--_i': j } as CSSProperties}
+                    />
+                  ))}
+              </g>
+            ))}
             {values.map((value, i) => {
               const at = point(shareOf(m, value))
               return (

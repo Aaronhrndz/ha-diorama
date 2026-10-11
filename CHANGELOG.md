@@ -65,6 +65,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
+- A thermostat's dial with a range of two temperatures fills from its start up to the low end in orange and from the high end on in blue, like Home Assistant's, with the arrows toward whichever end the room is heading for.
 - While the room is heading for the value set on a dial, the stretch of its ring from where the room is now is paler, with faint arrows pointing the way it goes.
 - A dial fills on the same side as Home Assistant's own, from the value to the end of the ring for cooling or a dehumidifier and all the way round on auto.
 - A humidifier tile says how humid the room is beside On or Off, a fan tile says its speed while it is on, and a valve tile how far it is open.
@@ -123,6 +124,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Fixed
 
+- Dragging a dial's knob or a slider no longer opens the card's dialog when it is let go.
 - In a sections dashboard, a floorplan card with its side panel and a set number of rows keeps the tiles inside the card when they drop under the floorplan on a narrow screen, scrolling them there instead of covering the editor and the cards below.
 - Adding an item to the to-do list card with Enter or the plus beside the field now adds it to the list.
 - Buttons keep their fill and stay readable under the pointer, on a tile that is on or off and on a light or a dark dashboard.
