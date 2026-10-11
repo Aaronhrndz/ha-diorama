@@ -11,7 +11,7 @@ import {
   Stepper,
   type FeatureProps,
 } from '#/tiles/features/parts.tsx'
-import { HVAC_MODES, HVAC_ORDER } from '#/tiles/modes.ts'
+import { HVAC_MODES, HVAC_ORDER, WATER_HEATER_MODES } from '#/tiles/modes.ts'
 import type { CSSProperties } from 'react'
 
 // The features of a thermostat, a water heater and a humidifier.
@@ -36,6 +36,39 @@ export function HvacModes({ env, entity }: FeatureProps) {
           onPress={() =>
             entity.state !== mode &&
             callService(env.hass, 'climate.set_hvac_mode', { entity_id: entity.entity_id, hvac_mode: mode })
+          }
+        />
+      ))}
+    </Group>
+  )
+}
+
+const WATER_HEATER_ORDER = Object.keys(WATER_HEATER_MODES)
+const operationRank = (mode: string) =>
+  WATER_HEATER_ORDER.includes(mode) ? WATER_HEATER_ORDER.indexOf(mode) : WATER_HEATER_ORDER.length
+
+// A round button for each way the water heater can run, the one it runs
+// in filled in the color of heat, or plain while it is off.
+export function OperationModes({ env, entity }: FeatureProps) {
+  const current = entity.attributes.operation_mode ?? entity.state
+  const modes = listOf(entity, 'operation_list').sort((a, b) => operationRank(a) - operationRank(b))
+  return (
+    <Group label="Mode" radio>
+      {modes.map(mode => (
+        <Control
+          key={mode}
+          icon={WATER_HEATER_MODES[mode] ?? 'ph:circle'}
+          label={optionWord(env.hass, entity, mode, 'operation_mode')}
+          role="radio"
+          checked={current === mode}
+          className="fp-mode"
+          style={{ '--_mode-color': mode === 'off' ? undefined : 'var(--_mode-heat)' } as CSSProperties}
+          onPress={() =>
+            current !== mode &&
+            callService(env.hass, 'water_heater.set_operation_mode', {
+              entity_id: entity.entity_id,
+              operation_mode: mode,
+            })
           }
         />
       ))}

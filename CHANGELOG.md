@@ -11,6 +11,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
+- A water heater tile can show its modes as round buttons with icons beside its icon, and a wide water heater tile shows them across from its name, like a thermostat's.
+- A thermostat or water heater tile can be a slider for the temperature it holds, filled as far along its range as that temperature.
 - A humidifier tile can be a slider for the humidity it aims for, filled as far as that humidity, with how humid the room is now beside it.
 - A fan with a few speeds can show them as round buttons beside its icon, off and each speed, or as a menu, like Home Assistant's own speed buttons.
 - The floorplan card lays a soft gradient behind its view, with five to choose from in the card's editor and a separate choice for a light and a dark dashboard.
