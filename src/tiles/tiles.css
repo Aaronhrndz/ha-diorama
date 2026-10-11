@@ -1828,11 +1828,6 @@
   align-items: center;
   gap: 12px;
   min-height: 44px;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
-}
-
-.fp-todo-item:last-child {
-  border-bottom: none;
 }
 
 .fp-todo-text {
