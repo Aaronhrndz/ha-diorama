@@ -8,12 +8,12 @@ import { SUN_DIRECTION_DEG } from '#/constants.ts'
 import { EDITOR_TINT_COLOR } from '#/theme.ts'
 import { entityName } from '#/devices/catalog.ts'
 import type { BackgroundConfig, CardConfig, HomeAssistant, HomeConfig, RoomConfig, TileChoices } from '#/types.ts'
-import { autoTiles, type AutoCard } from '#/tiles/auto.ts'
+import { autoTiles } from '#/tiles/auto.ts'
 import { tileName, TilePicker } from '#/editor/TilePicker.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { defaultIcon } from '#/tiles/icons.ts'
 import {
-  faChevronDown,
+  faChevronRight,
   faCirclePlus,
   faGripVertical,
   faLocationArrow,
@@ -28,6 +28,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
@@ -48,6 +49,25 @@ type Props = {
 export default function CardPanel({ hass, config, onChange, opening, onOpen }: Props) {
   const rooms = config.rooms ?? []
   const sidePanel = config.side_panel === true
+  // The tile whose card is being picked, on a page of its own in place of
+  // the settings, and the row it was opened from, to go back to.
+  const [choosing, setChoosing] = useState<Choosing | null>(null)
+  const root = useRef<HTMLDivElement>(null)
+  const back = useRef<string | null>(null)
+  const choose = (room: string | null, id: string) => {
+    back.current = null
+    setPreviewRoom(room)
+    setChoosing({ room, id })
+  }
+  const close = () => {
+    if (choosing) back.current = choosing.id
+    setChoosing(null)
+  }
+  useLayoutEffect(() => {
+    if (choosing) root.current?.scrollIntoView({ block: 'start' })
+    else if (back.current)
+      root.current?.querySelector(`[data-choose="${CSS.escape(back.current)}"]`)?.scrollIntoView({ block: 'center' })
+  }, [choosing])
   // The preview starts on the whole home each time the settings open.
   useEffect(() => () => setPreviewRoom(null), [])
 
@@ -121,9 +141,59 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     ...rooms.flatMap(room => room.entities ?? []),
   ]
 
+  const light = hass?.themes?.darkMode === false || undefined
+  const picking = choosing && hass && pickPage(hass, config, choosing)
+  if (picking) {
+    const { auto, tiles, room } = picking
+    const id = choosing!.id
+    const save = (next: TileChoices) => (room ? setRoom(room.id, { tiles: next }) : setHome({ tiles: next }))
+    return (
+      <div
+        ref={root}
+        data-light={light}
+        // The dialog's own color, so the page has no background of its own
+        // and the header still hides the cards scrolled under it.
+        style={
+          {
+            '--fp-surface':
+              'var(--ha-dialog-surface-background, var(--mdc-theme-surface, var(--card-background-color)))',
+          } as CSSProperties
+        }
+        className="fp-editor font-system flex min-h-full flex-col gap-3 px-4 pb-6 text-(--primary-text-color) antialiased"
+      >
+        <header className="sticky top-0 z-10 -mx-4 flex items-center gap-2 bg-(--fp-surface) px-4 pt-3 pb-2">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <h2 className="truncate text-[17px] font-semibold tracking-tight">{entityName(hass, id)}</h2>
+            <p className="text-label-2 truncate text-xs">
+              The card it shows in the side panel, {room ? roomName(hass, room) : home.name || 'Home'}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={close}
+            className={cn(iconButton, 'bg-fill-strong size-8 shrink-0 cursor-pointer rounded-full')}
+          >
+            <FontAwesomeIcon icon={faXmark} className="size-3.5" />
+          </button>
+        </header>
+        <TilePicker
+          hass={hass}
+          auto={auto}
+          chosen={tiles?.[id]}
+          onChoose={choice => {
+            save(choice ? { ...tiles, [id]: choice } : without(tiles, id))
+            close()
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div
-      data-light={hass?.themes?.darkMode === false || undefined}
+      ref={root}
+      data-light={light}
       className="fp-editor font-system flex flex-col gap-6 px-5 py-6 text-(--primary-text-color) antialiased"
     >
       <Section
@@ -238,7 +308,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
                 items={[...autoTiles(config, null)].map(([id, auto]) => ({
                   id,
                   title: hass ? entityName(hass, id) : id,
-                  card: hass && cardChoice(hass, auto, home.tiles, tiles => setHome({ tiles })),
+                  card: hass && { name: tileName(hass, auto, home.tiles?.[id]), onOpen: () => choose(null, id) },
                   onRemove: () =>
                     setHome({ entities: homeEntities.filter(other => other !== id), tiles: without(home.tiles, id) }),
                 }))}
@@ -272,6 +342,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
                 room={room}
                 taken={taken}
                 onChange={lists => setRoom(room.id, lists)}
+                onChoose={id => choose(room.id, id)}
               />
             ))
           )}
@@ -391,12 +462,14 @@ function RoomEntities({
   room,
   taken,
   onChange,
+  onChoose,
 }: {
   hass: HomeAssistant | null
   config: CardConfig
   room: RoomConfig
   taken: string[]
   onChange: (lists: RoomLists) => void
+  onChoose: (id: string) => void
 }) {
   const extra = room.entities ?? []
   const tiles = autoTiles(config, room)
@@ -416,7 +489,7 @@ function RoomEntities({
           items={[...tiles].map(([id, auto]) => ({
             id,
             title: name(id),
-            card: hass && cardChoice(hass, auto, room.tiles, chosen => onChange({ tiles: chosen })),
+            card: hass && { name: tileName(hass, auto, room.tiles?.[id]), onOpen: () => onChoose(id) },
             onRemove: extra.includes(id) ? () => remove(id) : undefined,
           }))}
           onReorder={order => onChange({ order })}
@@ -435,33 +508,24 @@ function without(tiles: TileChoices | undefined, id: string) {
   return rest
 }
 
-// The card a row's tile is now, and the picker of every card it can be.
-function cardChoice(
-  hass: HomeAssistant,
-  auto: AutoCard,
-  tiles: TileChoices | undefined,
-  onChange: (tiles: TileChoices) => void,
-): Item['card'] {
-  const id = String(auto.entity)
-  const chosen = tiles?.[id]
-  return {
-    name: tileName(hass, auto, chosen),
-    picker: (
-      <TilePicker
-        hass={hass}
-        auto={auto}
-        chosen={chosen}
-        onChoose={choice => onChange(choice ? { ...tiles, [id]: choice } : without(tiles, id))}
-      />
-    ),
-  }
+type Choosing = { room: string | null; id: string }
+
+// What the page for picking a tile's card needs: the tile the panel would
+// make, the cards already picked beside it, and the room it is in, or none
+// for the home.
+function pickPage(hass: HomeAssistant, config: CardConfig, { room: roomId, id }: Choosing) {
+  const room = roomId === null ? null : config.rooms?.find(other => other.id === roomId)
+  if (room === undefined) return null
+  const auto = autoTiles(config, room).get(id)
+  if (!auto || !hass.states[id]) return null
+  return { auto, room, tiles: room ? room.tiles : config.home?.tiles }
 }
 
 type Item = {
   id: string
   title: string
-  // The card the row's tile is, which opens a picker under the row.
-  card?: { name: string; picker: ReactNode } | null
+  // The card the row's tile is, which opens the page to pick another.
+  card?: { name: string; onOpen: () => void } | null
   onRemove?: () => void
 }
 type Drag = { id: string; grab: number; y: number }
@@ -473,8 +537,6 @@ type Drag = { id: string; grab: number; y: number }
 function SortableList({ items, onReorder }: { items: Item[]; onReorder: (ids: string[]) => void }) {
   const [order, setOrder] = useState<string[] | null>(null)
   const [held, setHeld] = useState<string | null>(null)
-  // The row whose card picker is open, one at a time.
-  const [choosing, setChoosing] = useState<string | null>(null)
   const rows = useRef(new Map<string, HTMLLIElement>())
   const drag = useRef<Drag | null>(null)
   const byId = new Map(items.map(item => [item.id, item]))
@@ -498,7 +560,6 @@ function SortableList({ items, onReorder }: { items: Item[]; onReorder: (ids: st
     drag.current = { id, grab: event.clientY - row.getBoundingClientRect().top, y: event.clientY }
     setOrder(ids)
     setHeld(id)
-    setChoosing(null)
   }
 
   const move = (event: PointerEvent<HTMLButtonElement>) => {
@@ -563,16 +624,13 @@ function SortableList({ items, onReorder }: { items: Item[]; onReorder: (ids: st
                 {item.card && (
                   <button
                     type="button"
-                    aria-expanded={choosing === id}
+                    data-choose={id}
                     aria-label={`Card for ${item.title}: ${item.card.name}`}
-                    onClick={() => setChoosing(choosing === id ? null : id)}
+                    onClick={item.card.onOpen}
                     className="text-tint -mx-1 flex max-w-full cursor-pointer items-center gap-1 rounded px-1 text-[11px] font-medium transition-opacity hover:opacity-70"
                   >
                     <span className="truncate">{item.card.name}</span>
-                    <FontAwesomeIcon
-                      icon={faChevronDown}
-                      className={cn('size-2.5 shrink-0 transition-transform', choosing === id && 'rotate-180')}
-                    />
+                    <FontAwesomeIcon icon={faChevronRight} className="size-2.5 shrink-0" />
                   </button>
                 )}
               </span>
@@ -606,7 +664,6 @@ function SortableList({ items, onReorder }: { items: Item[]; onReorder: (ids: st
                 <FontAwesomeIcon icon={faGripVertical} className="size-3.5" />
               </button>
             </div>
-            {item.card && choosing === id && <div className="pr-2">{item.card.picker}</div>}
           </li>
         )
       })}

@@ -67,7 +67,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-- In the card picker of the side panel, each card sits on the dashboard's background so a dim one still stands out, and the one picked is tinted and ticked instead of ringed in blue.
+- Picking the card for a tile in the side panel opens a page of its own in place of the settings, with the device's name and a close button at the top, and the picked card ticked in its corner.
 - A dial's name and state are never cut short, and run over the dial when they need the room.
 - A dial shows the tenths of a degree small under the degree sign, and keeps their room when there are none, so the number no longer shifts as it changes.
 - The Floorplan tiles elsewhere on the dashboard no longer hide when the floorplan card flies to a room, unless Hide other rooms' tiles is turned on in the card's editor, so the page no longer jumps. The side panel still follows the room.

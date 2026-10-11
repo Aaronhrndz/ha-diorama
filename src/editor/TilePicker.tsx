@@ -35,9 +35,8 @@ export function tileName(hass: HomeAssistant, auto: AutoCard, chosen: TileChoice
 
 // Every card of ours the entity can be, each shown as it would be in the
 // panel, at the size it takes there, with its name and what it does under
-// it, on the dashboard's own background so a dim tile still stands out.
-// The one it is now is tinted and ticked. Picking the one the panel would pick
-// anyway leaves the choice out of the YAML.
+// it. The one it is now has a tick in its corner. Picking the one the
+// panel would pick anyway leaves the choice out of the YAML.
 export function TilePicker({
   hass,
   auto,
@@ -54,8 +53,8 @@ export function TilePicker({
     <div
       role="radiogroup"
       aria-label="Card"
-      className="grid grid-cols-12 items-start pt-1 pb-2"
-      style={{ gap: `${GAP_PX}px` }}
+      className="grid grid-cols-12 items-start"
+      style={{ gap: `18px ${GAP_PX}px` }}
     >
       {options.map(option => {
         const key = setupKey(option.config)
@@ -76,20 +75,19 @@ export function TilePicker({
               const { entity: _, ...choice } = option.config
               onChoose(choice as TileChoice)
             }}
-            className={cn(
-              'flex min-w-0 cursor-pointer flex-col gap-2 rounded-[22px] p-1.5 pb-2.5 text-left transition-[background-color,transform] outline-none active:scale-[0.98]',
-              picked
-                ? 'bg-tint/15'
-                : 'hover:bg-fill-strong focus-visible:bg-fill-strong bg-(--primary-background-color)',
-            )}
+            className="group flex min-w-0 cursor-pointer flex-col gap-1.5 text-left outline-none"
             style={{ gridColumn: `span ${columns}` }}
           >
-            <TilePreview hass={hass} config={shown} height={rows === 'auto' ? undefined : rows} />
-            <span className="flex min-w-0 flex-col px-1.5">
+            <span className="relative block transition-[transform,opacity] group-hover:opacity-85 group-focus-visible:opacity-85 group-active:scale-[0.98]">
+              <TilePreview hass={hass} config={shown} height={rows === 'auto' ? undefined : rows} />
+              {picked && (
+                <span className="bg-tint-fill absolute -top-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full text-white shadow-[0_0_0_3px_var(--fp-surface,var(--card-background-color))]">
+                  <Icon icon="ph:check-bold" className="size-3.5 [--mdc-icon-size:14px] [&>svg]:size-full" />
+                </span>
+              )}
+            </span>
+            <span className="flex min-w-0 flex-col px-1">
               <span className={cn('flex items-center gap-1.5 text-xs font-semibold', picked && 'text-tint')}>
-                {picked && (
-                  <Icon icon="ph:check-circle-fill" className="size-3.5 [--mdc-icon-size:14px] [&>svg]:size-full" />
-                )}
                 {option.name}
                 {key === autoKey && (
                   <span className="bg-fill-strong text-label-2 rounded px-1 py-px text-[10px] font-medium">Auto</span>
