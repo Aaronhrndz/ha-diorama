@@ -1006,6 +1006,19 @@
   color: inherit;
 }
 
+/* The words again in another color, cut to the part of the bar that is
+   filled, so they read over a fill as light or as dark as they are. */
+.fp-slider-ink {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 calc((1 - var(--_share)) * 100%) 0 0);
+  transition: clip-path 120ms ease-out;
+}
+
+.fp-slider-dragging .fp-slider-ink {
+  transition: none;
+}
+
 /* A bar that is a scale of its own, like a rainbow, shows a knob where its
    value is, its words in white over the colors. */
 .fp-slider-scale {
@@ -2211,9 +2224,14 @@
   inset: 0 auto 0 0;
   z-index: -1;
   width: var(--_progress);
-  background: var(--fp-media-progress, color-mix(in srgb, #000 20%, transparent));
+  background: var(--fp-media-progress, color-mix(in srgb, #000 var(--_progress-shade, 20%), transparent));
   transition: width 1s linear;
   pointer-events: none;
+}
+
+/* The light glass with the art small needs only a touch of it. */
+:host([data-light]) .fp-media-control:not([style*='--_art']) {
+  --_progress-shade: 7%;
 }
 
 .fp-media-seek[data-dragging] .fp-tile::after {
@@ -2243,11 +2261,21 @@
   background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
-/* The volume across from the title, with shuffle and repeat on either
-   side. */
+/* The volume across from the title, with shuffle and repeat to its
+   right. It fills in the card's own text color, white on a dark card and
+   black on a light one, and its words over the fill take the other. */
+.fp-media-control {
+  --_volume-fill: currentColor;
+  --_volume-ink: #000;
+}
+
+:host([data-light]) .fp-media-control:not([style*='--_art']) {
+  --_volume-ink: #fff;
+}
+
 .fp-media-control .fp-aside {
   flex: 0 1 55%;
-  min-width: 0;
+  min-width: max-content;
 }
 
 .fp-media-row {
@@ -2260,7 +2288,7 @@
 
 .fp-media-row > .fp-feature {
   flex: 1;
-  min-width: 0;
+  min-width: 104px;
 }
 
 .fp-tile .fp-media-small > .fp-icon {

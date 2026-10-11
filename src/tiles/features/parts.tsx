@@ -82,6 +82,9 @@ type SliderProps = {
   track?: string
   // The color the bar fills with.
   fill?: string
+  // The color its words take where they lie over the fill, for a fill
+  // too close to the words' own color to read them on.
+  ink?: string
 }
 
 // A thick bar that fills from the left as far as its value, and follows a
@@ -98,6 +101,7 @@ export function Slider({
   icon,
   track,
   fill,
+  ink,
 }: SliderProps) {
   const [dragging, setDragging] = useState<number | null>(null)
   const [held, hold] = useHeld(value)
@@ -185,6 +189,12 @@ export function Slider({
         {icon && <Icon icon={icon} on />}
         <span>{format(shown)}</span>
       </div>
+      {ink && (
+        <div className="fp-slider-label fp-slider-ink" style={{ color: ink }} aria-hidden>
+          {icon && <Icon icon={icon} on />}
+          <span>{format(shown)}</span>
+        </div>
+      )}
     </div>
   )
 }

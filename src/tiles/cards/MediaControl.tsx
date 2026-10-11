@@ -30,7 +30,7 @@ export type MediaControlConfig = TileConfig & {
 // whole card, or square in place of the icon: the title and the artist in
 // the bottom left corner where a tile has its name, the buttons to play it
 // in the top right with how far into it it is on their left, and across
-// from the title its volume, with shuffle and repeat on either side. The
+// from the title its volume, with shuffle and repeat to its right. The
 // card fills from the left as far into the song as it is, faintly, and a
 // drag sideways anywhere on it moves along the song when the player can.
 // A tap plays or pauses it, or opens the player's dialog while it is off.
@@ -198,8 +198,8 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
       >
         {(shuffle || repeat || volume) && (
           <div className="fp-media-row">
-            {shuffle}
             {volume}
+            {shuffle}
             {repeat}
           </div>
         )}

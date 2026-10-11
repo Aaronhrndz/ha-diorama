@@ -88,7 +88,8 @@ export function VolumeSlider(props: FeatureProps) {
       label="Volume"
       icon={volumeIcon(level, muted)}
       value={level}
-      fill="var(--_accent-media)"
+      fill="var(--_volume-fill, var(--_accent-media))"
+      ink="var(--_volume-ink)"
       format={v => `${v}%`}
       onChange={v =>
         callService(props.env.hass, 'media_player.volume_set', { entity_id: entity.entity_id, volume_level: v / 100 })

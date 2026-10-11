@@ -46,6 +46,7 @@ moves that section under the new version and uses it as the release notes.
 - The larger cards are laid out like a wide tile, with the icon in the top left, their buttons in the top right, the name and the state in the bottom left and what they show in the bottom right, and a tap on a light's or a humidifier's dial turns it on or off.
 - The Now Playing card can show the cover art square in place of its icon, as large as the card leaves it above the title and as tall a card as with the art blurred behind it, chosen in its editor, and the card picker offers both.
 - The Now Playing card fills from the left with a faint dark shade as the song goes on, shows the time played beside its buttons, seeks when swiped sideways anywhere on it, and plays or pauses with a tap.
+- The Now Playing card's volume fills white on a dark card and black on a light one, with shuffle and repeat to its right, and its level no longer gets cut off on a phone.
 - The dial's ring is bigger and reaches down beside the name, with plus over minus on its left, and its number stays still as it changes, like from 21° to 21.5°, with the two ends of a range large and one over the other inside the ring.
 - The alarm panel is a wide tile like the others, with its modes in the top right, a keypad beside a large line saying what the code will do, a red lock key to arm and a green open lock to disarm, and a red or green wash for armed or disarmed.
 
