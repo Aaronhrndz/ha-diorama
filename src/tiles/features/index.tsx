@@ -128,6 +128,22 @@ export const FEATURES: FeatureDef[] = [
   },
   { id: 'speed', label: 'Speed slider', does: 'drag for speed', domains: ['fan'], supports: bit(cover.FAN.speed) },
   {
+    id: 'speed-buttons',
+    label: 'Speed buttons',
+    domains: ['fan'],
+    // Off and up to four speeds, like Home Assistant's own.
+    supports: e => supports(e, cover.FAN.speed) && cover.speedCount(e) > 0 && cover.speedCount(e) <= 4,
+    View: cover.FanSpeeds,
+    wide: e => cover.speedCount(e) > 2,
+  },
+  {
+    id: 'speed-menu',
+    label: 'Speed menu',
+    domains: ['fan'],
+    supports: e => supports(e, cover.FAN.speed) && cover.speedCount(e) > 0 && cover.speedCount(e) <= 10,
+    View: cover.FanSpeedMenu,
+  },
+  {
     id: 'preset-modes',
     label: 'Preset menu',
     domains: ['fan'],
