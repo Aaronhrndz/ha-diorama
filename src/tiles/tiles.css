@@ -2234,9 +2234,11 @@
   pointer-events: none;
 }
 
-/* The light glass with the art small needs only a touch of it. */
+/* On the light glass with the art small the boxes of buttons and of the
+   volume are a light grey of their own, so the shade goes darker than
+   them to stand apart. */
 :host([data-light]) .fp-media-control:not([style*='--_art']) {
-  --_progress-shade: 7%;
+  --_progress-shade: 24%;
 }
 
 .fp-media-seek[data-dragging] .fp-tile::after {
