@@ -12,7 +12,8 @@
 // a view from above it, where it would have the one worked out for it;
 // `first=device` has a click on a device act on it from any room;
 // `mobile=1:1` gives the card that aspect ratio while it is narrow, and 16:9
-// otherwise.
+// otherwise; `frame=living,kitchen` has the view of the whole home zoom in
+// on those rooms.
 // A click on a piece flips its entity, the way Home Assistant would.
 import { setMerging } from '#/scene/Merged.tsx'
 import type { CardConfig, HomeAssistant } from '#/types.ts'
@@ -68,6 +69,8 @@ if (mobile) {
   config.aspect_ratio = '16:9'
   config.aspect_ratio_mobile = mobile
 }
+const frame = params.get('frame')
+if (frame) config.frame_rooms = frame.split(',')
 if (params.get('first') === 'device') config.first_click = 'device'
 
 type CardElement = HTMLElement & { setConfig: (c: CardConfig) => void; hass: HomeAssistant }

@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- On a wide card, as on a computer, the home and a room flown to fit right to the card's edges instead of running a little past them. A phone keeps them filling its card as before.
+
 ## [1.3.2] - 2026-10-11
 
 ### Changed

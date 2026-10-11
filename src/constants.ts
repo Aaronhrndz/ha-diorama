@@ -21,15 +21,19 @@ export const SLAB_CURVE_SEGMENTS = 16
 export const CAMERA_FOV_DEG = 40
 // Direction from the flat's center to the camera. Only the ratio matters.
 export const CAMERA_DIRECTION: [number, number, number] = [0.6, 0.9, 0.8]
-// Extra room around the flat when fitting it to the viewport, as a factor.
-// Kept thin on a card of any size, so the home fills as much of it as it can.
+// Extra room around the flat when fitting it to a narrow card, as on a
+// phone, as a factor. Kept thin, so the home fills as much of it as it can.
+// A wider card fits it right to its edges.
 export const CAMERA_FIT_MARGIN = 1.03
 // A room flown to fills the card right to its edges, on any card.
 export const CAMERA_ROOM_FIT_MARGIN = 1
-// The home, and a room flown to, run this far past the card's sides, as a
-// factor of its width, so they fill the picture. The corners they lose are
-// empty floor.
+// On a narrow card, the home and a room flown to run this far past the
+// card's sides, as a factor of its width, so they fill the picture. The
+// corners they lose are empty floor. A wider card shows them whole.
 export const CAMERA_SPILL = 1.12
+// Below this width, in pixels, the card is narrow, as on a phone. The same
+// width the card switches to its narrow aspect at.
+export const CAMERA_NARROW_PX = 600
 export const CAMERA_MIN_DISTANCE_M = 2
 export const CAMERA_MAX_DISTANCE_M = 60
 export const CAMERA_MIN_POLAR_DEG = 6
