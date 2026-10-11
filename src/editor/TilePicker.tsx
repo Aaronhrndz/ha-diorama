@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react'
 
 // What tells two setups of a card apart: everything in its config but the
 // entity and what the panel adds to every tile.
-const PANEL_KEYS = new Set(['entity', 'room_filter', 'piece_icon', 'invert'])
+const PANEL_KEYS = new Set(['entity', 'room_filter', 'never_hide', 'piece_icon', 'invert'])
 function setupKey(config: Record<string, unknown>) {
   const entries = Object.entries(config).filter(([key]) => !PANEL_KEYS.has(key))
   return JSON.stringify(entries.sort(([a], [b]) => a.localeCompare(b)))

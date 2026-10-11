@@ -15,6 +15,7 @@ const LABELS: Record<string, string> = {
   size: 'Size',
   area: 'Area',
   room_filter: 'With a room in view',
+  never_hide: 'Never hide',
   tap_action: 'Tap action',
   hold_action: 'Hold action',
   haptic: 'Vibrate on tap',
@@ -44,6 +45,7 @@ const LABELS: Record<string, string> = {
 const HELPERS: Record<string, string> = {
   area: 'The room filter uses the entity area when this is empty',
   room_filter: 'Only while a floorplan card hides the tiles of other rooms',
+  never_hide: 'Keeps it showing whatever room a floorplan card is in',
   color: 'Any CSS color, like #ffb340',
   state_text: 'Replaces the line under the name',
   invert: 'For a screen that comes down to open',
@@ -53,6 +55,8 @@ const HELPERS: Record<string, string> = {
   feature: 'A control beside the icon. Some only fit a wide tile and make it wide',
 }
 
+const NEVER_HIDE: Field = { name: 'never_hide', selector: { boolean: {} } }
+
 const ROOM_FILTER: Field = {
   name: 'room_filter',
   selector: {
@@ -60,7 +64,6 @@ const ROOM_FILTER: Field = {
       mode: 'dropdown',
       options: [
         { value: 'hide', label: 'Show it only in its own area (or always, with no area)' },
-        { value: 'show', label: 'Never hide it' },
         { value: 'room', label: 'Show it only in its own room' },
         { value: 'home', label: 'Show it only with the whole home in view' },
       ],
@@ -221,6 +224,7 @@ export function tileForm(domains: string[] | 'any', extras: Extra[] = [], panel 
         ...(panel ? [] : featureField(domains)),
         ...extras.flatMap(extra => EXTRAS[extra]),
         { name: 'area', selector: { area: {} } },
+        NEVER_HIDE,
         ROOM_FILTER,
       ],
     },
@@ -245,7 +249,12 @@ function featureField(domains: string[] | 'any'): Field[] {
 }
 
 export function titleForm() {
-  return form([{ name: 'title', selector: { text: {} } }, { name: 'area', selector: { area: {} } }, ROOM_FILTER])
+  return form([
+    { name: 'title', selector: { text: {} } },
+    { name: 'area', selector: { area: {} } },
+    NEVER_HIDE,
+    ROOM_FILTER,
+  ])
 }
 
 type IconSet = {

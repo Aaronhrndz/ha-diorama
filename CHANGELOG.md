@@ -11,6 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
+- Any Floorplan tile can be set to Never hide, `never_hide: true`, to keep showing whatever room the floorplan card is in.
 - A dial that is not heading for its knob shows a small dot on the ring where the room is now, in place of the arrows.
 - The map card spreads its map over the whole card with the name and place on it in the bottom left, or across the top over a bar with them, with no icon either way.
 - A water heater tile can show its modes as round buttons with icons beside its icon, and a wide water heater tile shows them across from its name, like a thermostat's.
@@ -67,7 +68,6 @@ moves that section under the new version and uses it as the release notes.
 ### Changed
 
 - The Floorplan tiles elsewhere on the dashboard no longer hide when the floorplan card flies to a room, unless Hide other rooms' tiles is turned on in the card's editor, so the page no longer jumps. The side panel still follows the room.
-- A tile's Always show it choice for a room in view now reads Never hide it.
 - In Home Assistant's card picker and its suggestions for an entity, each tile card shows at the width and height it takes once added to a section, shrunk to fit, so a map, a graph or a dial no longer looks squashed.
 - The arrows on a dial's paler stretch sit closer together, and at least one always shows past the knob even when the room is only a degree away.
 - A thermostat's dial with a range of two temperatures fills from its start up to the low end in orange and from the high end on in blue, like Home Assistant's, with the arrows toward whichever end the room is heading for.

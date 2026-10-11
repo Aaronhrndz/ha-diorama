@@ -33,6 +33,8 @@ export type TileConfig = {
   // with no area does while a room is in view. room shows the tile only
   // while its own room is in view, home only while the whole home is.
   room_filter?: 'hide' | 'show' | 'room' | 'home'
+  // Keeps the tile showing whatever room is in view, like room_filter show.
+  never_hide?: boolean
   tap_action?: ActionConfig
   hold_action?: ActionConfig
   haptic?: boolean
@@ -67,7 +69,7 @@ function noteMissingArea(label: string) {
   clearTimeout(missingTimer)
   missingTimer = setTimeout(() => {
     console.warn(
-      `Floorplan tiles: no area found for ${missingNew.join(', ')}. Set area on these cards, or room_filter: show to keep them in every room.`,
+      `Floorplan tiles: no area found for ${missingNew.join(', ')}. Set area on these cards, or never_hide: true to keep them in every room.`,
     )
     missingNew = []
   }, 500)
@@ -236,8 +238,8 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
     // the whole home whatever room it is in.
     const filter = roomFilter()?.tiles ? roomFilter() : null
     const mode = this._config.room_filter
+    if (this._config.never_hide || mode === 'show') return true
     if (mode === 'home') return !filter
-    if (mode === 'show') return true
     if (!filter) return mode !== 'room'
     // A room with no area matches no tile.
     if (!filter.area_id) return mode !== 'room'

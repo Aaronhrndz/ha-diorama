@@ -101,7 +101,7 @@ const KIND_ICONS: Record<string, string> = {
 
 function entityTile(entityId: string): AutoCard {
   const type = TILE_TYPES[entityId.split('.')[0]] ?? FALLBACK
-  const card: AutoCard = { type: `custom:${type}`, entity: entityId, room_filter: 'show' }
+  const card: AutoCard = { type: `custom:${type}`, entity: entityId, never_hide: true }
   if (WIDE.has(type)) card.size = 'wide'
   return card
 }
@@ -131,7 +131,7 @@ export function roomEntities(plan: CardConfig, room: RoomConfig) {
 }
 
 function heading(room: RoomConfig): AutoCard {
-  const card: AutoCard = { type: 'custom:fp-title', room_filter: 'show' }
+  const card: AutoCard = { type: 'custom:fp-title', never_hide: true }
   if (room.name) card.title = room.name
   else if (room.area_id) card.area = room.area_id
   else card.title = room.id
@@ -166,7 +166,7 @@ export function autoGroups(plan: CardConfig): AutoGroup[] {
   const groups: AutoGroup[] = []
   const home = [...autoTiles(plan, null).values()].map(card => chosen(card, plan.home?.tiles))
   if (home.length) {
-    const title: AutoCard = { type: 'custom:fp-title', title: plan.home?.name || 'Home', room_filter: 'show' }
+    const title: AutoCard = { type: 'custom:fp-title', title: plan.home?.name || 'Home', never_hide: true }
     groups.push({ room: null, cards: [title, ...home] })
   }
   for (const room of plan.rooms ?? []) {
