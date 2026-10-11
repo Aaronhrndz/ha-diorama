@@ -77,9 +77,10 @@ function OpenDoorTile({ env, config }: Props) {
     return () => cancelAnimationFrame(frame)
   }, [step, open])
   const { feature: _, ...plain } = config
-  // Green only once the second tap opens it.
+  // Green only once the second tap opens it, and red until then while it
+  // is locked, so the first tap does not change the icon.
   const done = open || step === 2
-  const accent = done ? GREEN : undefined
+  const accent = done ? GREEN : locked ? RED : undefined
   const state = step === 1 ? 'Tap again to open' : formatState(env.hass, entity)
   const tap = () => {
     if (open || step === 2) return
