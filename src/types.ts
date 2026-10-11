@@ -87,6 +87,9 @@ export type RoomConfig = {
   // The order of the room's tiles in the side panel, as entity ids, both
   // the devices on the plan and the entities above.
   order?: string[]
+  // The card each entity's tile is, by entity id, in place of the one the
+  // side panel picks for its domain.
+  tiles?: TileChoices
   // Rooms open beside this one whose sign on the floor is left out of this
   // room's view, as room ids.
   hide_arrows?: string[]
@@ -96,7 +99,13 @@ export type RoomConfig = {
 export type HomeConfig = {
   name?: string
   entities?: string[]
+  tiles?: TileChoices
 }
+
+// A card of the side panel chosen for an entity: its type and its options,
+// with the entity left out since it is the key.
+export type TileChoice = { type: string; [key: string]: unknown }
+export type TileChoices = Record<string, TileChoice>
 
 // The background laid behind the view the card is in, for a light and for
 // a dark dashboard: one of the card's own by its id, or `theme` to leave

@@ -145,7 +145,7 @@ background:
   dark: ocean
 ```
 
-The tiles fill themselves from the plan. Each room gets a heading with its name, then a tile for each device placed in it, in the order the plan lists them. Each device gets the tile made for its domain, and `fp-entity` when none is. Covers, vacuums, thermostats and media players are wide. The icon comes from the piece the device stands behind, so a pendant lamp shows `ph:lamp-pendant`, and a projector screen's tile is inverted. With the whole home in view every room shows, and with a room in view only that room does. When the room in view changes, the tiles fade out and the next ones fade in. While every tile is hidden the panel reads Nothing to control here.
+The tiles fill themselves from the plan. Each room gets a heading with its name, then a tile for each device placed in it, in the order the plan lists them. Each device gets the tile made for its domain, a calendar the calendar card, a to-do list the to-do card, and `fp-entity` when none is. Covers, vacuums, thermostats and media players are wide. The icon comes from the piece the device stands behind, so a pendant lamp shows `ph:lamp-pendant`, and a projector screen's tile is inverted. With the whole home in view every room shows, and with a room in view only that room does. When the room in view changes, the tiles fade out and the next ones fade in. While every tile is hidden the panel reads Nothing to control here.
 
 Entities with no piece on the plan, like a scene, a sensor, a thermostat or a media player, can join a room's tiles too. Under **Tiles by room** in the card's editor, each room lists the devices it already has from the plan and takes more with an entity picker. An entity can be in one place only, so the picker leaves out every entity the plan or another room already has. They get the same tiles as the devices on the plan. In YAML they are the room's `entities`.
 
@@ -188,9 +188,28 @@ rooms:
     points: [[0, 0], [5, 0], [5, 4], [0, 4]]
 ```
 
+Under each entity's name in both lists, the name of the card its tile is opens a picker under the row. It shows every floorplan card the entity can be, each set up every way it can be, like a light as a toggle, with a color bar, with color buttons, as its state alone or as a big dial, live with the entity's state and at the size it takes in the panel. The one the panel picks for the domain is marked Auto. Picking another one sets the tile to it, and picking Auto again goes back. In YAML the choice is in the room's or the home's `tiles`, by entity id, each the card's config without its entity.
+
+```yaml
+home:
+  entities:
+    - light.living_room
+  tiles:
+    light.living_room:
+      type: custom:fp-dial
+rooms:
+  - id: living
+    name: Living room
+    points: [[0, 0], [5, 0], [5, 4], [0, 4]]
+    tiles:
+      light.floor_lamp:
+        type: custom:fp-toggle
+        feature: color-favorites
+```
+
 A scene or a script runs on a tap. An automation is a toggle that turns the automation itself on or off, so to run one from a tile, put its actions in a script. A light group made with Home Assistant's Group helper is a light, so its tile has brightness and color. For a plain on and off over many lights, make a template switch instead, like the demo's All lights: on while any light is, and a tap turns them all off, or all on when every one is off. A scene in Home Assistant has no on or off, so for one that shows whether it is in place and undoes itself, make a template switch: its state says when the scene is on, `turn_on` sets it up and `turn_off` undoes what should be undone. The demo's Projector scene is on while the projector screen is down, turns off the bedroom lights and brings the screen down when turned on, and only rolls the screen up when turned off.
 
-To choose every tile yourself, leave the side panel off and put the tiles next to the floorplan card in a sections view.
+To lay the tiles out yourself, leave the side panel off and put the tiles next to the floorplan card in a sections view.
 
 ## Icons
 

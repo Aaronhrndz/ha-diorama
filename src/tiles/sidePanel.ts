@@ -1,7 +1,6 @@
 import { closest, closestClass, inPanelView } from '#/lib/panelView.ts'
 import { onRoomFilter, roomFilter } from '#/lib/roomFilter.ts'
 import { autoGroups } from '#/tiles/auto.ts'
-import { isWide, tileRows } from '#/tiles/features/index.tsx'
 import type { CardConfig as PlanConfig, HomeAssistant } from '#/types.ts'
 
 type CardConfig = {
@@ -24,8 +23,8 @@ const STACK_PX = 900
 
 type HuiCard = HTMLElement & { config: CardConfig; hass: HomeAssistant; preview: boolean; load: () => void }
 
-const ROW_PX = 56
-const GAP_PX = 10
+export const ROW_PX = 56
+export const GAP_PX = 10
 
 // How long the tiles take to fade out of a room, and the next room's to
 // fade in, in milliseconds.
@@ -33,23 +32,17 @@ const FADE_OUT_MS = 140
 const FADE_IN_MS = 220
 
 // How many of the 12 columns and how many rows a side card takes, read from
-// its config so the layout is known before the card has loaded.
-function span(config: CardConfig, hass: HomeAssistant | null) {
+// its config so the layout is known before the card has loaded. One of our
+// cards says so itself, as it would to Home Assistant's grid.
+type Grid = { columns?: number | 'full'; rows?: number | 'auto' }
+type Sized = { prototype: { getGridOptions?: (this: object) => Grid } }
+export function span(config: CardConfig, hass: HomeAssistant | null) {
   const own = config.grid_options
   const type = config.type.replace(/^custom:/, '')
-  let columns: number | 'full' = 12
-  let rows: number | 'auto' = 'auto'
-  if (type === 'fp-title') rows = 1
-  else if (type === 'fp-camera') columns = 12
-  else if (type === 'fp-weather') rows = 3
-  else if (type.startsWith('fp-')) {
-    const tile = config as { size?: string; entity?: string; feature?: string }
-    const entity = hass?.states[String(config.entity)]
-    columns = isWide(tile, entity) ? 12 : 6
-    rows = tileRows(tile, entity)
-  }
-  columns = own?.columns ?? columns
-  rows = own?.rows ?? rows
+  const element = type.startsWith('fp-') ? (customElements.get(type) as Sized | undefined) : undefined
+  const grid = element?.prototype.getGridOptions?.call({ _config: config, _hass: hass }) ?? {}
+  const columns = own?.columns ?? grid.columns ?? 12
+  const rows = own?.rows ?? grid.rows ?? 'auto'
   return { columns: columns === 'full' ? 12 : Math.min(12, columns), rows }
 }
 
@@ -96,6 +89,18 @@ const CSS = `
   padding-inline: 12px;
   overflow-y: auto;
   scrollbar-width: none;
+  /* Tiles scrolled past an edge fade into the background rather than
+     being cut off there. Each fade is as tall as the room the tiles keep
+     at that end, so at rest it falls on nothing. */
+  --_fade-top: 24px;
+  --_fade-bottom: 24px;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--_fade-top),
+    #000 calc(100% - var(--_fade-bottom)),
+    transparent
+  );
 }
 .side::-webkit-scrollbar {
   display: none;
@@ -154,15 +159,13 @@ const CSS = `
 .split[data-fit] .main[data-fill] {
   aspect-ratio: auto;
 }
-.split[data-fit] .cards {
-  padding-bottom: 8px;
-}
 .split[data-stacked] .side {
   margin-inline: 0;
   padding-inline: 0;
+  --_fade-top: 12px;
 }
 .split[data-stacked] .cards {
-  padding: 8px 12px 24px;
+  padding: 12px 12px 24px;
 }
 `
 

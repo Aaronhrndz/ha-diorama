@@ -5,7 +5,7 @@ import { persistCard } from '#/editor/persist.ts'
 import { ReactHost } from '#/host.tsx'
 import { registerTiles } from '#/tiles/index.tsx'
 import { sameButBackground, ViewBackground } from '#/lib/background.ts'
-import { closest, inPanelView } from '#/lib/panelView.ts'
+import { closest, closestClass, inPanelView } from '#/lib/panelView.ts'
 import WithSidePanel from '#/tiles/WithSidePanel.tsx'
 import type { BackgroundConfig, CardConfig } from '#/types.ts'
 
@@ -227,12 +227,27 @@ class Floorplan3DCard extends ReactHost<CardConfig> {
     }, 0)
   }
 
+  // The config with the card filling its height, kept so the tree is
+  // handed the same one while the config does not change.
+  private filled: { from: CardConfig; config: CardConfig } | null = null
+
+  // In a sections view with a set number of rows, the floorplan fills the
+  // height the grid gives it rather than keeping its shape and spilling out.
+  private shaped(config: CardConfig) {
+    const fit = !inPanelView(this) && !!closestClass(this, 'fit-rows')
+    this.style.display = fit ? 'block' : ''
+    this.style.height = fit ? '100%' : ''
+    if (!fit) return config
+    if (this.filled?.from !== config) this.filled = { from: config, config: { ...config, aspect_ratio: 'fill' } }
+    return this.filled.config
+  }
+
   protected view() {
     if (this._config!.side_panel) return <WithSidePanel hass={this._hass} config={this._config!} />
     return (
       <Card
         hass={this._hass}
-        config={this._config!}
+        config={this.shaped(this._config!)}
         panel={inPanelView(this)}
         preview={!!closest(this, 'hui-dialog-edit-card')}
       />

@@ -466,12 +466,38 @@ function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggest
 
 const lowerFirst = (text: string) => text[0].toLowerCase() + text.slice(1)
 
+// Domains whose state alone says nothing, like a calendar's on or off, so
+// Floorplan Entity is never offered for them.
+const SAYS_NOTHING = ['calendar']
+
 // Whether a card is the one to offer for an entity picked in Home
 // Assistant's card picker. Floorplan Entity is offered only for an entity
 // no other tile is made for, like a sensor.
 function shows(card: Card, entityId: string) {
   const domain = entityId.split('.')[0]
+  if (card.domains === 'any' && SAYS_NOTHING.includes(domain)) return false
   if (card.domains === 'any')
     return !CARDS.some(other => !other.extra && Array.isArray(other.domains) && other.domains.includes(domain))
   return !!card.domains?.includes(domain)
+}
+
+export type TileOption = { name: string; label?: string; config: Record<string, unknown> }
+
+// Every card of ours an entity can be shown as in the side panel, with
+// each way each one can be set up, the card made for its domain first.
+// Floorplan Entity is offered for any entity, as its state.
+export function tileOptions(hass: HomeAssistant, entityId: string): TileOption[] {
+  const domain = entityId.split('.')[0]
+  const fits = (card: Card) =>
+    card.domains === 'any' ? !SAYS_NOTHING.includes(domain) : !!card.domains?.includes(domain)
+  const made = (card: Card) => !card.extra && Array.isArray(card.domains) && card.domains.includes(domain)
+  const ranked = [...CARDS.filter(made), ...CARDS.filter(card => fits(card) && !made(card))]
+  return ranked.flatMap(card => {
+    const name = card.name.replace(/^Floorplan /, '')
+    const own =
+      card.domains === 'any' && !shows(card, entityId)
+        ? [{ config: { type: `custom:${card.type}`, entity: entityId } }]
+        : (suggestions(card, hass, entityId) ?? [])
+    return own.map(suggestion => ({ name, label: suggestion.label, config: suggestion.config }))
+  })
 }

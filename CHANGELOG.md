@@ -54,6 +54,7 @@ moves that section under the new version and uses it as the release notes.
 - The Now Playing card's volume fills white on a dark card and black on a light one, with shuffle and repeat to its right, and its level no longer gets cut off on a phone.
 - The dial's ring is bigger and reaches down beside the name, with plus over minus on its left, and its number stays still as it changes, like from 21° to 21.5°, with the two ends of a range large and one over the other inside the ring.
 - The alarm panel is a wide tile like the others, with its modes in the top right, a keypad beside a large line saying what the code will do, a red lock key to arm and a green open lock to disarm, and a red or green wash for armed or disarmed.
+- Each tile in the side panel's home and room lists in the card's editor shows which card it is, and a press on that opens live previews of every floorplan card the entity can be, to pick another one.
 
 ### Changed
 
@@ -105,6 +106,9 @@ moves that section under the new version and uses it as the release notes.
 - Temperatures on thermostats and dials show a degree sign, like 22°, and a thermostat's state reads as one phrase, like 20.5° to 22°.
 - A thermostat's icon takes the color of the mode it runs in on every one of its tiles, and that color washes down from the top of the tile while it is on. In auto, or keeping a range, it takes the color of what it is doing, like orange while it heats, and no color while it waits.
 - Each thermostat mode has its own color: orange for heating, blue for cooling, yellow for drying and teal for the fan alone, while auto and keeping a range look plain like off. Water heaters, humidifiers and the alarm panel's warning share the same orange and blue. In the 3D view, the air out of an air conditioner and the glow of a thermostat take the same color as its tiles.
+- The side panel's tiles fade out at its top and bottom edges as they scroll, showing the background, instead of being cut off.
+- The camera tile shows the camera's state under its name.
+- A calendar or a to-do list in the side panel shows as the calendar or the to-do card, and Floorplan Any Entity is no longer offered for a calendar.
 
 ### Fixed
 
@@ -118,6 +122,7 @@ moves that section under the new version and uses it as the release notes.
 - A piece can be set on top of a basin, where it used to sink into it.
 - Picking an option from a menu on a tile, like the mode of a humidifier, or typing an alarm code, no longer also turns the tile on or off.
 - A small tile with a menu where nothing is chosen, like a fan running without a preset, now says what the menu picks instead of showing an empty pill.
+- Without the side panel, the floorplan in a sections view with a set number of rows fills them instead of spilling over what is under it.
 
 ## [1.2.5] - 2026-10-08
 
