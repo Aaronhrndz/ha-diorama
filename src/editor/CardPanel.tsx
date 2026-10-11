@@ -1,3 +1,4 @@
+import { aspectRatioNumber } from '#/lib/aspect.ts'
 import { BACKGROUNDS, DEFAULT_BACKGROUND, PLAIN_SWATCH, THEME_BACKGROUND } from '#/lib/background.ts'
 import { setPreviewRoom } from '#/lib/previewRoom.ts'
 import { cn } from '#/lib/utils.ts'
@@ -47,6 +48,8 @@ type Props = {
 // editor first, then how the card answers a click and where its light
 // comes from, then the side panel and what goes in it, the background, and
 // how to move the view last.
+const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a)
+
 export default function CardPanel({ hass, config, onChange, opening, onOpen }: Props) {
   const rooms = config.rooms ?? []
   const sidePanel = config.side_panel === true
@@ -85,6 +88,17 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
   const setSun = (degrees: number) => {
     const { sun_direction: _, ...rest } = config
     onChange(degrees === SUN_DIRECTION_DEG ? rest : { ...rest, sun_direction: degrees })
+  }
+
+  // How tall the floorplan is on a phone, in percent of its width. With
+  // nothing said it is square, or the card's own shape when one is given,
+  // so square is only left out of the YAML when nothing else is given.
+  const wideShape = config.aspect_ratio && config.aspect_ratio !== 'fill' ? config.aspect_ratio : undefined
+  const tall = Math.round(100 / aspectRatioNumber(config.aspect_ratio_mobile ?? wideShape ?? '1:1'))
+  const setTall = (percent: number) => {
+    const { aspect_ratio_mobile: _, ...rest } = config
+    const d = gcd(100, percent)
+    onChange(percent === 100 && !wideShape ? rest : { ...rest, aspect_ratio_mobile: `${100 / d}:${percent / d}` })
   }
 
   // Whether the Floorplan tiles elsewhere on the dashboard follow the room
@@ -274,6 +288,32 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
               step={5}
               value={sun}
               onChange={e => setSun(Number(e.target.value))}
+            />
+          </div>
+          <div className="border-separator flex flex-col gap-2 border-t py-3">
+            <div className="flex items-center gap-2">
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-[13px]">Height on a phone</span>
+                <span className="text-label-2 text-xs">On a card narrower than 600 px, over the side panel too</span>
+              </span>
+              <span className="text-label-2 text-xs tabular-nums">{tall}%</span>
+              <ResetButton
+                label="Height on a phone"
+                changed={config.aspect_ratio_mobile !== undefined}
+                onReset={() => {
+                  const { aspect_ratio_mobile: _, ...rest } = config
+                  onChange(rest)
+                }}
+              />
+            </div>
+            <Slider
+              aria-label="Height on a phone"
+              className="w-full"
+              min={40}
+              max={150}
+              step={5}
+              value={tall}
+              onChange={e => setTall(Number(e.target.value))}
             />
           </div>
         </div>

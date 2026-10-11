@@ -11,6 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
+- The card's settings have a Height on a phone slider that sets how tall the floorplan is on a narrow card, over the side panel too, so the tiles under it start higher.
 - Any Floorplan tile can be set to Never hide, `never_hide: true`, to keep showing whatever room the floorplan card is in.
 - A dial that is not heading for its knob shows a small dot on the ring where the room is now, in place of the arrows.
 - The map card spreads its map over the whole card with the name and place on it in the bottom left, or across the top over a bar with them, with no icon either way.

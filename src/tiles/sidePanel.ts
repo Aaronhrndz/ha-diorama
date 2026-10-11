@@ -1,3 +1,4 @@
+import { aspectRatioCss } from '#/lib/aspect.ts'
 import { closest, closestClass, inPanelView } from '#/lib/panelView.ts'
 import { onRoomFilter, roomFilter } from '#/lib/roomFilter.ts'
 import { autoGroups } from '#/tiles/auto.ts'
@@ -147,7 +148,7 @@ const CSS = `
   padding: 0;
 }
 .split[data-stacked] .main[data-fill] {
-  aspect-ratio: 1 / 1;
+  aspect-ratio: var(--_stacked-aspect, 1 / 1);
 }
 /* In a card given a set height, the tiles under the floorplan take what
    they need of it, up to all but 45% left to the floorplan, and scroll
@@ -228,6 +229,8 @@ export class SidePanel extends HTMLElement {
   setConfig(config: PlanConfig) {
     if (config === this._config) return
     this._config = config
+    // Over the tiles, the floorplan takes the card's shape on a phone.
+    this.root.style.setProperty('--_stacked-aspect', aspectRatioCss(config.aspect_ratio_mobile, '1 / 1'))
     void this.build()
   }
 
