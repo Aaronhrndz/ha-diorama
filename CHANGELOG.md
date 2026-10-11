@@ -11,6 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
+- A humidifier tile can be a slider for the humidity it aims for, filled as far as that humidity, with how humid the room is now beside it.
 - A fan with a few speeds can show them as round buttons beside its icon, off and each speed, or as a menu, like Home Assistant's own speed buttons.
 - The floorplan card lays a soft gradient behind its view, with five to choose from in the card's editor and a separate choice for a light and a dark dashboard.
 - Buttons, scripts and scenes can drive nearly every piece that switches on: each press plays it once and it goes back, so a light blinks, a fan goes one turn round, a fridge or a window opens and shuts, and a litter box turns over and back a single time.
@@ -59,6 +60,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
+- A dial marks where the room is now on its ring, and while the room is heading for the value set, the stretch between them is paler, with arrows pointing the way it goes.
+- A humidifier tile says how humid the room is beside On or Off, a fan tile says its speed while it is on, and a valve tile how far it is open.
 - A media player that is playing shows its icon and its volume in a green leaning to teal.
 - A media player tile with the volume is its volume across the whole tile, dragged sideways like a light's brightness, while a tap still plays or pauses it.
 - A media player tile with the volume buttons says how loud it plays before what is playing.

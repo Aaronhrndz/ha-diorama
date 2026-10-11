@@ -17,14 +17,16 @@ type Props = { env: TileEnv; config: TileConfig }
 // its hue and saturation at full brightness, and its icon takes that color
 // too. A light that dims, with the brightness feature, is its brightness
 // across the whole tile, a fan with the speed feature its speed, and a
-// valve with the position feature how far it is open.
+// valve with the position feature how far it is open, and a humidifier
+// with the humidity slider the humidity it holds the room at.
 export default function Toggle({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const domain = config.entity!.split('.')[0]
   const valve = domain === 'valve'
   const on = valve ? entity?.state === 'open' || entity?.state === 'opening' : entity?.state === 'on'
   const brightness = entity?.attributes.brightness
-  const state = valve
+  const percentage = numberOf(entity, 'percentage')
+  const word = valve
     ? on
       ? 'Open'
       : 'Closed'
@@ -32,7 +34,13 @@ export default function Toggle({ env, config }: Props) {
       ? 'Off'
       : typeof brightness === 'number'
         ? `${Math.max(1, Math.round((brightness / 255) * 100))}%`
-        : 'On'
+        : domain === 'fan' && percentage !== null && percentage > 0
+          ? `${Math.round(percentage)}%`
+          : 'On'
+  // What it is at beside the word, as Home Assistant says it: how humid
+  // the room is for a humidifier, and how far open a valve is.
+  const reading = numberOf(entity, valve ? 'current_position' : domain === 'humidifier' ? 'current_humidity' : '')
+  const state = reading !== null ? `${word} · ${Math.round(reading)}%` : word
   const hs = entity?.attributes.hs_color
   // A light in a white shines in its kelvin, though it also gives a hue.
   const kelvin = entity && inWhite(entity) ? numberOf(entity, 'color_temp_kelvin') : null
@@ -87,6 +95,33 @@ export default function Toggle({ env, config }: Props) {
         accent={accent}
         onTap={toggle}
         onSend={v => callService(env.hass, 'fan.set_percentage', { entity_id: entity.entity_id, percentage: v })}
+      />
+    )
+  }
+  if (domain === 'humidifier' && config.feature === 'humidity-slider' && !unavailable) {
+    const min = numberOf(entity, 'min_humidity') ?? 0
+    const max = numberOf(entity, 'max_humidity') ?? 100
+    const target = numberOf(entity, 'humidity')
+    return (
+      <FillTile
+        env={env}
+        config={plain}
+        entity={entity}
+        value={on && target !== null ? Math.round(target) : 0}
+        accent={accent}
+        format={v => (v === 0 ? 'Off' : reading !== null ? `To ${v}% · ${Math.round(reading)}%` : `To ${v}%`)}
+        onTap={toggle}
+        onSend={v =>
+          v === 0
+            ? callService(env.hass, 'humidifier.turn_off', { entity_id: entity.entity_id })
+            : Promise.all([
+                callService(env.hass, 'humidifier.set_humidity', {
+                  entity_id: entity.entity_id,
+                  humidity: Math.min(max, Math.max(min, v)),
+                }),
+                !on && callService(env.hass, 'humidifier.turn_on', { entity_id: entity.entity_id }),
+              ])
+        }
       />
     )
   }

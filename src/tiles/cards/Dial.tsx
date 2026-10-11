@@ -33,6 +33,8 @@ type Model = {
   label: string
   // Under it, like what the room is at now.
   now?: string
+  // What the room is at now, marked on the ring.
+  current?: number
   format: (value: number) => string
   send: (values: number[]) => void
   // Off, the ring is dim and drags nothing.
@@ -90,6 +92,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
             )
           : 'Off',
       now: current !== null ? `Now ${Math.round(current)}%` : undefined,
+      current: current ?? undefined,
       format: value => `${Math.round(value)}%`,
       send: ([value]) => callService(hass, 'humidifier.set_humidity', { ...target, humidity: value }),
       off: entity.state !== 'on',
@@ -118,6 +121,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
         ? 'Off'
         : formatState(hass, entity),
     now: current !== null ? `Now ${formatDegrees(hass, current)}` : undefined,
+    current: current ?? undefined,
     format: value => formatDegrees(hass, value),
     send: values =>
       callService(
@@ -136,6 +140,44 @@ const shareOf = (m: Model, value: number) => Math.min(Math.max((value - m.min) /
 const point = (share: number) => {
   const angle = ((START + share * SWEEP) * Math.PI) / 180
   return { x: 100 + RADIUS * Math.cos(angle), y: 100 + RADIUS * Math.sin(angle) }
+}
+
+// The arc along the ring from one place to another, either way round.
+function arc(from: number, to: number) {
+  const a = point(from)
+  const b = point(to)
+  const large = Math.abs(to - from) * SWEEP > 180 ? 1 : 0
+  return `M${a.x} ${a.y}A${RADIUS} ${RADIUS} 0 ${large} ${to > from ? 1 : 0} ${b.x} ${b.y}`
+}
+
+// How far apart the arrows along that stretch are, and how far from the
+// mark and from the knob they stay, along the ring.
+const ARROW_GAP = 13
+const ARROW_CLEAR = 10
+
+// Arrows along the stretch from one place to another, each pointing the
+// way it goes.
+function arrows(from: number, to: number) {
+  const length = Math.abs(to - from) * LENGTH - 2 * ARROW_CLEAR
+  const count = Math.max(1, Math.floor(length / ARROW_GAP) + 1)
+  const way = to > from ? 1 : -1
+  return Array.from({ length: count }, (_, i) => {
+    const along = count === 1 ? Math.abs(to - from) / 2 : (ARROW_CLEAR + (i * length) / (count - 1)) / LENGTH
+    const share = from + way * along
+    const angle = START + share * SWEEP + way * 90
+    return { ...point(share), angle }
+  })
+}
+
+// Where the room is now and the end it is heading for, while it is on and
+// not there yet: below a range it heads for its low end, above it for its
+// high end, and inside it for nowhere.
+function heading(m: Model, values: number[]) {
+  if (m.off || m.current === undefined) return null
+  const target =
+    values.length === 2 ? (m.current < values[0] ? values[0] : m.current > values[1] ? values[1] : null) : values[0]
+  if (target === null || Math.abs(target - m.current) < m.step / 2) return null
+  return { from: shareOf(m, m.current), to: shareOf(m, target) }
 }
 
 // The values sent, shown until Home Assistant reports them back.
@@ -157,7 +199,10 @@ function useHeldValues(reported: number[]) {
 
 // A thermostat, a water heater, a humidifier or a light on a big ring: drag the ring's knob, or press minus and plus, to set the
 // temperature, the humidity or the brightness it holds. The ring fills in
-// the color of what it is doing, like orange to heat. The ring sits in the
+// the color of what it is doing, like orange to heat. A dot on the ring
+// marks where the room is now, and while it is on its way to the knob the
+// stretch between them is paler, with arrows along it that point at the
+// knob and light up one after another toward it. The ring sits in the
 // bottom right corner across from the name with minus and plus stacked on
 // its left, and the modes in the top right.
 export default function Dial({ env, config }: { env: TileEnv; config: TileConfig }) {
@@ -266,8 +311,13 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   // point or a sign about half of one.
   const width = (text: string) => [...text].reduce((sum, char) => sum + (/\d/.test(char) ? 1 : 0.55), 0)
   const widest = Math.max(...[m.min, m.max, m.min + m.step, m.max - m.step].map(value => width(m.format(snap(value)))))
+  const toward = heading(m, values)
   const first = shareOf(m, values.length === 2 ? values[0] : m.min)
-  const last = shareOf(m, values[values.length - 1])
+  // A single value fills only as far as the room is, or the value when the
+  // room is past it, and the rest of the way is the stretch it is heading
+  // along.
+  const last = values.length === 1 && toward ? Math.min(toward.from, toward.to) : shareOf(m, values[values.length - 1])
+  const now = m.current !== undefined && !m.off ? point(shareOf(m, m.current)) : null
   return (
     <Panel {...panel}>
       <div
@@ -307,6 +357,9 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
           >
             <g transform={`rotate(${START} 100 100)`}>
               <circle className="fp-dial-track" cx="100" cy="100" r={RADIUS} strokeDasharray={`${LENGTH} 999`} />
+            </g>
+            {toward && <path className="fp-dial-toward" d={arc(toward.from, toward.to)} />}
+            <g transform={`rotate(${START} 100 100)`}>
               <circle
                 className="fp-dial-fill"
                 cx="100"
@@ -316,6 +369,17 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
                 strokeDashoffset={-LENGTH * first}
               />
             </g>
+            {toward &&
+              arrows(toward.from, toward.to).map((arrow, i) => (
+                <path
+                  key={i}
+                  className="fp-dial-arrow"
+                  d="M-2.5 -4L2 0L-2.5 4"
+                  transform={`translate(${arrow.x} ${arrow.y}) rotate(${arrow.angle})`}
+                  style={{ '--_i': i } as CSSProperties}
+                />
+              ))}
+            {now && <circle className="fp-dial-mark" cx={now.x} cy={now.y} r="4.5" />}
             {values.map((value, i) => {
               const at = point(shareOf(m, value))
               return (

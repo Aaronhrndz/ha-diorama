@@ -2135,6 +2135,56 @@
   stroke: color-mix(in srgb, var(--_text-inactive) 40%, transparent);
 }
 
+/* The stretch between where the room is now and where it is heading, paler
+   than the fill, with arrows along it that point at the knob and light up
+   one after another toward it. */
+.fp-dial-toward {
+  fill: none;
+  stroke: color-mix(in srgb, currentColor 36%, transparent);
+  stroke-width: 18;
+  stroke-linecap: round;
+}
+
+.fp-dial-arrow {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.45;
+  animation: fp-dial-run 1.4s ease-in-out infinite;
+  animation-delay: calc(var(--_i) * 0.12s);
+}
+
+@keyframes fp-dial-run {
+  30% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-dial-arrow {
+    opacity: 0.85;
+    animation: none;
+  }
+}
+
+.fp-dial[data-dragging] .fp-dial-toward,
+.fp-dial[data-dragging] .fp-dial-arrow {
+  opacity: 0.6;
+  animation: none;
+}
+
+/* Where the room is now. */
+.fp-dial-mark {
+  fill: #fff;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
 .fp-dial-knob {
   fill: #fff;
   stroke: color-mix(in srgb, #000 12%, transparent);

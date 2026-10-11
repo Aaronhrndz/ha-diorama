@@ -204,6 +204,13 @@ export const FEATURES: FeatureDef[] = [
     View: menu('swing-horizontal-modes'),
   },
   {
+    id: 'humidity-slider',
+    label: 'Humidity slider',
+    does: 'drag for the humidity to hold',
+    domains: ['humidifier'],
+    supports: e => numberOf(e, 'humidity') !== null,
+  },
+  {
     id: 'target-humidity',
     label: 'Humidity minus and plus buttons',
     domains: ['climate', 'humidifier'],
