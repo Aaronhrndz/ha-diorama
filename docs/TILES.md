@@ -227,16 +227,16 @@ A name not in the list shows a question mark and logs a warning in the browser c
 
 ## Room filtering
 
-When a Floorplan 3D card on the dashboard flies to a room, every tile that belongs to another area hides, and a section left with nothing showing folds away. Going back to the whole home brings them all back. The room needs an area: set it in the editor, or as `area_id` on the room in the card's YAML.
+The side panel of a Floorplan 3D card always follows the room the card flies to. The Floorplan tiles elsewhere on the dashboard stay as they are, unless **Hide other rooms' tiles** is on in the card's editor, `filter_tiles: true` in its YAML. Then, when the card flies to a room, every tile that belongs to another area hides, and a section left with nothing showing folds away. Going back to the whole home brings them all back. The room needs an area: set it in the editor, or as `area_id` on the room in the card's YAML. With it off, the tiles act as if the whole home were always in view.
 
-A tile's area is its `area` option when it has one, else its entity's area, else the area of the entity's device. A tile with no area at all hides while a room is in view, and the browser console lists every such tile once. Give it an `area`, or `room_filter: show` to keep it in every room. A title with an `area` hides along with its tiles.
+A tile's area is its `area` option when it has one, else its entity's area, else the area of the entity's device. A tile with no area at all hides while a room is in view, and the browser console lists every such tile once. Give it an `area`, or `room_filter: show` to never hide it. A title with an `area` hides along with its tiles.
 
 `room_filter` takes one of these:
 
 | Value  | The whole home | A room in view                                   |
 | ------ | -------------- | ------------------------------------------------ |
 | `hide` | shown          | shown in its own room. A tile with no area hides |
-| `show` | shown          | shown                                            |
+| `show` | shown          | shown, it never hides                            |
 | `room` | hidden         | shown in its own room only                       |
 | `home` | shown          | hidden                                           |
 
@@ -244,7 +244,7 @@ A tile's area is its `area` option when it has one, else its entity's area, else
 
 While the dashboard is being edited, every tile shows whatever room is in view.
 
-The card tells the page which room is in view through a `fp-room-filter` event on `window`, with `{ area_id, room_id }` as its detail, or `null` for the whole home. The last one is kept in `window.__fpRoomFilter`. Other cards can listen for it too.
+The card tells the page which room is in view through a `fp-room-filter` event on `window`, with `{ area_id, room_id, tiles }` as its detail, where `tiles` says whether the dashboard's tiles follow it, or `null` for the whole home. The last one is kept in `window.__fpRoomFilter`. Other cards can listen for it too.
 
 ## Theme
 

@@ -43,6 +43,7 @@ const LABELS: Record<string, string> = {
 
 const HELPERS: Record<string, string> = {
   area: 'The room filter uses the entity area when this is empty',
+  room_filter: 'Only while a floorplan card hides the tiles of other rooms',
   color: 'Any CSS color, like #ffb340',
   state_text: 'Replaces the line under the name',
   invert: 'For a screen that comes down to open',
@@ -59,7 +60,7 @@ const ROOM_FILTER: Field = {
       mode: 'dropdown',
       options: [
         { value: 'hide', label: 'Show it only in its own area (or always, with no area)' },
-        { value: 'show', label: 'Always show it' },
+        { value: 'show', label: 'Never hide it' },
         { value: 'room', label: 'Show it only in its own room' },
         { value: 'home', label: 'Show it only with the whole home in view' },
       ],

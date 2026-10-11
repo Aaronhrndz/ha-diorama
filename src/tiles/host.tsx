@@ -232,7 +232,9 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
 
   private visible() {
     if (!this._config || !this._hass || this._preview) return true
-    const filter = roomFilter()
+    // A floorplan card that leaves the dashboard's tiles alone shows them
+    // the whole home whatever room it is in.
+    const filter = roomFilter()?.tiles ? roomFilter() : null
     const mode = this._config.room_filter
     if (mode === 'home') return !filter
     if (mode === 'show') return true

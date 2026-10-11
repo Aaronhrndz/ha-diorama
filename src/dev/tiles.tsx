@@ -219,7 +219,7 @@ for (const [label, area] of [
 ] as const) {
   const b = document.createElement('button')
   b.textContent = label
-  b.onclick = () => setRoomFilter(area ? { area_id: area, room_id: area } : null)
+  b.onclick = () => setRoomFilter(area ? { area_id: area, room_id: area, tiles: true } : null)
   bar.appendChild(b)
 }
 document.body.appendChild(bar)

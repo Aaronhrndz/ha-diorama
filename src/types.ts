@@ -182,6 +182,10 @@ export type CardConfig = {
   // the rest: a heading per room, then a tile for each of its devices and
   // of its `entities`. On a narrow card the panel goes under the floorplan.
   side_panel?: boolean
+  // Hides the Floorplan tiles elsewhere on the dashboard that belong to
+  // another area while a room is in view. Off, they all stay. The side
+  // panel follows the room either way.
+  filter_tiles?: boolean
   // The side panel's own section for the whole home, under its `name`,
   // Home by default: the tiles of its `entities`, in this order. With any
   // set, it is all the panel shows with the whole home in view, and each
