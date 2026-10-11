@@ -402,9 +402,50 @@
   transition: color var(--_duration) ease;
 }
 
-.fp-icon > svg {
+/* The icon drawn, and while it changes the one before it on top, the two
+   fading across each other. A button fading back to off swaps its icon as
+   slowly as the rest of the tile. */
+.fp-icon {
+  position: relative;
+  --_icon-fade: 300ms;
+}
+
+.fp-tile[data-fading] .fp-icon {
+  --_icon-fade: var(--_duration);
+}
+
+.fp-icon-layer {
+  display: block;
   width: 100%;
   height: 100%;
+}
+
+.fp-icon-layer > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.fp-icon-layer[data-out] {
+  position: absolute;
+  inset: 0;
+  animation: fp-icon-out var(--_icon-fade) ease forwards;
+}
+
+.fp-icon-layer[data-in] {
+  animation: fp-icon-in var(--_icon-fade) ease;
+}
+
+@keyframes fp-icon-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fp-icon-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* A picture in place of the icon, square, with its corners rounded to sit
@@ -2737,8 +2778,13 @@
     transform: none;
   }
 
-  .fp-mode-picked {
+  .fp-mode-picked,
+  .fp-icon-layer {
     animation: none;
+  }
+
+  .fp-icon-layer[data-out] {
+    display: none;
   }
 
   /* With no growth to show focus, a ring inside the edge shows it. */
@@ -2748,14 +2794,17 @@
   }
 }
 
-/* A lock tile that opens the door in two taps: the half the first tap
-   lights runs back frame by frame, with no easing of its own. The green
-   wash waits for the second tap and fades in then. */
-.fp-confirm[data-step='1'] .fp-fill-lit {
+/* A tile that acts only on a second tap: the part the first tap lights
+   or cuts runs frame by frame, with no easing of its own. A button that
+   ran fades back from the plain tile under it, with the lit copy gone at
+   once. */
+.fp-confirm[data-step='1'] .fp-fill-lit,
+.fp-confirm[data-fading] .fp-fill-lit {
   transition: none;
 }
 
-.fp-confirm .fp-tile {
+/* The lock's green wash waits for the second tap and fades in then. */
+.fp-open-door .fp-tile {
   --_wash: 0;
   transition:
     background-color var(--_duration) ease,
@@ -2765,6 +2814,6 @@
     --_wash 600ms ease;
 }
 
-.fp-confirm[data-done] .fp-tile {
+.fp-open-door[data-done] .fp-tile {
   --_wash: 1;
 }

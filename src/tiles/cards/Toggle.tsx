@@ -1,8 +1,9 @@
 import { callService, type TileEnv } from '#/tiles/actions.ts'
+import { ConfirmTile } from '#/tiles/cards/Confirm.tsx'
 import { FillTile, PositionTile } from '#/tiles/cards/Fill.tsx'
 import { FAN, SET_POSITION } from '#/tiles/features/cover.tsx'
 import { dims, inWhite, rgb } from '#/tiles/features/light.tsx'
-import { numberOf, supports } from '#/tiles/features/parts.tsx'
+import { membersOn, numberOf, supports } from '#/tiles/features/parts.tsx'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Tile } from '#/tiles/Tile.tsx'
 
@@ -18,7 +19,9 @@ type Props = { env: TileEnv; config: TileConfig }
 // too. A light that dims, with the brightness feature, is its brightness
 // across the whole tile, a fan with the speed feature its speed, and a
 // valve with the position feature how far it is open, and a humidifier
-// with the humidity slider the humidity it holds the room at.
+// with the humidity slider the humidity it holds the room at. A group,
+// like a light group, says how many of its members are on. With confirm
+// it turns on or off only on a second tap, and has no other control.
 export default function Toggle({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const domain = config.entity!.split('.')[0]
@@ -26,17 +29,21 @@ export default function Toggle({ env, config }: Props) {
   const on = valve ? entity?.state === 'open' || entity?.state === 'opening' : entity?.state === 'on'
   const brightness = entity?.attributes.brightness
   const percentage = numberOf(entity, 'percentage')
+  // A group that is on says how many of its members are.
+  const members = membersOn(env.hass, entity)
   const word = valve
     ? on
       ? 'Open'
       : 'Closed'
     : !on
       ? 'Off'
-      : typeof brightness === 'number'
-        ? `${Math.max(1, Math.round((brightness / 255) * 100))}%`
-        : domain === 'fan' && percentage !== null && percentage > 0
-          ? `${Math.round(percentage)}%`
-          : 'On'
+      : members !== null
+        ? `${members} on`
+        : typeof brightness === 'number'
+          ? `${Math.max(1, Math.round((brightness / 255) * 100))}%`
+          : domain === 'fan' && percentage !== null && percentage > 0
+            ? `${Math.round(percentage)}%`
+            : 'On'
   // What it is at beside the word, as Home Assistant says it: how humid
   // the room is for a humidifier, and how far open a valve is.
   const reading = numberOf(entity, valve ? 'current_position' : domain === 'humidifier' ? 'current_humidity' : '')
@@ -64,6 +71,30 @@ export default function Toggle({ env, config }: Props) {
   const unavailable = !entity || entity.state === 'unavailable' || entity.state === 'unknown'
   const toggle = () => callService(env.hass, `${domain}.toggle`, { entity_id: config.entity })
   const { feature: _, ...plain } = config
+  // Two taps only turn it on or off, over any control it was set to have.
+  if (config.confirm)
+    return (
+      <ConfirmTile
+        env={env}
+        config={plain}
+        entity={entity}
+        on={on}
+        role="switch"
+        accent={accent}
+        glow={glow}
+        state={state}
+        prompt={
+          valve
+            ? on
+              ? 'Tap again to close'
+              : 'Tap again to open'
+            : on
+              ? 'Tap again to turn off'
+              : 'Tap again to turn on'
+        }
+        onConfirm={toggle}
+      />
+    )
   if (domain === 'light' && config.feature === 'brightness' && !unavailable && dims(entity)) {
     return (
       <FillTile

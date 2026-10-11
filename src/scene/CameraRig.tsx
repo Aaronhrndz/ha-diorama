@@ -1,12 +1,4 @@
-import {
-  CAMERA_FIT_MARGIN,
-  CAMERA_FIT_MARGIN_NARROW,
-  CAMERA_SPILL_NARROW,
-  CAMERA_FLIGHT_S,
-  CAMERA_ROOM_FIT_MARGIN,
-  CAMERA_TURN_S,
-  NARROW_CARD_PX,
-} from '#/constants.ts'
+import { CAMERA_FIT_MARGIN, CAMERA_FLIGHT_S, CAMERA_ROOM_FIT_MARGIN, CAMERA_SPILL, CAMERA_TURN_S } from '#/constants.ts'
 import { passageFootprint, passagesOf } from '#/geometry/passages.ts'
 import { flights } from '#/scene/flights.ts'
 import { fitView, frameRooms, sceneHeight } from '#/scene/framing.ts'
@@ -39,6 +31,9 @@ type Props = {
   // The angle to open with, closer in when the whole plan fits. Without one
   // the camera frames the plan from the standard side.
   view?: CameraView
+  // The rooms the view of the whole home frames, as room ids. Every room
+  // when empty or none of them is there.
+  framed?: string[]
   // The room the card has flown to, which the camera keeps fitted to the
   // card as it changes shape until the viewer moves it.
   focus?: string | null
@@ -105,11 +100,6 @@ const MAX_STEP_S = 0.1
 // The shortest way round from one heading to another, in radians.
 const turn = (from: number, to: number) => MathUtils.euclideanModulo(to - from + Math.PI, 2 * Math.PI) - Math.PI
 
-// A card as narrow as a phone frames the home closer to its edges.
-const fitMargin = (width: number) => (width < NARROW_CARD_PX ? CAMERA_FIT_MARGIN_NARROW : CAMERA_FIT_MARGIN)
-// And lets the home run a little past its sides, so it fills the picture.
-const sideSpill = (width: number) => (width < NARROW_CARD_PX ? CAMERA_SPILL_NARROW : 1)
-
 const round = (v: number) => Math.round(v * 100) / 100
 const triple = (v: Vector3): [number, number, number] => [round(v.x), round(v.y), round(v.z)]
 
@@ -118,7 +108,16 @@ const triple = (v: Vector3): [number, number, number] => [round(v.x), round(v.y)
 // camera is theirs and is never moved again, so editing the plan does not
 // throw the view away. A flight to a saved view is the one exception, and
 // the camera is the viewer's again the moment it lands.
-export default function CameraRig({ rooms, decorations, view, focus, handle, onAway, wheelZoom = false }: Props) {
+export default function CameraRig({
+  rooms,
+  decorations,
+  view,
+  framed,
+  focus,
+  handle,
+  onAway,
+  wheelZoom = false,
+}: Props) {
   const camera = useThree(state => state.camera)
   const size = useThree(state => state.size)
   const controls = useThree(state => state.controls) as OrbitControlsImpl | null
@@ -169,26 +168,32 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
 
   // A saved view, or none, fitted to the card's shape around these rooms:
   // kept when they all show in it, and otherwise backed off along its angle
-  // until they do. On a card as narrow as a phone the angle frames them
-  // closely. With no view they are framed from the standard side.
+  // until they do. Either way the angle then frames them closely, so they
+  // fill the card. With no view they are framed from the standard side.
   const fit = (
     saved: CameraView | undefined,
     shown: RoomConfig[],
     items: DecorationConfig[],
-    margin = fitMargin(size.width),
-    spill = sideSpill(size.width),
+    margin = CAMERA_FIT_MARGIN,
+    whole: RoomConfig[] = [],
   ): CameraView => {
     const aspect = size.width / size.height
     const height = sceneHeight(items)
-    const narrow = size.width < NARROW_CARD_PX
     const { position, target } = saved
-      ? fitView(saved, shown, aspect, height, margin, narrow, spill)
-      : frameRooms(shown, aspect, height, undefined, margin, narrow, spill)
+      ? fitView(saved, shown, aspect, height, margin, true, CAMERA_SPILL, whole)
+      : frameRooms(shown, aspect, height, undefined, margin, true, CAMERA_SPILL, whole)
     return { position: triple(position), target: triple(target) }
   }
 
+  // What the view of the whole home frames: the chosen rooms and what is
+  // in them, or all of it.
+  const chosen = rooms.filter(room => framed?.includes(room.id))
+  const homeRooms = chosen.length > 0 ? chosen : rooms
+  const homeItems =
+    chosen.length > 0 ? decorations.filter(item => chosen.some(room => room.id === item.room)) : decorations
+
   // The view the camera opened with.
-  const home = () => fit(view, rooms, decorations)
+  const home = () => fit(view, homeRooms, homeItems)
 
   // One room alone, filling the picture, looked at from the same side and
   // height as the opening view, so flying there only closes in.
@@ -197,13 +202,13 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
   const frame = (room?: RoomConfig, signs: RoomConfig[] = []): CameraView => {
     if (!room) {
       const whole = frameRooms(
-        rooms,
+        homeRooms,
         size.width / size.height,
-        sceneHeight(decorations),
+        sceneHeight(homeItems),
         undefined,
-        fitMargin(size.width),
-        size.width < NARROW_CARD_PX,
-        sideSpill(size.width),
+        CAMERA_FIT_MARGIN,
+        true,
+        CAMERA_SPILL,
       )
       return { position: triple(whole.position), target: triple(whole.target) }
     }
@@ -211,13 +216,14 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     const from = A.set(...opening.position).sub(B.set(...opening.target))
     const height = sceneHeight(decorations.filter(d => d.room === room.id))
     const { position, target } = frameRooms(
-      [room, ...signs],
+      [room],
       size.width / size.height,
       height,
       [from.x, from.y, from.z],
       CAMERA_ROOM_FIT_MARGIN,
       true,
-      sideSpill(size.width),
+      CAMERA_SPILL,
+      signs,
     )
     return { position: triple(position), target: triple(target) }
   }
@@ -226,8 +232,8 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
   // off so the flight goes straight there: its saved view fitted to this
   // card the way the opening view is, or without one, the room framed from
   // the opening view's side.
-  // The signs on the floor that lead out of it into the rooms open beside
-  // it are kept in the picture too.
+  // The signs on the floor that lead out of it into the rooms beside it are
+  // kept wholly in the picture too, never past its sides.
   const show = (room: RoomConfig): CameraView => {
     const signs = passagesOf(room, rooms, decorations).map((passage): RoomConfig => ({
       id: '',
@@ -236,9 +242,10 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     return room.camera
       ? fit(
           room.camera,
-          [room, ...signs],
+          [room],
           decorations.filter(d => d.room === room.id),
           CAMERA_ROOM_FIT_MARGIN,
+          signs,
         )
       : frame(room, signs)
   }
@@ -646,7 +653,7 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     const { position, target } = home()
     place(C.set(...position), D.set(...target))
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [rooms, decorations, view, room, size.width, size.height, place])
+  }, [rooms, decorations, view, framed, room, size.width, size.height, place])
 
   return null
 }

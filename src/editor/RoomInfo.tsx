@@ -222,25 +222,27 @@ export default function RoomInfo({
             return (
               <div key={neighbour.id} className={cn(row, 'min-h-6 grid-cols-[1fr_auto]')}>
                 <span className="truncate">{name}</span>
-                {neighbour.door ? (
-                  <span className="text-label-2 flex items-center gap-1.5 text-xs">
-                    <FontAwesomeIcon icon={faDoorOpen} className="size-3" />
-                    {decorationKind(neighbour.door)?.label ?? 'Door'}
-                  </span>
-                ) : (
+                <span className="flex items-center gap-3">
+                  {neighbour.door && (
+                    <span className="text-label-2 flex items-center gap-1.5 text-xs">
+                      <FontAwesomeIcon icon={faDoorOpen} className="size-3" />
+                      {decorationKind(neighbour.door)?.label ?? 'Door'}
+                    </span>
+                  )}
                   <Switch
                     checked={!room.hide_arrows?.includes(neighbour.id)}
                     accent={accent}
                     label={`Show an arrow into ${name}`}
                     onChange={shown => onArrow(room.id, neighbour.id, shown)}
                   />
-                )}
+                </span>
               </div>
             )
           })}
           <p className={note}>
-            In this room's view a click on a door flies to the room behind it. A room open beside it, with no door
-            between them, gets an arrow on the floor that does the same, unless it is switched off here.
+            In this room's view a click on a door flies to the room behind it. Each room beside it also gets an arrow on
+            the floor that does the same, past the door or the open stretch between them, unless it is switched off
+            here.
           </p>
         </div>
       )}

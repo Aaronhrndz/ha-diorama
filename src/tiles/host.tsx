@@ -39,6 +39,9 @@ export type TileConfig = {
   tap_action?: ActionConfig
   hold_action?: ActionConfig
   haptic?: boolean
+  // Acts only on a second tap, so a stray one never does. Only buttons and
+  // tiles that turn on and off read it.
+  confirm?: boolean
   grid_options?: GridOptions
 }
 

@@ -1,4 +1,5 @@
 import { callService, formatState, type TileEnv } from '#/tiles/actions.ts'
+import { CONFIRM_FILL, CONFIRM_MS } from '#/tiles/cards/Confirm.tsx'
 import { supports } from '#/tiles/features/parts.tsx'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Tile } from '#/tiles/Tile.tsx'
@@ -6,10 +7,6 @@ import { useEffect, useRef, useState } from 'react'
 
 type Props = { env: TileEnv; config: TileConfig }
 
-// How long the first tap on a tile that opens the door waits for the second.
-const CONFIRM_MS = 4000
-// How much of the tile the first tap lights, before it runs back.
-const CONFIRM_FILL = 50
 // The lock's supported_features bit for opening the door.
 const OPEN = 1
 const GREEN = 'var(--_accent-unlocked)'
@@ -47,7 +44,8 @@ export default function Lock({ env, config }: Props) {
 // The whole tile opens the door, in two taps. The first one lights half of
 // it, plain, which runs back to nothing over the time the second tap has,
 // and the second one lights it all, fades the green in and opens the door.
-// It stays lit while the door is open, and red while it is locked.
+// It stays lit while the door is open, when one tap locks it again, and
+// red while it is locked.
 function OpenDoorTile({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const open = entity?.state === 'open' || entity?.state === 'opening'
@@ -83,13 +81,14 @@ function OpenDoorTile({ env, config }: Props) {
   const accent = done ? GREEN : locked ? RED : undefined
   const state = step === 1 ? 'Tap again to open' : formatState(env.hass, entity)
   const tap = () => {
-    if (open || step === 2) return
+    if (open) return void callService(env.hass, 'lock.lock', { entity_id: entity!.entity_id })
+    if (step === 2) return
     if (step === 0) return setStep(1)
     setStep(2)
     void callService(env.hass, 'lock.open', { entity_id: entity!.entity_id })
   }
   return (
-    <div className="fp-fill fp-confirm" data-step={step} data-done={done || undefined}>
+    <div className="fp-fill fp-confirm fp-open-door" data-step={step} data-done={done || undefined}>
       <Tile
         env={env}
         config={plain}
