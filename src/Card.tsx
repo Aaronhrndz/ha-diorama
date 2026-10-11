@@ -4,6 +4,7 @@ import { useBackToHome } from '#/lib/backButton.ts'
 import { cn } from '#/lib/utils.ts'
 import { EDGE_FADE_MASK } from '#/theme.ts'
 import { useEditorOpen } from '#/lib/editorOpen.ts'
+import { useEmptyClick } from '#/lib/emptyClick.ts'
 import { usePreviewRoom } from '#/lib/previewRoom.ts'
 import { useRoomFilter } from '#/lib/roomFilter.ts'
 import Scene, { type CameraHandle } from '#/scene/Scene.tsx'
@@ -63,6 +64,9 @@ export default function Card({ hass, config, panel = false, preview = false }: P
   // The back button, a phone's own too, takes a room in view back to the
   // whole home. Not in the edit dialog, whose back closes it.
   useBackToHome(focused !== null, goHome, !preview)
+  // So does a click on empty space anywhere on the dashboard, like the side
+  // panel around its tiles or the gaps between cards.
+  useEmptyClick(focused !== null && !preview, goHome)
   const showRoom = (asked: string, through?: string[]) => {
     // A press on a door or a window in the wall of the focused room goes
     // through it, to the room on its other side, when that one has a view.

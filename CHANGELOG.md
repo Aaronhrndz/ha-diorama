@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- A click on any empty space on the dashboard, like between the side panel's tiles, takes the camera from a room back to the whole home.
+
 ### Changed
 
 - The card is now called Diorama: its type is `custom:diorama-card`, its tiles are `custom:dio-*` and its theme tokens `--dio-*`. Dashboards and themes written with the old names keep working as they are.
