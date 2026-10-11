@@ -1964,12 +1964,20 @@
 }
 
 /* The dial: a big ring to drag, open at the bottom, with what it aims for
-   in its middle and the minus and plus under it. */
+   in its middle and the plus over the minus on its left. The ring reaches
+   down into its open bottom, so it takes the height the buttons left. */
 .fp-dial {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: -26px;
+  color: color-mix(in oklab, var(--_dial, var(--_accent)), var(--_ink-to) var(--_deep));
+}
+
+.fp-dial-face {
   display: grid;
   justify-items: center;
   align-items: center;
-  color: color-mix(in oklab, var(--_dial, var(--_accent)), var(--_ink-to) var(--_deep));
 }
 
 .fp-dial-ring,
@@ -1978,7 +1986,7 @@
 }
 
 .fp-dial-ring {
-  width: 200px;
+  width: 224px;
   aspect-ratio: 1;
   overflow: visible;
   touch-action: none;
@@ -1998,7 +2006,7 @@
 }
 
 .fp-dial-track {
-  stroke: color-mix(in srgb, var(--_text-inactive) 14%, transparent);
+  stroke: color-mix(in srgb, currentColor 14%, transparent);
 }
 
 .fp-dial-fill {
@@ -2047,7 +2055,8 @@
 .fp-dial-value {
   display: flex;
   align-items: baseline;
-  gap: 4px;
+  justify-content: center;
+  gap: 2px;
   font-size: 48px;
   font-weight: 700;
   line-height: 1;
@@ -2055,14 +2064,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+.fp-dial-value > span {
+  min-width: var(--_digits);
+  text-align: center;
+}
+
 .fp-dial-end {
-  padding: 4px 6px;
+  padding: 4px;
   border: none;
   border-radius: 12px;
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 34px;
+  min-width: var(--_digits);
+  font-size: 26px;
   opacity: 0.6;
   pointer-events: auto;
   cursor: pointer;
@@ -2089,8 +2104,9 @@
 
 .fp-dial-buttons {
   display: flex;
-  gap: 48px;
-  margin-top: -36px;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 26px;
 }
 
 .fp-dial-buttons > .fp-control {

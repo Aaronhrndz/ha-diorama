@@ -158,7 +158,8 @@ function useHeldValues(reported: number[]) {
 // A thermostat, a water heater, a humidifier or a light on a big ring: drag the ring's knob, or press minus and plus, to set the
 // temperature, the humidity or the brightness it holds. The ring fills in
 // the color of what it is doing, like orange to heat. The ring sits in the
-// bottom right corner across from the name, and the modes in the top right.
+// bottom right corner across from the name with minus and plus stacked on
+// its left, and the modes in the top right.
 export default function Dial({ env, config }: { env: TileEnv; config: TileConfig }) {
   const entity = env.hass.states[config.entity!]
   const m = entity ? model(env.hass, entity) : null
@@ -260,6 +261,11 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   }
   const nudge = (by: number) => () => commit(place(active, values[active] + by * m.step), SEND_MS)
 
+  // As wide as the longest value it can show, so the number stays still
+  // while it goes from 21° to 21.5°. A digit is about a ch wide, and a
+  // point or a sign about half of one.
+  const width = (text: string) => [...text].reduce((sum, char) => sum + (/\d/.test(char) ? 1 : 0.55), 0)
+  const widest = Math.max(...[m.min, m.max, m.min + m.step, m.max - m.step].map(value => width(m.format(snap(value)))))
   const first = shareOf(m, values.length === 2 ? values[0] : m.min)
   const last = shareOf(m, values[values.length - 1])
   return (
@@ -268,84 +274,87 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
         className="fp-dial"
         data-off={m.off || undefined}
         data-dragging={dragging || undefined}
-        style={{ '--_dial': m.color } as CSSProperties}
+        data-range={values.length === 2 || undefined}
+        style={{ '--_dial': m.color, '--_digits': `${widest}ch` } as CSSProperties}
       >
-        <svg
-          {...insideTile}
-          viewBox="0 0 200 200"
-          className="fp-dial-ring"
-          role="slider"
-          tabIndex={0}
-          aria-label={m.label}
-          aria-valuemin={m.min}
-          aria-valuemax={m.max}
-          aria-valuenow={values[active]}
-          aria-valuetext={m.format(values[active])}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-          onKeyDown={e => {
-            const by = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key]
-            if (!by) return
-            e.preventDefault()
-            e.stopPropagation()
-            nudge(by)()
-          }}
-        >
-          <g transform={`rotate(${START} 100 100)`}>
-            <circle className="fp-dial-track" cx="100" cy="100" r={RADIUS} strokeDasharray={`${LENGTH} 999`} />
-            <circle
-              className="fp-dial-fill"
-              cx="100"
-              cy="100"
-              r={RADIUS}
-              strokeDasharray={`${Math.max(LENGTH * (last - first), 0.01)} 999`}
-              strokeDashoffset={-LENGTH * first}
-            />
-          </g>
-          {values.map((value, i) => {
-            const at = point(shareOf(m, value))
-            return (
-              <circle
-                key={i}
-                className="fp-dial-knob"
-                data-active={i === active || undefined}
-                cx={at.x}
-                cy={at.y}
-                r="11"
-              />
-            )
-          })}
-        </svg>
-        <div className="fp-dial-center">
-          <div className="fp-dial-label">{m.label}</div>
-          <div className="fp-dial-value">
-            {values.length === 2 ? (
-              values.map((value, i) => (
-                <button
-                  {...insideTile}
-                  key={i}
-                  type="button"
-                  className="fp-dial-end"
-                  aria-pressed={i === active}
-                  onClick={e => {
-                    e.stopPropagation()
-                    setActive(i)
-                  }}
-                >
-                  {m.format(value)}
-                </button>
-              ))
-            ) : (
-              <span>{m.format(values[0])}</span>
-            )}
-          </div>
-          {m.now && <div className="fp-dial-now">{m.now}</div>}
-        </div>
         <div className="fp-dial-buttons">
-          <Control icon="ph:minus-bold" label="Lower" onPress={nudge(-1)} />
           <Control icon="ph:plus-bold" label="Raise" onPress={nudge(1)} />
+          <Control icon="ph:minus-bold" label="Lower" onPress={nudge(-1)} />
+        </div>
+        <div className="fp-dial-face">
+          <svg
+            {...insideTile}
+            viewBox="0 0 200 200"
+            className="fp-dial-ring"
+            role="slider"
+            tabIndex={0}
+            aria-label={m.label}
+            aria-valuemin={m.min}
+            aria-valuemax={m.max}
+            aria-valuenow={values[active]}
+            aria-valuetext={m.format(values[active])}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            onKeyDown={e => {
+              const by = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key]
+              if (!by) return
+              e.preventDefault()
+              e.stopPropagation()
+              nudge(by)()
+            }}
+          >
+            <g transform={`rotate(${START} 100 100)`}>
+              <circle className="fp-dial-track" cx="100" cy="100" r={RADIUS} strokeDasharray={`${LENGTH} 999`} />
+              <circle
+                className="fp-dial-fill"
+                cx="100"
+                cy="100"
+                r={RADIUS}
+                strokeDasharray={`${Math.max(LENGTH * (last - first), 0.01)} 999`}
+                strokeDashoffset={-LENGTH * first}
+              />
+            </g>
+            {values.map((value, i) => {
+              const at = point(shareOf(m, value))
+              return (
+                <circle
+                  key={i}
+                  className="fp-dial-knob"
+                  data-active={i === active || undefined}
+                  cx={at.x}
+                  cy={at.y}
+                  r="11"
+                />
+              )
+            })}
+          </svg>
+          <div className="fp-dial-center">
+            <div className="fp-dial-label">{m.label}</div>
+            <div className="fp-dial-value">
+              {values.length === 2 ? (
+                values.map((value, i) => (
+                  <button
+                    {...insideTile}
+                    key={i}
+                    type="button"
+                    className="fp-dial-end"
+                    aria-pressed={i === active}
+                    onClick={e => {
+                      e.stopPropagation()
+                      setActive(i)
+                    }}
+                  >
+                    {m.format(value)}
+                  </button>
+                ))
+              ) : (
+                <span>{m.format(values[0])}</span>
+              )}
+            </div>
+            {m.now && <div className="fp-dial-now">{m.now}</div>}
+          </div>
         </div>
       </div>
     </Panel>

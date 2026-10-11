@@ -44,6 +44,7 @@ moves that section under the new version and uses it as the release notes.
 - A light tile can show a slim color temperature or color bar beside its icon, with a round handle, so it stays as short as a plain tile, and its state line says the light's white in kelvin or the name of its color, whichever the light is in, with a faint handle on the bar for the other one, and while the bar is dragged the tile takes that color and keeps it until the light answers.
 - Eight larger cards come with the tiles and are offered beside them when a card is added by entity: an alarm panel with a keypad, a dial for a thermostat, a water heater, a humidifier or a light's brightness, a media control with the cover art, a calendar agenda, a to-do list, a history graph, a gauge and a map.
 - The larger cards are laid out like a wide tile, with the icon in the top left, their buttons in the top right, the name and the state in the bottom left and what they show in the bottom right, and a tap on a light's or a humidifier's dial turns it on or off.
+- The dial's ring is bigger and reaches down beside the name, with plus over minus on its left, and its number stays still as it changes, like from 21° to 21.5°, with both ends of a range fitting inside the ring.
 - The alarm panel is a wide tile like the others, with its modes in the top right, a keypad beside a large line saying what the code will do, a red lock key to arm and a green open lock to disarm, and a red or green wash for armed or disarmed.
 
 ### Changed
