@@ -7,6 +7,7 @@ import { registerTiles } from '#/tiles/index.tsx'
 import { sameButBackground, ViewBackground } from '#/lib/background.ts'
 import { closest, closestClass, inPanelView } from '#/lib/panelView.ts'
 import WithSidePanel from '#/tiles/WithSidePanel.tsx'
+import pickerPicture from '#/assets/picker.jpg?inline'
 import type { BackgroundConfig, CardConfig, TileChoices } from '#/types.ts'
 
 // Baked in by the build from package.json.
@@ -213,9 +214,14 @@ class DioramaCard extends ReactHost<CardConfig> {
   // so it is laid again on every render.
   protected render() {
     super.render()
+    if (this.picked) return
     // The copy of the card in the side panel leaves it to the card around it.
     if (this._config && !closest(this, 'dio-side-panel')) this.background.apply(this.backdrop, this._hass)
   }
+
+  // In the "add card" picker the card stands for itself with a picture of
+  // the demo flat, as wide as the picker's tile, instead of an empty 3D view.
+  private picked = false
 
   // The preview in the card dialog throws its card away on every change of
   // the config and builds a new one. The new one takes over the old one's
@@ -225,6 +231,21 @@ class DioramaCard extends ReactHost<CardConfig> {
 
   connectedCallback() {
     const holder = this.parentElement
+    this.picked = (this.getRootNode() as ShadowRoot).host?.localName === 'hui-card-picker'
+    if (this.picked) {
+      // The picker sets its previews 20px in from every edge below the name.
+      // The picture fills all of that space, with the tile's corners.
+      const inset = 'var(--ha-space-5, 20px)'
+      const radius = 'var(--ha-card-border-radius, var(--ha-border-radius-lg, 12px))'
+      Object.assign(this.style, {
+        display: 'block',
+        width: `calc(100% + 2 * ${inset})`,
+        margin: `calc(-1 * ${inset})`,
+        alignSelf: 'stretch',
+        overflow: 'hidden',
+        borderRadius: `0 0 ${radius} ${radius}`,
+      })
+    }
     this.previewed = holder?.localName === 'hui-card' && !!holder.parentElement?.classList.contains('element-preview')
     if (this.previewed) {
       const before = this.adopt()
@@ -258,6 +279,7 @@ class DioramaCard extends ReactHost<CardConfig> {
   }
 
   protected view() {
+    if (this.picked) return <img src={pickerPicture} alt="" className="block h-full min-h-40 w-full object-cover" />
     if (this._config!.side_panel) return <WithSidePanel hass={this._hass} config={this._config!} />
     return (
       <Card
@@ -358,7 +380,8 @@ if (!window.customCards.some(card => card.type === CARD_TYPE))
   window.customCards.push({
     type: CARD_TYPE,
     name: 'Diorama',
-    description: 'Interactive 3D model of the flat',
+    description: 'Your home as a 3D model, with your devices in it',
+    preview: true,
   })
 
 registerTiles()
