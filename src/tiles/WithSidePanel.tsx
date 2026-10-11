@@ -2,7 +2,7 @@ import { SIDE_PANEL, type SidePanel } from '#/tiles/sidePanel.ts'
 import type { CardConfig, HomeAssistant } from '#/types.ts'
 import { useEffect, useRef } from 'react'
 
-// The side panel's layout, which draws the floorplan again inside it.
+// The side panel's layout, which draws the diorama again inside it.
 export default function WithSidePanel({ hass, config }: { hass: HomeAssistant | null; config: CardConfig }) {
   const holder = useRef<HTMLDivElement>(null)
   const panel = useRef<SidePanel | null>(null)

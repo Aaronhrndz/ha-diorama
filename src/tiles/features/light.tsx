@@ -154,14 +154,14 @@ export function ColorFavorites({ env, entity }: FeatureProps) {
     : []
   const swatches = [...whites, ...hues].slice(0, 7)
   return (
-    <div className="fp-swatches" role="group" aria-label="Favorite colors">
+    <div className="dio-swatches" role="group" aria-label="Favorite colors">
       {swatches.map(swatch => (
         <button
           key={swatch.label}
           type="button"
           aria-label={swatch.label}
           title={swatch.label}
-          className="fp-swatch"
+          className="dio-swatch"
           style={{ '--_swatch': swatch.color } as CSSProperties}
           {...press(() => callService(env.hass, 'light.turn_on', { entity_id: entity.entity_id, ...swatch.data }))}
         />

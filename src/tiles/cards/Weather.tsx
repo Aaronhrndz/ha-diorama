@@ -152,12 +152,12 @@ export default function Weather({ env, config }: Props) {
   const now = attributes.temperature as number | undefined
   const stateText = unavailable ? 'Unavailable' : formatState(env.hass, entity)
   const range = today && (
-    <div className="fp-weather-condition fp-weather-range">
+    <div className="dio-weather-condition dio-weather-range">
       H:{degrees(today.temperature)} L:{degrees(today.templow)}
     </div>
   )
   const skyIcon = (
-    <span className="fp-weather-icon" style={{ color: iconColor(looks) }}>
+    <span className="dio-weather-icon" style={{ color: iconColor(looks) }}>
       <Icon icon={config.icon ?? defaultIcon(config.entity, undefined, looks)} on />
     </span>
   )
@@ -173,16 +173,16 @@ export default function Weather({ env, config }: Props) {
         aria-label={entityName(config, entity)}
         data-pressed={pressed || undefined}
         data-unavailable={unavailable || undefined}
-        className="fp-tile fp-weather fp-weather-small"
+        className="dio-tile dio-weather dio-weather-small"
         style={{ background: sky(condition, night) }}
       >
-        <div className="fp-text">
-          <div className="fp-name">{entityName(config, entity)}</div>
-          <div className="fp-weather-temp">{degrees(now)}</div>
+        <div className="dio-text">
+          <div className="dio-name">{entityName(config, entity)}</div>
+          <div className="dio-weather-temp">{degrees(now)}</div>
         </div>
-        <div className="fp-weather-foot">
+        <div className="dio-weather-foot">
           {skyIcon}
-          <div className="fp-weather-condition">{stateText}</div>
+          <div className="dio-weather-condition">{stateText}</div>
           {range}
         </div>
       </div>
@@ -196,33 +196,33 @@ export default function Weather({ env, config }: Props) {
       aria-label={entityName(config, entity)}
       data-pressed={pressed || undefined}
       data-unavailable={unavailable || undefined}
-      className={cn('fp-tile fp-weather', large && 'fp-weather-large')}
+      className={cn('dio-tile dio-weather', large && 'dio-weather-large')}
       style={{ background: sky(condition, night) }}
     >
-      <div className="fp-weather-now">
-        <div className="fp-text">
-          <div className="fp-name">{entityName(config, entity)}</div>
-          <div className="fp-weather-temp">{degrees(now)}</div>
+      <div className="dio-weather-now">
+        <div className="dio-text">
+          <div className="dio-name">{entityName(config, entity)}</div>
+          <div className="dio-weather-temp">{degrees(now)}</div>
         </div>
-        <div className="fp-weather-sky">
+        <div className="dio-weather-sky">
           <div>
-            <div className="fp-weather-condition">{stateText}</div>
+            <div className="dio-weather-condition">{stateText}</div>
             {range}
           </div>
           {skyIcon}
         </div>
       </div>
       {steps && steps.length > 0 && (
-        <div className="fp-weather-steps">
+        <div className="dio-weather-steps">
           {steps.slice(0, STEPS).map((step, i) => {
             const condition = step.condition === 'sunny' && step.is_daytime === false ? 'clear-night' : step.condition
             return (
-              <div key={step.datetime} className="fp-weather-step">
-                <div className="fp-weather-when">{label(step, i)}</div>
-                <span className="fp-weather-icon" style={{ color: iconColor(condition) }}>
+              <div key={step.datetime} className="dio-weather-step">
+                <div className="dio-weather-when">{label(step, i)}</div>
+                <span className="dio-weather-icon" style={{ color: iconColor(condition) }}>
                   <Icon icon={defaultIcon(config.entity, undefined, condition)} on />
                 </span>
-                <div className="fp-weather-step-temp">{degrees(step.temperature)}</div>
+                <div className="dio-weather-step-temp">{degrees(step.temperature)}</div>
               </div>
             )
           })}
@@ -253,24 +253,24 @@ function Days({
   const top = Math.max(...highs, now ?? -Infinity)
   const at = (value: number) => (top > bottom ? ((value - bottom) / (top - bottom)) * 100 : 50)
   return (
-    <div className="fp-weather-days">
+    <div className="dio-weather-days">
       {days.map((day, i) => {
         const low = lows[i]
         const high = highs[i]
         return (
-          <div key={day.datetime} className="fp-weather-day">
-            <div className="fp-weather-day-name">
+          <div key={day.datetime} className="dio-weather-day">
+            <div className="dio-weather-day-name">
               {i === 0 ? 'Today' : new Date(day.datetime).toLocaleDateString(language, { weekday: 'short' })}
             </div>
-            <span className="fp-weather-icon" style={{ color: iconColor(day.condition) }}>
+            <span className="dio-weather-icon" style={{ color: iconColor(day.condition) }}>
               <Icon icon={defaultIcon(entity, undefined, day.condition)} on />
             </span>
-            <div className="fp-weather-low">{degrees(day.templow)}</div>
-            <div className="fp-weather-bar">
+            <div className="dio-weather-low">{degrees(day.templow)}</div>
+            <div className="dio-weather-bar">
               <span style={{ left: `${at(low)}%`, right: `${100 - at(high)}%` }} />
               {i === 0 && typeof now === 'number' && <i style={{ left: `${at(now)}%` }} />}
             </div>
-            <div className="fp-weather-high">{degrees(day.temperature)}</div>
+            <div className="dio-weather-high">{degrees(day.temperature)}</div>
           </div>
         )
       })}

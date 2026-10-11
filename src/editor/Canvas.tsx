@@ -1063,7 +1063,7 @@ export default function Canvas({
       >
         <defs>
           {/* The soft shadow the markers and handles float on. */}
-          <filter id="fp-lift" x="-50%" y="-50%" width="200%" height="200%">
+          <filter id="dio-lift" x="-50%" y="-50%" width="200%" height="200%">
             <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.35" />
           </filter>
         </defs>
@@ -1213,7 +1213,7 @@ export default function Canvas({
                       fill="#fff"
                       stroke={color}
                       strokeWidth={2}
-                      filter="url(#fp-lift)"
+                      filter="url(#dio-lift)"
                       className="cursor-grab"
                       onPointerDown={e => onRotateDown(e, item)}
                     />
@@ -1221,7 +1221,7 @@ export default function Canvas({
                 )}
                 {/* A disc in the item's color: solid once selected, a soft
                   tint of it over the card otherwise, with the icon in it. */}
-                <circle cx={sx} cy={sy} r={r} fill="var(--card-background-color)" filter="url(#fp-lift)" />
+                <circle cx={sx} cy={sy} r={r} fill="var(--card-background-color)" filter="url(#dio-lift)" />
                 <circle cx={sx} cy={sy} r={r} fill={color} fillOpacity={isSelected ? 1 : plain ? 0.14 : 0.2} />
                 <IconGlyph
                   icon={decorationIcon(item.kind, kind.family)}
@@ -1306,7 +1306,7 @@ export default function Canvas({
                       height={20}
                       rx={10}
                       fill="var(--card-background-color)"
-                      filter="url(#fp-lift)"
+                      filter="url(#dio-lift)"
                     />
                     <text
                       x={mx}
@@ -1330,7 +1330,7 @@ export default function Canvas({
                   fill={selection.vertex === i ? EDITOR_SELECTED_COLOR : '#fff'}
                   stroke={EDITOR_SELECTED_COLOR}
                   strokeWidth={2}
-                  filter="url(#fp-lift)"
+                  filter="url(#dio-lift)"
                   className="cursor-move"
                   onPointerDown={e => onVertexDown(e, selectedRoom, i)}
                   onContextMenu={e => openMenu(e, { kind: 'vertex', roomId: selectedRoom.id, index: i })}
@@ -1412,7 +1412,7 @@ function ScaleBar({ view, height }: { view: View; height: number }) {
         rx={h / 2}
         fill="var(--card-background-color)"
         fillOpacity={0.85}
-        filter="url(#fp-lift)"
+        filter="url(#dio-lift)"
       />
       <line
         x1={x + pad}

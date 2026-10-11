@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 
 // The key the card marks its own entries in the browser's history with.
-const KEY = 'floorplanBack'
+const KEY = 'dioramaBack'
 // The key the entry under the card's own keeps Home Assistant's state in.
-const HIDDEN = 'floorplanHidden'
+const HIDDEN = 'dioramaHidden'
 // Each use gets its own mark, as every card is its own React root and
 // React's ids would repeat.
 let uses = 0

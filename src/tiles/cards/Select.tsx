@@ -42,19 +42,19 @@ export default function Select({ env, config }: Props) {
   return (
     <div ref={anchor} className="h-full">
       <Tile env={env} config={config} entity={entity} state={entity ? label(entity.state) : ''} onTap={tap} />
-      <div ref={menu} popover="auto" role="menu" className="fp-menu" onKeyDown={menuKeys}>
-        <div className="fp-menu-list">
+      <div ref={menu} popover="auto" role="menu" className="dio-menu" onKeyDown={menuKeys}>
+        <div className="dio-menu-list">
           {options.map(option => (
             <button
               key={option}
               type="button"
               role="menuitemradio"
               aria-checked={option === entity?.state}
-              className="fp-option"
+              className="dio-option"
               onClick={() => choose(option)}
             >
               <span className="min-w-0 flex-1 truncate">{label(option)}</span>
-              {option === entity?.state && <Icon icon="ph:check" className="fp-check" />}
+              {option === entity?.state && <Icon icon="ph:check" className="dio-check" />}
             </button>
           ))}
         </div>

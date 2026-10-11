@@ -50,7 +50,7 @@ if (params.has('sun') && Number.isFinite(sun)) {
 }
 
 // The side panel is built from Home Assistant's own cards, which only exist
-// inside Home Assistant, so the page draws the floorplan on its own.
+// inside Home Assistant, so the page draws the diorama on its own.
 const { side_panel: _, ...flat } = DEMO_FLAT
 const config: CardConfig = { ...flat, aspect_ratio: `${innerWidth} / ${innerHeight}` }
 const camera = params.get('camera')?.split(',').map(Number)
@@ -74,7 +74,7 @@ if (frame) config.frame_rooms = frame.split(',')
 if (params.get('first') === 'device') config.first_click = 'device'
 
 type CardElement = HTMLElement & { setConfig: (c: CardConfig) => void; hass: HomeAssistant }
-const element = document.createElement(params.has('editor') ? 'floorplan-3d-editor' : 'floorplan-3d') as CardElement
+const element = document.createElement(params.has('editor') ? 'diorama-card-editor' : 'diorama-card') as CardElement
 const hass = (): HomeAssistant => ({
   states: structuredClone(states),
   areas: DEMO_AREAS,

@@ -103,9 +103,9 @@ export function Tile({
   const name = entityName(config, entity)
   const on = active && !unavailable
   const text = (
-    <div className="fp-text">
-      <div className="fp-name">{name}</div>
-      <div className="fp-state">{shown}</div>
+    <div className="dio-text">
+      <div className="dio-name">{name}</div>
+      <div className="dio-state">{shown}</div>
     </div>
   )
   return (
@@ -123,7 +123,7 @@ export function Tile({
       data-unavailable={unavailable || undefined}
       data-wide={wide || undefined}
       data-glow={glowFrom}
-      className="fp-tile"
+      className="dio-tile"
       style={
         {
           '--_tile-accent': preview?.color
@@ -134,9 +134,9 @@ export function Tile({
         } as CSSProperties
       }
     >
-      <div className="fp-top">
+      <div className="dio-top">
         {picture ? (
-          <img className="fp-picture" src={picture} alt="" draggable={false} />
+          <img className="dio-picture" src={picture} alt="" draggable={false} />
         ) : (
           <Icon
             icon={
@@ -149,23 +149,23 @@ export function Tile({
           />
         )}
         {beside ? (
-          <div className="fp-beside">
+          <div className="dio-beside">
             <Feature env={env} config={config} entity={entity!} onPreview={setPreview} />
           </div>
         ) : (
-          wide && controls && !unavailable && <div className="fp-controls">{controls}</div>
+          wide && controls && !unavailable && <div className="dio-controls">{controls}</div>
         )}
       </div>
       {wide && aside && !unavailable && !config.feature ? (
-        <div className="fp-bottom">
+        <div className="dio-bottom">
           {text}
-          <div className="fp-aside">{aside}</div>
+          <div className="dio-aside">{aside}</div>
         </div>
       ) : (
         text
       )}
       {addsRow(config.feature) && !unavailable && (
-        <div className="fp-footer">
+        <div className="dio-footer">
           <Feature env={env} config={config} entity={entity!} />
         </div>
       )}

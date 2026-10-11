@@ -1,4 +1,4 @@
-# A theme for the Floorplan tiles: a dark gradient behind the dashboard,
+# A theme for the Diorama tiles: a dark gradient behind the dashboard,
 # the tile tokens, and Home Assistant's own colors set to match, so the
 # dialogs that open from a tile look like they belong to it.
 #
@@ -7,43 +7,43 @@
 #   frontend:
 #     themes: !include_dir_merge_named themes
 #
-# in configuration.yaml, then pick Floorplan Glass in your profile or on the
-# dashboard. Every --fp-* token is optional: the tiles have their own
+# in configuration.yaml, then pick Diorama Glass in your profile or on the
+# dashboard. Every --dio-* token is optional: the tiles have their own
 # defaults, and these are the same values written out to change.
-Floorplan Glass:
+Diorama Glass:
   modes:
     dark:
       # The dashboard background.
       lovelace-background: 'fixed center / cover no-repeat linear-gradient(160deg, #3a3f4f 0%, #1d2029 45%, #0d0e13 100%)'
 
       # Tiles.
-      fp-tile-radius: 30px
-      fp-tile-gap: 10px
-      fp-tile-padding: 18px
-      fp-tile-bg-active: 'rgba(255, 255, 255, 0.94)'
-      fp-tile-bg-inactive: 'rgba(118, 118, 128, 0.24)'
-      fp-tile-blur: 24px
-      fp-tile-opacity-inactive: '1'
-      fp-tile-opacity-unavailable: '0.45'
-      fp-text-active: '#1c1c1e'
-      fp-text-inactive: '#ffffff'
-      fp-text-secondary-opacity: '0.6'
-      fp-accent: '#0a84ff'
-      fp-accent-light: '#ffb340'
-      fp-accent-cover: '#32ade6'
-      fp-accent-climate: '#ff9f0a'
-      fp-accent-cool: '#64d2ff'
-      fp-font-tile: "'Inter', system-ui, sans-serif"
-      fp-font-title: "'Inter Tight', system-ui, sans-serif"
-      fp-title-size: 30px
-      fp-title-opacity: '0.92'
-      fp-title-color: '#ffffff'
-      fp-menu-bg: 'rgba(44, 44, 48, 0.82)'
-      fp-menu-text: '#ffffff'
+      dio-tile-radius: 30px
+      dio-tile-gap: 10px
+      dio-tile-padding: 18px
+      dio-tile-bg-active: 'rgba(255, 255, 255, 0.94)'
+      dio-tile-bg-inactive: 'rgba(118, 118, 128, 0.24)'
+      dio-tile-blur: 24px
+      dio-tile-opacity-inactive: '1'
+      dio-tile-opacity-unavailable: '0.45'
+      dio-text-active: '#1c1c1e'
+      dio-text-inactive: '#ffffff'
+      dio-text-secondary-opacity: '0.6'
+      dio-accent: '#0a84ff'
+      dio-accent-light: '#ffb340'
+      dio-accent-cover: '#32ade6'
+      dio-accent-climate: '#ff9f0a'
+      dio-accent-cool: '#64d2ff'
+      dio-font-tile: "'Inter', system-ui, sans-serif"
+      dio-font-title: "'Inter Tight', system-ui, sans-serif"
+      dio-title-size: 30px
+      dio-title-opacity: '0.92'
+      dio-title-color: '#ffffff'
+      dio-menu-bg: 'rgba(44, 44, 48, 0.82)'
+      dio-menu-text: '#ffffff'
 
       # The gap between tiles in a sections view.
-      ha-section-grid-row-gap: 'var(--fp-tile-gap)'
-      ha-section-grid-column-gap: 'var(--fp-tile-gap)'
+      ha-section-grid-row-gap: 'var(--dio-tile-gap)'
+      ha-section-grid-column-gap: 'var(--dio-tile-gap)'
 
       # Home Assistant's own colors, for the header, the other cards and
       # the more info dialog.

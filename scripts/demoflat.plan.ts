@@ -332,7 +332,7 @@ device('binary_sensor.bathroom_moisture', 'bathroom_leak')
 device('button.litter_box_scoop', 'litter_box')
 
 export const DEMO_FLAT: CardConfig = {
-  type: 'custom:floorplan-3d',
+  type: 'custom:diorama-card',
   side_panel: true,
   // A click on a piece in another room flies to that room first.
   first_click: 'room',

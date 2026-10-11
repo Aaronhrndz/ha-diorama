@@ -1,7 +1,7 @@
 import type { CardConfig, DecorationConfig, DeviceConfig, RoomConfig, TileChoices } from '#/types.ts'
 
-// The tiles of the floorplan's side panel, made from the devices placed on
-// the floorplan and the entities given to each room: a heading per room,
+// The tiles of the diorama's side panel, made from the devices placed on
+// the diorama and the entities given to each room: a heading per room,
 // then a tile for each of its entities, in the room's order. The home's own
 // entities come first, under the home's heading, in a group with no room.
 
@@ -9,38 +9,38 @@ export type AutoCard = { type: string; [key: string]: unknown }
 export type AutoGroup = { room: string | null; cards: AutoCard[] }
 
 const TILE_TYPES: Record<string, string> = {
-  light: 'fp-toggle',
-  switch: 'fp-toggle',
-  input_boolean: 'fp-toggle',
-  fan: 'fp-toggle',
-  humidifier: 'fp-toggle',
-  siren: 'fp-toggle',
-  remote: 'fp-toggle',
-  automation: 'fp-toggle',
-  valve: 'fp-toggle',
-  climate: 'fp-climate',
-  water_heater: 'fp-climate',
-  media_player: 'fp-media',
-  lock: 'fp-lock',
-  cover: 'fp-cover',
-  vacuum: 'fp-vacuum',
-  camera: 'fp-camera',
-  button: 'fp-button',
-  input_button: 'fp-button',
-  script: 'fp-button',
-  scene: 'fp-button',
-  select: 'fp-select',
-  input_select: 'fp-select',
-  weather: 'fp-weather',
-  calendar: 'fp-calendar',
-  todo: 'fp-todo',
+  light: 'dio-toggle',
+  switch: 'dio-toggle',
+  input_boolean: 'dio-toggle',
+  fan: 'dio-toggle',
+  humidifier: 'dio-toggle',
+  siren: 'dio-toggle',
+  remote: 'dio-toggle',
+  automation: 'dio-toggle',
+  valve: 'dio-toggle',
+  climate: 'dio-climate',
+  water_heater: 'dio-climate',
+  media_player: 'dio-media',
+  lock: 'dio-lock',
+  cover: 'dio-cover',
+  vacuum: 'dio-vacuum',
+  camera: 'dio-camera',
+  button: 'dio-button',
+  input_button: 'dio-button',
+  script: 'dio-button',
+  scene: 'dio-button',
+  select: 'dio-select',
+  input_select: 'dio-select',
+  weather: 'dio-weather',
+  calendar: 'dio-calendar',
+  todo: 'dio-todo',
 }
 
 // Anything else, a sensor, a person or the weather, shows its state.
-const FALLBACK = 'fp-entity'
+const FALLBACK = 'dio-entity'
 
 // Tiles with buttons of their own are wide, so the buttons show.
-const WIDE = new Set(['fp-cover', 'fp-vacuum', 'fp-climate', 'fp-media'])
+const WIDE = new Set(['dio-cover', 'dio-vacuum', 'dio-climate', 'dio-media'])
 
 // The icon for the piece a device stands behind, where it says more than
 // the device's domain would.
@@ -131,7 +131,7 @@ export function roomEntities(plan: CardConfig, room: RoomConfig) {
 }
 
 function heading(room: RoomConfig): AutoCard {
-  const card: AutoCard = { type: 'custom:fp-title', never_hide: true }
+  const card: AutoCard = { type: 'custom:dio-title', never_hide: true }
   if (room.name) card.title = room.name
   else if (room.area_id) card.area = room.area_id
   else card.title = room.id
@@ -166,7 +166,7 @@ export function autoGroups(plan: CardConfig): AutoGroup[] {
   const groups: AutoGroup[] = []
   const home = [...autoTiles(plan, null).values()].map(card => chosen(card, plan.home?.tiles))
   if (home.length) {
-    const title: AutoCard = { type: 'custom:fp-title', title: plan.home?.name || 'Home', never_hide: true }
+    const title: AutoCard = { type: 'custom:dio-title', title: plan.home?.name || 'Home', never_hide: true }
     groups.push({ room: null, cards: [title, ...home] })
   }
   for (const room of plan.rooms ?? []) {

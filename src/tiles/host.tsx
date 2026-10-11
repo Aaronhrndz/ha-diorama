@@ -47,7 +47,7 @@ export type TileConfig = {
 
 export type GridOptions = { columns?: number | 'full'; rows?: number | 'auto' }
 
-const FONTS_ID = 'fp-tiles-fonts'
+const FONTS_ID = 'dio-tiles-fonts'
 const FONTS_URL =
   'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=Inter+Tight:wght@500..800&display=swap'
 
@@ -73,7 +73,7 @@ function noteMissingArea(label: string) {
   clearTimeout(missingTimer)
   missingTimer = setTimeout(() => {
     console.warn(
-      `Floorplan tiles: no area found for ${missingNew.join(', ')}. Set area on these cards, or never_hide: true to keep them in every room.`,
+      `Diorama tiles: no area found for ${missingNew.join(', ')}. Set area on these cards, or never_hide: true to keep them in every room.`,
     )
     missingNew = []
   }, 500)
@@ -111,7 +111,7 @@ export function stubEntity(hass: HomeAssistant | undefined, domains: string[]) {
   }
 }
 
-// The base of every tile. It follows the floorplan card's room filter:
+// The base of every tile. It follows the diorama card's room filter:
 // a tile whose area is not the room in view hides itself and tells Home
 // Assistant, which takes it out of the grid and folds a section left with
 // nothing showing. It stays connected while hidden, so it hears when to
@@ -129,7 +129,7 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
   constructor() {
     super()
     injectFonts()
-    injectProperties(tilesCss, 'floorplan-tiles-properties')
+    injectProperties(tilesCss, 'diorama-tiles-properties')
     const style = document.createElement('style')
     style.textContent = tilesCss
     this.shadowRoot!.appendChild(style)
@@ -239,7 +239,7 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
 
   private visible() {
     if (!this._config || !this._hass || this._preview) return true
-    // A floorplan card that leaves the dashboard's tiles alone shows them
+    // A diorama card that leaves the dashboard's tiles alone shows them
     // the whole home whatever room it is in.
     const filter = roomFilter()?.tiles ? roomFilter() : null
     const mode = this._config.room_filter

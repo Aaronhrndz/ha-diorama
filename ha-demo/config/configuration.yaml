@@ -151,7 +151,7 @@ automation:
         target:
           entity_id: media_player.living_room
 
-# The Floorplan Glass theme from the repo's themes folder.
+# The Diorama Glass theme from the repo's themes folder.
 frontend:
   themes: !include_dir_merge_named themes
 
@@ -159,12 +159,12 @@ frontend:
 lovelace:
   resource_mode: yaml
   resources:
-    - url: /local/floorplan-3d/card.js
+    - url: /local/diorama/card.js
       type: module
   dashboards:
-    floorplan-demo:
+    diorama-demo:
       mode: yaml
-      filename: floorplan.yaml
-      title: Floorplan
+      filename: diorama.yaml
+      title: Diorama
       icon: mdi:floor-plan
       show_in_sidebar: true

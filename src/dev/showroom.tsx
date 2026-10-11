@@ -130,7 +130,7 @@ const hass = {
   callService: () => Promise.resolve(),
   themes: { darkMode: false },
 } as unknown as HomeAssistant
-const card = document.createElement('floorplan-3d') as HTMLElement & {
+const card = document.createElement('diorama-card') as HTMLElement & {
   setConfig: (c: CardConfig) => void
   hass: HomeAssistant
 }

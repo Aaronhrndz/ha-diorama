@@ -1,5 +1,5 @@
 // Writes demoflat.yaml, the demo flat from scripts/demoflat.plan.ts as a
-// complete card config, and ha-demo/config/floorplan.yaml, the dashboard
+// complete card config, and ha-demo/config/diorama.yaml, the dashboard
 // that shows it in ha-demo bound to the entities of Home Assistant's Demo
 // integration. Run it with `pnpm demoflat` after changing the plan.
 import { DEMO_FLAT, HA_DEMO_IDS } from './demoflat.plan.ts'
@@ -43,10 +43,10 @@ writeFileSync(new URL('../demoflat.yaml', import.meta.url), yaml.join('\n'))
 const bound = JSON.parse(JSON.stringify(DEMO_FLAT), (_, v) =>
   typeof v === 'string' && v in HA_DEMO_IDS ? HA_DEMO_IDS[v] : v,
 )
-const view = { title: 'Home', path: 'home', type: 'panel', theme: 'Floorplan Glass', cards: [bound] }
+const view = { title: 'Home', path: 'home', type: 'panel', theme: 'Diorama Glass', cards: [bound] }
 const dashboard = [
   '# Written by `pnpm demoflat` from scripts/demoflat.plan.ts. Do not edit by hand.',
   ...lines({ views: [view] }, ''),
   '',
 ]
-writeFileSync(new URL('../ha-demo/config/floorplan.yaml', import.meta.url), dashboard.join('\n'))
+writeFileSync(new URL('../ha-demo/config/diorama.yaml', import.meta.url), dashboard.join('\n'))

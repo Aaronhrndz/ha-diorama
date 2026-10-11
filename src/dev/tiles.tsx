@@ -1,10 +1,10 @@
-// The Floorplan tiles on a mock dashboard, with a mock Home Assistant
+// The Diorama tiles on a mock dashboard, with a mock Home Assistant
 // that answers every action, for working on them without a real one.
 // Served by the dev server, never built into the card:
 //
 //   http://localhost:5173/src/dev/tiles.html
 //
-// The buttons on top set the room filter the floorplan card would, and
+// The buttons on top set the room filter the diorama card would, and
 // light=1 shows the light dashboard.
 import { setRoomFilter } from '#/lib/roomFilter.ts'
 import { registerTiles } from '#/tiles/index.tsx'
@@ -168,40 +168,40 @@ hass = {
 
 const sections: { title: Record<string, unknown>; cards: Record<string, unknown>[] }[] = [
   {
-    title: { type: 'fp-title', title: 'Living Room', area: 'living_room' },
+    title: { type: 'dio-title', title: 'Living Room', area: 'living_room' },
     cards: [
-      { type: 'fp-toggle', entity: 'switch.living_light', icon: 'ph:lamp-pendant' },
-      { type: 'fp-toggle', entity: 'switch.broken' },
-      { type: 'fp-cover', entity: 'cover.living_blind', size: 'wide' },
-      { type: 'fp-cover', entity: 'cover.projector', size: 'wide', invert: true, icon: 'ph:projector-screen' },
-      { type: 'fp-cover', entity: 'cover.bedroom' },
-      { type: 'fp-vacuum', entity: 'vacuum.robot', size: 'wide', battery_entity: 'sensor.robot_battery' },
-      { type: 'fp-select', entity: 'select.clean_mode', icon: 'ph:sliders' },
-      { type: 'fp-select', entity: 'select.clean_mode', tap_behavior: 'cycle', name: 'Cycle mode' },
-      { type: 'fp-button', entity: 'button.scoop', icon: 'ph:cat' },
-      { type: 'fp-button', entity: 'button.never' },
-      { type: 'fp-button', entity: 'scene.movie', icon: 'ph:popcorn' },
-      { type: 'fp-climate', entity: 'climate.living', size: 'wide' },
-      { type: 'fp-climate', entity: 'climate.range', size: 'wide' },
-      { type: 'fp-climate', entity: 'water_heater.tank', size: 'wide' },
-      { type: 'fp-climate', entity: 'climate.living' },
-      { type: 'fp-media', entity: 'media_player.living', size: 'wide' },
-      { type: 'fp-lock', entity: 'lock.front' },
-      { type: 'fp-entity', entity: 'sensor.living_temperature' },
-      { type: 'fp-entity', entity: 'binary_sensor.living_motion' },
+      { type: 'dio-toggle', entity: 'switch.living_light', icon: 'ph:lamp-pendant' },
+      { type: 'dio-toggle', entity: 'switch.broken' },
+      { type: 'dio-cover', entity: 'cover.living_blind', size: 'wide' },
+      { type: 'dio-cover', entity: 'cover.projector', size: 'wide', invert: true, icon: 'ph:projector-screen' },
+      { type: 'dio-cover', entity: 'cover.bedroom' },
+      { type: 'dio-vacuum', entity: 'vacuum.robot', size: 'wide', battery_entity: 'sensor.robot_battery' },
+      { type: 'dio-select', entity: 'select.clean_mode', icon: 'ph:sliders' },
+      { type: 'dio-select', entity: 'select.clean_mode', tap_behavior: 'cycle', name: 'Cycle mode' },
+      { type: 'dio-button', entity: 'button.scoop', icon: 'ph:cat' },
+      { type: 'dio-button', entity: 'button.never' },
+      { type: 'dio-button', entity: 'scene.movie', icon: 'ph:popcorn' },
+      { type: 'dio-climate', entity: 'climate.living', size: 'wide' },
+      { type: 'dio-climate', entity: 'climate.range', size: 'wide' },
+      { type: 'dio-climate', entity: 'water_heater.tank', size: 'wide' },
+      { type: 'dio-climate', entity: 'climate.living' },
+      { type: 'dio-media', entity: 'media_player.living', size: 'wide' },
+      { type: 'dio-lock', entity: 'lock.front' },
+      { type: 'dio-entity', entity: 'sensor.living_temperature' },
+      { type: 'dio-entity', entity: 'binary_sensor.living_motion' },
     ],
   },
   {
-    title: { type: 'fp-title', area: 'kitchen' },
-    cards: [{ type: 'fp-toggle', entity: 'switch.kitchen_light', icon: 'mdi:ceiling-light' }],
+    title: { type: 'dio-title', area: 'kitchen' },
+    cards: [{ type: 'dio-toggle', entity: 'switch.kitchen_light', icon: 'mdi:ceiling-light' }],
   },
   {
-    title: { type: 'fp-title', title: 'Office', area: 'office' },
-    cards: [{ type: 'fp-toggle', entity: 'light.office_lamp', icon: 'ph:lamp' }],
+    title: { type: 'dio-title', title: 'Office', area: 'office' },
+    cards: [{ type: 'dio-toggle', entity: 'light.office_lamp', icon: 'ph:lamp' }],
   },
   {
-    title: { type: 'fp-title', title: 'Everywhere', never_hide: true },
-    cards: [{ type: 'fp-toggle', entity: 'input_boolean.projector_mode', never_hide: true, icon: 'ph:film-strip' }],
+    title: { type: 'dio-title', title: 'Everywhere', never_hide: true },
+    cards: [{ type: 'dio-toggle', entity: 'input_boolean.projector_mode', never_hide: true, icon: 'ph:film-strip' }],
   },
 ]
 

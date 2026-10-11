@@ -55,8 +55,8 @@ const LABELS: Record<string, string> = {
 
 const HELPERS: Record<string, string> = {
   area: 'The room filter uses the entity area when this is empty',
-  room_filter: 'Only while a floorplan card hides the tiles of other rooms',
-  never_hide: 'Keeps it showing whatever room a floorplan card is in',
+  room_filter: 'Only while a diorama card hides the tiles of other rooms',
+  never_hide: 'Keeps it showing whatever room a diorama card is in',
   color: 'Any CSS color, like #ffb340',
   state_text: 'Replaces the line under the name',
   invert: 'For a screen that comes down to open',

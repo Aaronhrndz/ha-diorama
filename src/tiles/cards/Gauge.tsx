@@ -27,19 +27,19 @@ export default function Gauge({ env, config }: { env: TileEnv; config: GaugeConf
   const max = config.max ?? own('max') ?? (unit === '%' ? 100 : Math.max(100, Math.ceil(value)))
   const share = known ? Math.min(Math.max((value - min) / (max - min || 1), 0), 1) : 0
   return (
-    <Panel env={env} config={config} entity={entity} state={formatState(env.hass, entity)} className="fp-gauge">
+    <Panel env={env} config={config} entity={entity} state={formatState(env.hass, entity)} className="dio-gauge">
       {known && (
         <svg
           viewBox="0 0 100 92"
-          className="fp-gauge-ring"
+          className="dio-gauge-ring"
           role="meter"
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={value}
         >
           <g transform={`rotate(${90 + (360 - SWEEP) / 2} 50 50)`}>
-            <circle className="fp-gauge-track" cx="50" cy="50" r={RADIUS} strokeDasharray={`${LENGTH} 999`} />
-            <circle className="fp-gauge-fill" cx="50" cy="50" r={RADIUS} strokeDasharray={`${LENGTH * share} 999`} />
+            <circle className="dio-gauge-track" cx="50" cy="50" r={RADIUS} strokeDasharray={`${LENGTH} 999`} />
+            <circle className="dio-gauge-fill" cx="50" cy="50" r={RADIUS} strokeDasharray={`${LENGTH * share} 999`} />
           </g>
         </svg>
       )}

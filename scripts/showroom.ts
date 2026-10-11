@@ -63,7 +63,7 @@ for (const kind of DECORATION_KINDS) {
 }
 
 const yaml = [
-  'type: custom:floorplan-3d',
+  'type: custom:diorama-card',
   'grid_options:',
   '  columns: full',
   'rooms:',

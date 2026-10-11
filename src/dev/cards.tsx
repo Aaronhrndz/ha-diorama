@@ -5,7 +5,7 @@
 //
 //   http://localhost:5173/src/dev/cards.html
 //
-// light=1 shows the light dashboard, and card=fp-dial one kind of card.
+// light=1 shows the light dashboard, and card=dio-dial one kind of card.
 import { registerTiles } from '#/tiles/index.tsx'
 import type { EntityState, HomeAssistant } from '#/types.ts'
 
@@ -598,7 +598,7 @@ const offered = customCards
   }))
   .filter(({ found }) => found.length > 0)
 const picked = offered.find(({ custom }) => custom.type === params.get('card')) ?? offered[0]
-const short = (name: string) => name.replace('Floorplan ', '')
+const short = (name: string) => name.replace('Diorama ', '')
 
 const ink = light ? '#1c1c1e' : '#fff'
 document.body.style.cssText = `margin:0;min-height:100vh;font-family:system-ui;background:${

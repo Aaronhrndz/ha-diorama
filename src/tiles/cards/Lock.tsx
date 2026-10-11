@@ -88,7 +88,7 @@ function OpenDoorTile({ env, config }: Props) {
     void callService(env.hass, 'lock.open', { entity_id: entity!.entity_id })
   }
   return (
-    <div className="fp-fill fp-confirm fp-open-door" data-step={step} data-done={done || undefined}>
+    <div className="dio-fill dio-confirm dio-open-door" data-step={step} data-done={done || undefined}>
       <Tile
         env={env}
         config={plain}
@@ -101,7 +101,7 @@ function OpenDoorTile({ env, config }: Props) {
         state={state}
         onTap={tap}
       />
-      <div ref={lit} className="fp-fill-lit" inert>
+      <div ref={lit} className="dio-fill-lit" inert>
         <Tile
           env={env}
           config={plain}

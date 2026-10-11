@@ -27,7 +27,7 @@ export function Control({ icon, label, onPress, className, role, checked, disabl
       disabled={disabled}
       aria-label={label}
       title={label}
-      className={cn('fp-control', className)}
+      className={cn('dio-control', className)}
       style={style}
       onClick={e => {
         e.stopPropagation()

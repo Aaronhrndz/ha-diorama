@@ -61,7 +61,7 @@ export const EDITOR_SELECTED_COLOR = '#0a84ff'
 // The tint of the editor's controls: sliders, switches, the tool in use, the
 // buttons that add. The same blue, set in the stylesheet so it can deepen
 // over a light theme, where the bright one is too faint for text.
-export const EDITOR_TINT_COLOR = 'var(--fp-tint)'
+export const EDITOR_TINT_COLOR = 'var(--dio-tint)'
 
 // The editor's own colors: what it draws and picks, and the amber that
 // marks an item a device stands behind.

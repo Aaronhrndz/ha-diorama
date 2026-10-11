@@ -90,7 +90,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     onChange(degrees === SUN_DIRECTION_DEG ? rest : { ...rest, sun_direction: degrees })
   }
 
-  // How tall the floorplan is on a phone, in percent of its width. With
+  // How tall the diorama is on a phone, in percent of its width. With
   // nothing said it is square, or the card's own shape when one is given,
   // so square is only left out of the YAML when nothing else is given.
   const wideShape = config.aspect_ratio && config.aspect_ratio !== 'fill' ? config.aspect_ratio : undefined
@@ -101,7 +101,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     onChange(percent === 100 && !wideShape ? rest : { ...rest, aspect_ratio_mobile: `${100 / d}:${percent / d}` })
   }
 
-  // Whether the Floorplan tiles elsewhere on the dashboard follow the room
+  // Whether the Diorama tiles elsewhere on the dashboard follow the room
   // in view. Off is the default, so it is not written down.
   const filterTiles = config.filter_tiles === true
   const setFilterTiles = (on: boolean) => {
@@ -181,13 +181,13 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
         // and the header still hides the cards scrolled under it.
         style={
           {
-            '--fp-surface':
+            '--dio-surface':
               'var(--ha-dialog-surface-background, var(--mdc-theme-surface, var(--card-background-color)))',
           } as CSSProperties
         }
-        className="fp-editor font-system flex min-h-full flex-col gap-3 px-4 pb-6 text-(--primary-text-color) antialiased"
+        className="dio-editor font-system flex min-h-full flex-col gap-3 px-4 pb-6 text-(--primary-text-color) antialiased"
       >
-        <header className="sticky top-0 z-10 -mx-4 flex items-center gap-3 bg-(--fp-surface) px-4 pt-3 pb-2">
+        <header className="sticky top-0 z-10 -mx-4 flex items-center gap-3 bg-(--dio-surface) px-4 pt-3 pb-2">
           {/* Said in words and filled, so the way back is plain to see. */}
           <button
             type="button"
@@ -221,10 +221,10 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     <div
       ref={root}
       data-light={light}
-      className="fp-editor font-system flex flex-col gap-6 px-5 py-6 text-(--primary-text-color) antialiased"
+      className="dio-editor font-system flex flex-col gap-6 px-5 py-6 text-(--primary-text-color) antialiased"
     >
       <Section
-        title="Floorplan"
+        title="Diorama"
         description="Draw the rooms of your home, furnish them, and link each piece to the Home Assistant device it stands for."
       >
         <div className={cn(group, 'flex-row items-center gap-3')}>
@@ -232,7 +232,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
             <FontAwesomeIcon icon={faPenRuler} className="size-4" />
           </span>
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-[13px] font-semibold">Floorplan editor</span>
+            <span className="text-[13px] font-semibold">Diorama editor</span>
             <span className="text-label-2 truncate text-xs">Rooms, furniture and devices</span>
           </span>
           <button
@@ -270,7 +270,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
             <span className="flex min-w-0 flex-col">
               <span className="text-[13px]">Hide other rooms' tiles</span>
               <span className="text-label-2 text-xs">
-                With a room in view, the Floorplan tiles on the dashboard from other areas hide
+                With a room in view, the Diorama tiles on the dashboard from other areas hide
               </span>
             </span>
             <Switch
@@ -337,7 +337,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
 
       <Section
         title="Side panel"
-        description="Tiles beside the floorplan, a heading for each room and a tile for each of its devices. With a room in view only its tiles show. On a narrow card the panel goes under the floorplan."
+        description="Tiles beside the diorama, a heading for each room and a tile for each of its devices. With a room in view only its tiles show. On a narrow card the panel goes under the diorama."
       >
         <label className={cn(group, 'cursor-pointer flex-row items-center justify-between gap-4 py-2.5')}>
           <span className="text-[13px]">Show the side panel</span>
@@ -862,8 +862,8 @@ function EntityPicker({
             aria-label="Search entities"
             role="combobox"
             aria-expanded
-            aria-controls="fp-entity-matches"
-            aria-activedescendant={matches[at] ? `fp-entity-${at}` : undefined}
+            aria-controls="dio-entity-matches"
+            aria-activedescendant={matches[at] ? `dio-entity-${at}` : undefined}
             onChange={event => {
               setQuery(event.target.value)
               setActive(0)
@@ -885,7 +885,7 @@ function EntityPicker({
       ) : (
         <ul
           ref={list}
-          id="fp-entity-matches"
+          id="dio-entity-matches"
           role="listbox"
           className="bg-raised max-h-64 overflow-y-auto overscroll-contain rounded-lg py-1"
         >
@@ -898,7 +898,7 @@ function EntityPicker({
             return (
               <li
                 key={id}
-                id={`fp-entity-${index}`}
+                id={`dio-entity-${index}`}
                 role="option"
                 aria-selected={index === at}
                 onPointerMove={() => index !== at && setActive(index)}

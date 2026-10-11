@@ -86,7 +86,7 @@ export function ConfirmTile({ env, config, entity, on, fading, state, prompt, on
   }
   return (
     <div
-      className="fp-fill fp-confirm"
+      className="dio-fill dio-confirm"
       data-step={waiting ? 1 : goal !== null ? 2 : 0}
       data-fading={fading || undefined}
     >
@@ -100,7 +100,7 @@ export function ConfirmTile({ env, config, entity, on, fading, state, prompt, on
         onTap={tap}
         {...look}
       />
-      <div ref={lit} className="fp-fill-lit" inert>
+      <div ref={lit} className="dio-fill-lit" inert>
         <Tile env={env} config={config} entity={entity} active state={said} {...look} />
       </div>
     </div>

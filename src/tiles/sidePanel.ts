@@ -15,10 +15,10 @@ type CardConfig = {
 // rather than letting it grow to fit.
 const setHeight = (element: HTMLElement) => !!closestClass(element, 'fit-rows')
 
-const PLAN_TYPE = 'custom:floorplan-3d'
-export const SIDE_PANEL = 'fp-side-panel'
+const PLAN_TYPE = 'custom:diorama-card'
+export const SIDE_PANEL = 'dio-side-panel'
 
-// Below this width the panel goes under the floorplan, which then takes the
+// Below this width the panel goes under the diorama, which then takes the
 // whole width.
 const STACK_PX = 900
 
@@ -40,7 +40,7 @@ type Sized = { prototype: { getGridOptions?: (this: object) => Grid } }
 export function span(config: CardConfig, hass: HomeAssistant | null) {
   const own = config.grid_options
   const type = config.type.replace(/^custom:/, '')
-  const element = type.startsWith('fp-') ? (customElements.get(type) as Sized | undefined) : undefined
+  const element = /^(dio|fp)-/.test(type) ? (customElements.get(type) as Sized | undefined) : undefined
   const grid = element?.prototype.getGridOptions?.call({ _config: config, _hass: hass }) ?? {}
   const columns = own?.columns ?? grid.columns ?? 12
   const rows = own?.rows ?? grid.rows ?? 'auto'
@@ -51,7 +51,7 @@ const CSS = `
 :host {
   display: block;
   height: 100%;
-  --_gap: var(--fp-tile-gap, ${GAP_PX}px);
+  --_gap: var(--dio-tile-gap, var(--fp-tile-gap, ${GAP_PX}px));
 }
 .split {
   display: grid;
@@ -70,7 +70,7 @@ const CSS = `
   min-height: 0;
   overflow: hidden;
 }
-/* The floorplan fills its column, which sets its shape. */
+/* The diorama fills its column, which sets its shape. */
 .main[data-fill] {
   justify-content: stretch;
 }
@@ -127,12 +127,12 @@ const CSS = `
   grid-column: 1 / -1;
   padding: 24px 4px;
   color: var(--primary-text-color, #fff);
-  font-family: var(--fp-font-tile, 'Inter', system-ui, sans-serif);
+  font-family: var(--dio-font-tile, var(--fp-font-tile, 'Inter', system-ui, sans-serif));
   font-size: 15px;
   text-align: center;
   opacity: 0.6;
 }
-/* Anywhere but a panel view the floorplan keeps its own shape and the
+/* Anywhere but a panel view the diorama keeps its own shape and the
    panel beside it scrolls within the same height. */
 .split:not([data-panel]) {
   height: auto;
@@ -141,7 +141,7 @@ const CSS = `
 .split:not([data-panel]):not([data-stacked]) .side {
   contain: size;
 }
-/* Stacked, the tiles start right under the floorplan, with no space
+/* Stacked, the tiles start right under the diorama, with no space
    kept between them past what the heading has of its own. */
 .split[data-stacked] {
   grid-template-columns: 1fr;
@@ -152,8 +152,8 @@ const CSS = `
 .split[data-stacked] .main[data-fill] {
   aspect-ratio: var(--_stacked-aspect, 1 / 1);
 }
-/* In a card given a set height, the tiles under the floorplan take what
-   they need of it, up to all but 45% left to the floorplan, and scroll
+/* In a card given a set height, the tiles under the diorama take what
+   they need of it, up to all but 45% left to the diorama, and scroll
    in that rather than spill over what is under the card. */
 .split[data-fit] {
   height: 100%;
@@ -172,7 +172,7 @@ const CSS = `
 }
 `
 
-// The floorplan card with its side panel on: the floorplan, drawn again
+// The diorama card with its side panel on: the diorama, drawn again
 // without one, on the left two thirds and the tiles on the right third,
 // centered. Every child goes in Home Assistant's own hui-card, which hides
 // it when the tile hides itself.
@@ -190,7 +190,7 @@ export class SidePanel extends HTMLElement {
   private observer: ResizeObserver
   private unsubscribe: (() => void) | null = null
   private panel = false
-  // Whether the floorplan fills what the tiles under it leave of a card of
+  // Whether the diorama fills what the tiles under it leave of a card of
   // a set height, rather than keeping its own shape.
   private fit = false
   // The room whose tiles show, null for the whole home, and undefined
@@ -231,7 +231,7 @@ export class SidePanel extends HTMLElement {
   setConfig(config: PlanConfig) {
     if (config === this._config) return
     this._config = config
-    // Over the tiles, the floorplan takes the card's shape on a phone.
+    // Over the tiles, the diorama takes the card's shape on a phone.
     this.root.style.setProperty('--_stacked-aspect', aspectRatioCss(config.aspect_ratio_mobile, '1 / 1'))
     void this.build()
   }
@@ -284,13 +284,13 @@ export class SidePanel extends HTMLElement {
     const config = this._config!
     await customElements.whenDefined('hui-card')
     if (config !== this._config) return
-    // In a panel view the floorplan fills its column, at the full height of
+    // In a panel view the diorama fills its column, at the full height of
     // the screen. Anywhere else it keeps the shape it is given.
     const fill = this.panel || this.fit
     this.mainSlot.toggleAttribute('data-fill', fill)
     const main: CardConfig = { ...config, type: PLAN_TYPE, side_panel: false }
     if (fill) main.aspect_ratio = 'fill'
-    // The floorplan already there takes the new config as it is, so a
+    // The diorama already there takes the new config as it is, so a
     // change to the tiles, like their order, leaves its camera where it is
     // rather than opening it again on the whole home. Home Assistant would
     // build it anew while the dashboard is edited.
@@ -406,7 +406,7 @@ export class SidePanel extends HTMLElement {
 
   private onResize = () => this.updateReserved()
 
-  // In a panel view the floorplan and the panel fill the screen below the
+  // In a panel view the diorama and the panel fill the screen below the
   // header. The space they leave is measured rather than assumed, since the
   // header grows a row of tabs while the dashboard is edited, and the bar
   // with the edit button sits under the card then.
@@ -420,7 +420,7 @@ export class SidePanel extends HTMLElement {
   }
 
   // A card given a set height, like one a grid of sections sizes to its
-  // rows, has the panel under the floorplan fit in it, and the floorplan
+  // rows, has the panel under the diorama fit in it, and the diorama
   // fills what the tiles leave, so nothing spills over what is under it.
   private updateStacked() {
     const stacked = this.clientWidth > 0 && this.clientWidth < STACK_PX

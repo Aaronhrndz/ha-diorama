@@ -10,7 +10,7 @@
 // the workflow's job, so a run by hand can be undone with git checkout.
 import { readFileSync, writeFileSync, appendFileSync } from 'node:fs'
 
-const REPO = 'https://github.com/CarlesRojas/ha-floorplan'
+const REPO = 'https://github.com/CarlesRojas/ha-diorama'
 
 const args = new Map<string, string>()
 for (let i = 2; i < process.argv.length; i += 2) args.set(process.argv[i].replace(/^--/, ''), process.argv[i + 1] ?? '')

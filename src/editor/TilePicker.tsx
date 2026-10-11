@@ -48,7 +48,7 @@ function choices(hass: HomeAssistant, auto: AutoCard, chosen: TileChoice | undef
   const options = tileOptions(hass, entityId)
   const autoKey = setupKey(auto)
   if (!options.some(option => setupKey(option.config) === autoKey))
-    options.unshift({ name: auto.type.replace(/^custom:fp-/, ''), config: auto })
+    options.unshift({ name: auto.type.replace(/^custom:dio-/, ''), config: auto })
   return { options, auto: autoKey, current: chosen ? setupKey(chosen) : autoKey }
 }
 
@@ -190,7 +190,7 @@ function Option({
         >
           <TilePreview hass={hass} config={shown} height={rows === 'auto' ? undefined : rows} />
           {picked && (
-            <span className="bg-tint-fill absolute -top-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full text-white shadow-[0_0_0_3px_var(--fp-surface,var(--card-background-color))]">
+            <span className="bg-tint-fill absolute -top-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full text-white shadow-[0_0_0_3px_var(--dio-surface,var(--card-background-color))]">
               <Icon icon="ph:check-bold" className="size-3.5 [--mdc-icon-size:14px] [&>svg]:size-full" />
             </span>
           )}

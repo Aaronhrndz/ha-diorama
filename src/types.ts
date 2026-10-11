@@ -182,11 +182,11 @@ export type CardConfig = {
   // room the device stands in while that room is not the one the camera has
   // flown to, so a device only answers from inside its room.
   first_click?: 'device' | 'room'
-  // Puts the floorplan on two thirds of the width and a panel of tiles on
+  // Puts the diorama on two thirds of the width and a panel of tiles on
   // the rest: a heading per room, then a tile for each of its devices and
-  // of its `entities`. On a narrow card the panel goes under the floorplan.
+  // of its `entities`. On a narrow card the panel goes under the diorama.
   side_panel?: boolean
-  // Hides the Floorplan tiles elsewhere on the dashboard that belong to
+  // Hides the Diorama tiles elsewhere on the dashboard that belong to
   // another area while a room is in view. Off, they all stay. The side
   // panel follows the room either way.
   filter_tiles?: boolean

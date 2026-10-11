@@ -15,7 +15,7 @@ import type { ComponentType } from 'react'
 export type FeatureDef = {
   id: string
   // How the editor names the choice, and the card picker the suggestion
-  // after the tile's tap, as in Floorplan Toggle - Tap to turn on or off,
+  // after the tile's tap, as in Diorama Toggle - Tap to turn on or off,
   // with color bar.
   label: string
   // What the card picker says after the tap in place of with and the label,
@@ -412,7 +412,7 @@ export function Feature(props: FeatureProps) {
   if (!def?.View) return null
   const View = def.View
   return (
-    <div className="fp-feature">
+    <div className="dio-feature">
       <View {...props} />
     </div>
   )

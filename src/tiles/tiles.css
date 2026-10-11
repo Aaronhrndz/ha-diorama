@@ -1,48 +1,50 @@
 /*
- * The Floorplan tiles. Every look a theme can change is a --fp-* token,
+ * The Diorama tiles. Every look a theme can change is a --dio-* token,
  * read here into a private --_* variable with its default, so a theme that
- * sets none of them still gets a finished tile. Never set a --fp-* token on
- * the host: it would win over the theme's value.
+ * sets none of them still gets a finished tile. Never set a --dio-* token on
+ * the host: it would win over the theme's value. A theme written before the
+ * card was renamed still works, as each token falls back on its old --fp-*
+ * name.
  */
 :host {
   display: block;
   height: 100%;
-  --_radius: var(--fp-tile-radius, 30px);
-  --_padding: var(--fp-tile-padding, 18px);
-  --_bg-active: var(--fp-tile-bg-active, rgba(255, 255, 255, 0.94));
-  --_bg-inactive: var(--fp-tile-bg-inactive, rgba(118, 118, 128, 0.24));
-  --_blur: var(--fp-tile-blur, 24px);
-  --_opacity-inactive: var(--fp-tile-opacity-inactive, 1);
-  --_opacity-unavailable: var(--fp-tile-opacity-unavailable, 0.45);
-  --_shadow: var(--fp-tile-shadow, none);
-  --_text-active: var(--fp-text-active, #1c1c1e);
-  --_text-inactive: var(--fp-text-inactive, #ffffff);
-  --_secondary: var(--fp-text-secondary-opacity, 0.72);
-  --_accent: var(--fp-accent, #0a84ff);
-  --_accent-light: var(--fp-accent-light, #ffb340);
-  --_accent-cover: var(--fp-accent-cover, #32ade6);
-  --_accent-media: var(--fp-accent-media, #0a9a7c);
-  --_accent-climate: var(--fp-accent-climate, #ff6422);
-  --_accent-cool: var(--fp-accent-cool, #5ab0ff);
-  --_mode-heat: var(--fp-mode-heat, var(--_accent-climate));
-  --_mode-cool: var(--fp-mode-cool, var(--_accent-cool));
-  --_mode-dry: var(--fp-mode-dry, #ffc60a);
-  --_mode-fan: var(--fp-mode-fan, #30c9a4);
-  --_accent-unlocked: var(--fp-accent-unlocked, #46c46e);
-  --_accent-locked: var(--fp-accent-locked, #ff453a);
-  --_alarm-armed: var(--fp-alarm-armed, #ff453a);
-  --_alarm-disarmed: var(--fp-alarm-disarmed, #30d158);
-  --_font-tile: var(--fp-font-tile, 'Inter', system-ui, sans-serif);
-  --_font-title: var(--fp-font-title, 'Inter Tight', system-ui, sans-serif);
-  --_title-size: var(--fp-title-size, 30px);
-  --_title-opacity: var(--fp-title-opacity, 0.92);
-  --_icon-size: var(--fp-tile-icon-size, 28px);
-  --_name-size: var(--fp-tile-name-size, 15px);
-  --_state-size: var(--fp-tile-state-size, 13px);
-  --_handle: var(--fp-slider-handle, var(--_bg-active));
-  --_duration: var(--fp-tile-duration, 200ms);
-  --_press: var(--fp-tile-press-scale, 0.96);
-  --_focus: var(--fp-tile-focus-scale, 1.03);
+  --_radius: var(--dio-tile-radius, var(--fp-tile-radius, 30px));
+  --_padding: var(--dio-tile-padding, var(--fp-tile-padding, 18px));
+  --_bg-active: var(--dio-tile-bg-active, var(--fp-tile-bg-active, rgba(255, 255, 255, 0.94)));
+  --_bg-inactive: var(--dio-tile-bg-inactive, var(--fp-tile-bg-inactive, rgba(118, 118, 128, 0.24)));
+  --_blur: var(--dio-tile-blur, var(--fp-tile-blur, 24px));
+  --_opacity-inactive: var(--dio-tile-opacity-inactive, var(--fp-tile-opacity-inactive, 1));
+  --_opacity-unavailable: var(--dio-tile-opacity-unavailable, var(--fp-tile-opacity-unavailable, 0.45));
+  --_shadow: var(--dio-tile-shadow, var(--fp-tile-shadow, none));
+  --_text-active: var(--dio-text-active, var(--fp-text-active, #1c1c1e));
+  --_text-inactive: var(--dio-text-inactive, var(--fp-text-inactive, #ffffff));
+  --_secondary: var(--dio-text-secondary-opacity, var(--fp-text-secondary-opacity, 0.72));
+  --_accent: var(--dio-accent, var(--fp-accent, #0a84ff));
+  --_accent-light: var(--dio-accent-light, var(--fp-accent-light, #ffb340));
+  --_accent-cover: var(--dio-accent-cover, var(--fp-accent-cover, #32ade6));
+  --_accent-media: var(--dio-accent-media, var(--fp-accent-media, #0a9a7c));
+  --_accent-climate: var(--dio-accent-climate, var(--fp-accent-climate, #ff6422));
+  --_accent-cool: var(--dio-accent-cool, var(--fp-accent-cool, #5ab0ff));
+  --_mode-heat: var(--dio-mode-heat, var(--fp-mode-heat, var(--_accent-climate)));
+  --_mode-cool: var(--dio-mode-cool, var(--fp-mode-cool, var(--_accent-cool)));
+  --_mode-dry: var(--dio-mode-dry, var(--fp-mode-dry, #ffc60a));
+  --_mode-fan: var(--dio-mode-fan, var(--fp-mode-fan, #30c9a4));
+  --_accent-unlocked: var(--dio-accent-unlocked, var(--fp-accent-unlocked, #46c46e));
+  --_accent-locked: var(--dio-accent-locked, var(--fp-accent-locked, #ff453a));
+  --_alarm-armed: var(--dio-alarm-armed, var(--fp-alarm-armed, #ff453a));
+  --_alarm-disarmed: var(--dio-alarm-disarmed, var(--fp-alarm-disarmed, #30d158));
+  --_font-tile: var(--dio-font-tile, var(--fp-font-tile, 'Inter', system-ui, sans-serif));
+  --_font-title: var(--dio-font-title, var(--fp-font-title, 'Inter Tight', system-ui, sans-serif));
+  --_title-size: var(--dio-title-size, var(--fp-title-size, 30px));
+  --_title-opacity: var(--dio-title-opacity, var(--fp-title-opacity, 0.92));
+  --_icon-size: var(--dio-tile-icon-size, var(--fp-tile-icon-size, 28px));
+  --_name-size: var(--dio-tile-name-size, var(--fp-tile-name-size, 15px));
+  --_state-size: var(--dio-tile-state-size, var(--fp-tile-state-size, 13px));
+  --_handle: var(--dio-slider-handle, var(--fp-slider-handle, var(--_bg-active)));
+  --_duration: var(--dio-tile-duration, var(--fp-tile-duration, 200ms));
+  --_press: var(--dio-tile-press-scale, var(--fp-tile-press-scale, 0.96));
+  --_focus: var(--dio-tile-focus-scale, var(--fp-tile-focus-scale, 1.03));
 }
 
 /* Hidden by the room filter. Home Assistant hides the card around it too,
@@ -55,23 +57,23 @@
    and a tile that is on turns dark with white text, since a white one would
    not stand out from the page. */
 :host([data-light]) {
-  --_bg-inactive: var(--fp-tile-bg-inactive, rgba(120, 120, 128, 0.16));
-  --_text-inactive: var(--fp-text-inactive, #1c1c1e);
-  --_bg-active: var(--fp-tile-bg-active, rgba(28, 28, 30, 0.94));
-  --_text-active: var(--fp-text-active, #ffffff);
+  --_bg-inactive: var(--dio-tile-bg-inactive, var(--fp-tile-bg-inactive, rgba(120, 120, 128, 0.16)));
+  --_text-inactive: var(--dio-text-inactive, var(--fp-text-inactive, #1c1c1e));
+  --_bg-active: var(--dio-tile-bg-active, var(--fp-tile-bg-active, rgba(28, 28, 30, 0.94)));
+  --_text-active: var(--dio-text-active, var(--fp-text-active, #ffffff));
 }
 
 /* The accent and mode colors, toward white on a dark tile and toward
    black on a light one, a tile that is on on a dark dashboard or one that
    is off on a light dashboard, enough for an icon or a line to stand out
    three to one from the tile and for words four and a half to one. */
-.fp-tile {
+.dio-tile {
   --_ink-to: white;
   --_deep: 20%;
   --_deep-text: 35%;
 }
 
-:host(:not([data-light])) .fp-tile[data-active] {
+:host(:not([data-light])) .dio-tile[data-active] {
   --_ink-to: black;
   --_deep: 30%;
   --_deep-text: 40%;
@@ -79,18 +81,18 @@
 
 /* The media teal is deep enough to stand out on a light tile as it is,
    so it keeps all its color there. */
-:host(:not([data-light])) .fp-tile[data-active][style*='--_accent-media'] {
+:host(:not([data-light])) .dio-tile[data-active][style*='--_accent-media'] {
   --_deep: 0%;
 }
 
 /* The glass of a light dashboard is grey, so it takes more. */
-:host([data-light]) .fp-tile:not([data-active]) {
+:host([data-light]) .dio-tile:not([data-active]) {
   --_ink-to: black;
   --_deep: 40%;
   --_deep-text: 45%;
 }
 
-.fp-tile {
+.dio-tile {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -121,19 +123,19 @@
     transform var(--_duration) cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.fp-tile[data-active] {
+.dio-tile[data-active] {
   background: var(--_bg-active);
   color: var(--_text-active);
 }
 
 /* A button lights up at once when pressed and a moment later fades slowly
    back to off. */
-.fp-tile[data-fading] {
+.dio-tile[data-fading] {
   --_duration: 1000ms;
 }
 
-.fp-tile[data-fading] .fp-icon,
-.fp-tile[data-fading] .fp-text {
+.dio-tile[data-fading] .dio-icon,
+.dio-tile[data-fading] .dio-text {
   transition:
     color var(--_duration) ease,
     opacity var(--_duration) ease;
@@ -141,7 +143,7 @@
 
 /* The color of a light, strongest in the top left corner and fading out to
    the plain tile. */
-.fp-tile[data-active][style*='--_tile-glow'] {
+.dio-tile[data-active][style*='--_tile-glow'] {
   background-image: radial-gradient(
     140% 140% at 0% 0%,
     color-mix(in srgb, var(--_tile-glow) 42%, transparent) 0%,
@@ -158,7 +160,7 @@
   initial-value: 1;
 }
 
-.fp-tile[data-active][data-glow='left'][style*='--_tile-glow'] {
+.dio-tile[data-active][data-glow='left'][style*='--_tile-glow'] {
   background-image: linear-gradient(
     to right,
     color-mix(in srgb, var(--_tile-glow) calc(24% * var(--_wash)), transparent) 0%,
@@ -169,7 +171,7 @@
 
 /* A tile that is off with a tint stays glass, with the tint coming in
    from the left and on its icon, like a locked lock or a disarmed alarm. */
-.fp-tile:not([data-active])[style*='--_tile-tint'] {
+.dio-tile:not([data-active])[style*='--_tile-tint'] {
   background-image: linear-gradient(
     to right,
     color-mix(in srgb, var(--_tile-tint) 22%, transparent) 0%,
@@ -178,14 +180,14 @@
   );
 }
 
-.fp-tile:not([data-active])[style*='--_tile-tint'] .fp-top > .fp-icon {
+.dio-tile:not([data-active])[style*='--_tile-tint'] .dio-top > .dio-icon {
   color: var(--_tile-tint);
   opacity: 1;
 }
 
 /* The color of a thermostat's mode, coming down from the top like the air
    out of it. */
-.fp-tile[data-active][data-glow='top'][style*='--_tile-glow'] {
+.dio-tile[data-active][data-glow='top'][style*='--_tile-glow'] {
   background-image: linear-gradient(
     to bottom,
     color-mix(in srgb, var(--_tile-glow) 24%, transparent) 0%,
@@ -194,31 +196,31 @@
   );
 }
 
-.fp-tile:not([data-active]) .fp-icon,
-.fp-tile:not([data-active]) .fp-text {
+.dio-tile:not([data-active]) .dio-icon,
+.dio-tile:not([data-active]) .dio-text {
   opacity: var(--_opacity-inactive);
 }
 
-.fp-tile[data-unavailable] {
+.dio-tile[data-unavailable] {
   opacity: var(--_opacity-unavailable);
   cursor: default;
 }
 
 /* A tile in focus from the keyboard grows a little and lifts off the page. */
-.fp-tile:focus-visible {
+.dio-tile:focus-visible {
   outline: none;
   transform: scale(var(--_focus));
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
-.fp-tile[data-pressed] {
+.dio-tile[data-pressed] {
   transform: scale(var(--_press));
 }
 
 /* A light whose whole tile is its brightness: a lit copy of the tile over
    the plain one, cut off where the brightness ends. The two scale
    together when pressed or in focus, so the outer box does instead. */
-.fp-fill {
+.dio-fill {
   position: relative;
   height: 100%;
   border-radius: var(--_radius);
@@ -226,46 +228,46 @@
   transition: transform var(--_duration) ease;
 }
 
-.fp-fill > .fp-tile {
+.dio-fill > .dio-tile {
   touch-action: pan-y;
 }
 
 /* One that fills from the top is dragged up and down, so a swipe that
    starts on it moves the fill and not the page. */
-.fp-fill[data-vertical],
-.fp-fill[data-vertical] > .fp-tile {
+.dio-fill[data-vertical],
+.dio-fill[data-vertical] > .dio-tile {
   touch-action: pan-x;
 }
 
-.fp-fill .fp-tile,
-.fp-fill .fp-tile:focus-visible,
-.fp-fill .fp-tile[data-pressed] {
+.dio-fill .dio-tile,
+.dio-fill .dio-tile:focus-visible,
+.dio-fill .dio-tile[data-pressed] {
   transform: none;
 }
 
-.fp-fill:has(.fp-tile[data-pressed]) {
+.dio-fill:has(.dio-tile[data-pressed]) {
   transform: scale(var(--_press));
 }
 
-.fp-fill:has(> .fp-tile:focus-visible) {
+.dio-fill:has(> .dio-tile:focus-visible) {
   transform: scale(var(--_focus));
 }
 
-.fp-fill-lit {
+.dio-fill-lit {
   position: absolute;
   inset: 0;
   pointer-events: none;
   transition: clip-path 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.fp-fill[data-dragging] .fp-fill-lit,
-.fp-fill[data-dragging] .fp-fill-grip {
+.dio-fill[data-dragging] .dio-fill-lit,
+.dio-fill[data-dragging] .dio-fill-grip {
   transition: none;
 }
 
 /* The lit copy draws no shadow and no blur of its own, so the edge where
    it ends is clean. */
-.fp-fill-lit .fp-tile {
+.dio-fill-lit .dio-tile {
   box-shadow: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -276,7 +278,7 @@
    to full brightness, where there is no edge left to see, and ends up
    halfway across the padding past the words. Another one waits at the
    start while it is empty, to show where to pull it from. */
-.fp-fill-grip {
+.dio-fill-grip {
   --_inset: calc(var(--_padding) / 2 - 2px);
   position: absolute;
   top: 50%;
@@ -292,7 +294,7 @@
     opacity 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.fp-fill[data-vertical] .fp-fill-grip {
+.dio-fill[data-vertical] .dio-fill-grip {
   left: 50%;
   width: 28px;
   height: 4px;
@@ -302,27 +304,27 @@
     opacity 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.fp-fill[data-from='top'] .fp-fill-grip {
+.dio-fill[data-from='top'] .dio-fill-grip {
   top: calc(var(--_edge) - var(--_inset) - 4px);
 }
 
-.fp-fill[data-from='bottom'] .fp-fill-grip {
+.dio-fill[data-from='bottom'] .dio-fill-grip {
   top: calc(100% - var(--_edge) + var(--_inset));
 }
 
-.fp-fill .fp-fill-grip[data-start] {
+.dio-fill .dio-fill-grip[data-start] {
   background: var(--_text-inactive);
 }
 
-.fp-fill[data-from='left'] .fp-fill-grip[data-start] {
+.dio-fill[data-from='left'] .dio-fill-grip[data-start] {
   left: var(--_inset);
 }
 
-.fp-fill[data-from='top'] .fp-fill-grip[data-start] {
+.dio-fill[data-from='top'] .dio-fill-grip[data-start] {
   top: var(--_inset);
 }
 
-.fp-fill[data-from='bottom'] .fp-fill-grip[data-start] {
+.dio-fill[data-from='bottom'] .dio-fill-grip[data-start] {
   top: calc(100% - var(--_inset) - 4px);
 }
 
@@ -330,7 +332,7 @@
    from the very top edge with its free end rounded, faint over the empty
    part and over the filled one alike. One that fills up or down has them
    on its left edge instead, pointing in. */
-.fp-fill-tick {
+.dio-fill-tick {
   position: absolute;
   top: 0;
   left: var(--_at);
@@ -343,11 +345,11 @@
   pointer-events: none;
 }
 
-.fp-fill-lit .fp-fill-tick {
+.dio-fill-lit .dio-fill-tick {
   background: var(--_text-active);
 }
 
-.fp-fill[data-vertical] .fp-fill-tick {
+.dio-fill[data-vertical] .dio-fill-tick {
   left: 0;
   width: 9px;
   height: 3px;
@@ -355,45 +357,45 @@
   transform: translateY(-50%);
 }
 
-.fp-fill[data-from='top'] .fp-fill-tick {
+.dio-fill[data-from='top'] .dio-fill-tick {
   top: var(--_at);
 }
 
-.fp-fill[data-from='bottom'] .fp-fill-tick {
+.dio-fill[data-from='bottom'] .dio-fill-tick {
   top: calc(100% - var(--_at));
 }
 
-.fp-top {
+.dio-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 }
 
-.fp-text {
+.dio-text {
   min-width: 0;
 }
 
 /* The name and the state in the bottom left corner, with buttons across
    from them, like a thermostat's modes, level with the state line. */
-.fp-bottom {
+.dio-bottom {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
 }
 
-.fp-bottom > .fp-text {
+.dio-bottom > .dio-text {
   flex: 1 1 auto;
 }
 
-.fp-aside {
+.dio-aside {
   display: flex;
   flex: none;
   margin: 0 -4px -4px 0;
 }
 
-.fp-icon {
+.dio-icon {
   display: block;
   flex: none;
   width: var(--_icon-size);
@@ -405,44 +407,44 @@
 /* The icon drawn, and while it changes the one before it on top, the two
    fading across each other. A button fading back to off swaps its icon as
    slowly as the rest of the tile. */
-.fp-icon {
+.dio-icon {
   position: relative;
   --_icon-fade: 300ms;
 }
 
-.fp-tile[data-fading] .fp-icon {
+.dio-tile[data-fading] .dio-icon {
   --_icon-fade: var(--_duration);
 }
 
-.fp-icon-layer {
+.dio-icon-layer {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-.fp-icon-layer > svg {
+.dio-icon-layer > svg {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-.fp-icon-layer[data-out] {
+.dio-icon-layer[data-out] {
   position: absolute;
   inset: 0;
-  animation: fp-icon-out var(--_icon-fade) ease forwards;
+  animation: dio-icon-out var(--_icon-fade) ease forwards;
 }
 
-.fp-icon-layer[data-in] {
-  animation: fp-icon-in var(--_icon-fade) ease;
+.dio-icon-layer[data-in] {
+  animation: dio-icon-in var(--_icon-fade) ease;
 }
 
-@keyframes fp-icon-out {
+@keyframes dio-icon-out {
   to {
     opacity: 0;
   }
 }
 
-@keyframes fp-icon-in {
+@keyframes dio-icon-in {
   from {
     opacity: 0;
   }
@@ -450,7 +452,7 @@
 
 /* A picture in place of the icon, square, with its corners rounded to sit
    evenly inside the tile's. */
-.fp-picture {
+.dio-picture {
   display: block;
   flex: none;
   width: var(--_picture-size, 72px);
@@ -461,11 +463,11 @@
   user-select: none;
 }
 
-.fp-tile[data-active] .fp-icon {
+.dio-tile[data-active] .dio-icon {
   color: color-mix(in oklab, var(--_tile-accent, var(--_accent)), var(--_ink-to) var(--_deep));
 }
 
-.fp-name {
+.dio-name {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
@@ -476,7 +478,7 @@
   letter-spacing: -0.01em;
 }
 
-.fp-state {
+.dio-state {
   overflow: hidden;
   font-size: var(--_state-size);
   font-weight: 500;
@@ -491,63 +493,63 @@
    and menus sit in the corner like the controls of a wide tile, as wide as
    they need on a wide tile and as wide as there is room on a small one.
    Bars take the whole space. */
-.fp-beside {
+.dio-beside {
   display: flex;
   flex: 1 1 auto;
   justify-content: flex-end;
   min-width: 0;
   margin: -4px -4px 0 12px;
 }
-.fp-beside:has(.fp-slim) {
+.dio-beside:has(.dio-slim) {
   margin: -2px 0 0 12px;
 }
-.fp-beside .fp-feature {
+.dio-beside .dio-feature {
   justify-content: flex-end;
 }
-.fp-beside .fp-pill,
-.fp-beside .fp-slider {
+.dio-beside .dio-pill,
+.dio-beside .dio-slider {
   height: 40px;
 }
-.fp-beside .fp-feature > .fp-group {
+.dio-beside .dio-feature > .dio-group {
   flex: 0 1 auto;
 }
-.fp-beside .fp-feature .fp-group > .fp-control {
+.dio-beside .dio-feature .dio-group > .dio-control {
   flex: 0 1 40px;
   width: 40px;
   max-width: 40px;
   height: 40px;
 }
-.fp-beside .fp-feature .fp-group > .fp-pill {
+.dio-beside .dio-feature .dio-group > .dio-pill {
   height: 36px;
 }
-.fp-tile[data-wide] .fp-beside .fp-feature > :is(.fp-pill, .fp-feature-date) {
+.dio-tile[data-wide] .dio-beside .dio-feature > :is(.dio-pill, .dio-feature-date) {
   flex: 0 1 auto;
 }
 /* A pill that does something, like Press, is as wide as its words on a
    small tile too, at the right. */
-.fp-beside .fp-feature > .fp-pill-action {
+.dio-beside .dio-feature > .dio-pill-action {
   flex: 0 1 auto;
 }
-.fp-tile[data-wide] .fp-beside .fp-feature .fp-group > .fp-control {
+.dio-tile[data-wide] .dio-beside .dio-feature .dio-group > .dio-control {
   flex: none;
   width: 44px;
   max-width: none;
   height: 44px;
 }
-.fp-tile[data-wide] .fp-beside .fp-feature .fp-group > .fp-pill {
+.dio-tile[data-wide] .dio-beside .dio-feature .dio-group > .dio-pill {
   flex: none;
   padding: 0 12px;
 }
-.fp-tile[data-wide] .fp-beside .fp-pill-menu {
+.dio-tile[data-wide] .dio-beside .dio-pill-menu {
   max-width: 260px;
 }
 /* Smaller colors, and on a small tile only as many as fit. */
-.fp-beside .fp-swatches {
+.dio-beside .dio-swatches {
   flex: none;
   gap: 8px;
   padding: 4px 0;
 }
-.fp-beside .fp-swatch {
+.dio-beside .dio-swatch {
   flex: none;
   width: 32px;
   height: 32px;
@@ -556,19 +558,19 @@
    word on a pill that stays pressed, the colors past the fourth, and some of the room
    around a range of temperatures. */
 @container (max-width: 220px) {
-  .fp-beside .fp-swatch:nth-child(n + 5) {
+  .dio-beside .dio-swatch:nth-child(n + 5) {
     display: none;
   }
 
-  .fp-beside .fp-feature > .fp-pill-toggle {
+  .dio-beside .dio-feature > .dio-pill-toggle {
     flex: none;
   }
 
-  .fp-beside .fp-pill-toggle .fp-pill-label {
+  .dio-beside .dio-pill-toggle .dio-pill-label {
     display: none;
   }
 
-  .fp-beside .fp-stepper-end {
+  .dio-beside .dio-stepper-end {
     width: auto;
     padding: 0 5px;
     font-size: 15px;
@@ -577,7 +579,7 @@
 
 /* A slim bar of a scale with round ends, and a round handle where the
    value is. */
-.fp-slim {
+.dio-slim {
   position: relative;
   flex: 1 1 auto;
   height: 32px;
@@ -590,12 +592,12 @@
   user-select: none;
 }
 
-.fp-slim:focus-visible {
+.dio-slim:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
 
-.fp-slim-handle {
+.dio-slim-handle {
   position: absolute;
   top: 3px;
   left: calc(3px + var(--_share) * (100% - 32px));
@@ -611,15 +613,15 @@
   transition: left 120ms ease-out;
 }
 
-.fp-slim-dragging .fp-slim-handle {
+.dio-slim-dragging .dio-slim-handle {
   transition: none;
 }
-.fp-slim-idle .fp-slim-handle {
+.dio-slim-idle .dio-slim-handle {
   opacity: 0.4;
 }
 
 /* Round buttons inside a tile, for the wide cover and vacuum tiles. */
-.fp-controls {
+.dio-controls {
   display: flex;
   flex: none;
   gap: 4px;
@@ -629,7 +631,7 @@
   background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
-.fp-control {
+.dio-control {
   display: grid;
   width: 44px;
   height: 44px;
@@ -646,7 +648,7 @@
     transform var(--_duration) ease;
 }
 
-.fp-tile .fp-control > .fp-icon {
+.dio-tile .dio-control > .dio-icon {
   width: 20px;
   height: 20px;
   --mdc-icon-size: 20px;
@@ -657,17 +659,17 @@
    its words over whatever fill it has, so a chosen, colored or filled one
    keeps its look and its contrast. */
 @media (hover: hover) and (pointer: fine) {
-  .fp-control:hover {
+  .dio-control:hover {
     box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 14%, transparent);
   }
 }
 
-.fp-control:active {
+.dio-control:active {
   transform: scale(0.88);
   box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 22%, transparent);
 }
 
-.fp-control:focus-visible {
+.dio-control:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: -2px;
 }
@@ -675,8 +677,8 @@
 /* The minus and plus of a thermostat, with what it aims for between them. */
 /* As wide as the widest temperature it shows, like 99.5°, so it
    keeps its width as the number changes. */
-.fp-stepper-value,
-.fp-stepper-end {
+.dio-stepper-value,
+.dio-stepper-end {
   --_digits: 3.4em;
   flex: none;
   align-self: center;
@@ -688,14 +690,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-.fp-stepper-range {
+.dio-stepper-range {
   display: flex;
   align-items: center;
   gap: 2px;
 }
 
 /* Either end of a range, the one the buttons move filled in. */
-.fp-stepper-end {
+.dio-stepper-end {
   width: calc(var(--_digits) + 20px);
   height: 36px;
   padding: 0 10px;
@@ -711,18 +713,18 @@
     opacity var(--_duration) ease;
 }
 
-.fp-stepper-end[aria-pressed='true'] {
+.dio-stepper-end[aria-pressed='true'] {
   background: color-mix(in srgb, currentColor 16%, transparent);
   opacity: 1;
 }
 
-.fp-stepper-end:focus-visible {
+.dio-stepper-end:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: -2px;
 }
 
 /* The row along the bottom of a wide thermostat, with its modes. */
-.fp-footer {
+.dio-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -730,7 +732,7 @@
   margin: 0 -4px -4px;
 }
 
-.fp-modes {
+.dio-modes {
   display: flex;
   min-width: 0;
   gap: 2px;
@@ -739,25 +741,25 @@
   background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
-.fp-footer .fp-control {
+.dio-footer .dio-control {
   width: 40px;
   height: 40px;
 }
 
 /* The mode it runs in, filled and in the color of that mode. */
-.fp-mode[aria-checked='true'] {
+.dio-mode[aria-checked='true'] {
   color: color-mix(in oklab, var(--_mode-color, currentColor), var(--_ink-to) var(--_deep));
   background: color-mix(in srgb, var(--_mode-color, currentColor) 20%, transparent);
 }
 
-.fp-title {
+.dio-title {
   display: flex;
   align-items: flex-end;
   height: 100%;
   min-height: 40px;
   padding: 4px 4px 2px;
   box-sizing: border-box;
-  color: var(--fp-title-color, var(--primary-text-color, #fff));
+  color: var(--dio-title-color, var(--fp-title-color, var(--primary-text-color, #fff)));
   font-family: var(--_font-title);
   font-size: var(--_title-size);
   font-weight: 700;
@@ -767,7 +769,7 @@
 }
 
 /* The option menu of the select tile, in the top layer over the dashboard. */
-.fp-menu {
+.dio-menu {
   position: fixed;
   inset: auto;
   min-width: 200px;
@@ -778,8 +780,8 @@
   overflow: hidden;
   border: none;
   border-radius: 18px;
-  background: var(--fp-menu-bg, rgba(44, 44, 48, 0.82));
-  color: var(--fp-menu-text, #fff);
+  background: var(--dio-menu-bg, var(--fp-menu-bg, rgba(44, 44, 48, 0.82)));
+  color: var(--dio-menu-text, var(--fp-menu-text, #fff));
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
   -webkit-backdrop-filter: blur(30px) saturate(1.8);
   backdrop-filter: blur(30px) saturate(1.8);
@@ -795,7 +797,7 @@
     display var(--_duration) allow-discrete;
 }
 
-.fp-menu:popover-open {
+.dio-menu:popover-open {
   display: flex;
   flex-direction: column;
   opacity: 1;
@@ -804,7 +806,7 @@
 
 /* The options scroll inside the menu, so the menu's own glass stays put
    while they fade out at its edges. */
-.fp-menu-list {
+.dio-menu-list {
   --_fade: 10px;
   min-height: 0;
   padding: var(--_fade) 6px;
@@ -813,18 +815,18 @@
 }
 
 @starting-style {
-  .fp-menu:popover-open {
+  .dio-menu:popover-open {
     opacity: 0;
     transform: scale(0.94);
   }
 }
 
-:host([data-light]) .fp-menu {
-  background: var(--fp-menu-bg, rgba(250, 250, 252, 0.86));
-  color: var(--fp-menu-text, #1c1c1e);
+:host([data-light]) .dio-menu {
+  background: var(--dio-menu-bg, var(--fp-menu-bg, rgba(250, 250, 252, 0.86)));
+  color: var(--dio-menu-text, var(--fp-menu-text, #1c1c1e));
 }
 
-.fp-option {
+.dio-option {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -840,35 +842,35 @@
   cursor: pointer;
 }
 
-.fp-option > .fp-check {
+.dio-option > .dio-check {
   width: 16px;
   height: 16px;
   flex: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .fp-option:hover {
+  .dio-option:hover {
     box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 10%, transparent);
   }
 }
 
-.fp-option:focus-visible {
+.dio-option:focus-visible {
   background: color-mix(in srgb, currentColor 14%, transparent);
 }
 
-.fp-camera {
+.dio-camera {
   padding: 0;
   min-height: 0;
   background: #000;
 }
 
-.fp-camera-image {
+.dio-camera-image {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-.fp-camera-overlay {
+.dio-camera-overlay {
   position: absolute;
   inset: auto 0 0;
   padding: 28px var(--_padding) var(--_padding);
@@ -878,30 +880,30 @@
 }
 
 /* The weather tile, its background the sky and its type white on it. */
-.fp-weather {
+.dio-weather {
   min-height: 0;
   gap: 6px;
   color: #fff;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 
-.fp-weather > * {
+.dio-weather > * {
   position: relative;
 }
 
-.fp-weather-now {
+.dio-weather-now {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
   gap: 12px;
 }
 
-.fp-weather .fp-name {
+.dio-weather .dio-name {
   font-size: 16px;
   font-weight: 600;
 }
 
-.fp-weather-temp {
+.dio-weather-temp {
   font-size: 50px;
   font-weight: 300;
   line-height: 1;
@@ -909,7 +911,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.fp-weather-sky {
+.dio-weather-sky {
   display: flex;
   align-self: flex-start;
   align-items: center;
@@ -918,35 +920,35 @@
   text-align: right;
 }
 
-.fp-weather-condition {
+.dio-weather-condition {
   font-size: 15px;
   font-weight: 600;
   line-height: 1.25;
   font-variant-numeric: tabular-nums;
 }
 
-.fp-weather-range {
+.dio-weather-range {
   opacity: 0.7;
 }
 
-.fp-weather-icon {
+.dio-weather-icon {
   display: inline-flex;
   color: #fff;
 }
 
-.fp-weather-sky .fp-icon {
+.dio-weather-sky .dio-icon {
   width: 44px;
   height: 44px;
   --mdc-icon-size: 44px;
 }
 
-.fp-weather-steps {
+.dio-weather-steps {
   display: flex;
   justify-content: space-between;
   gap: 4px;
 }
 
-.fp-weather-step {
+.dio-weather-step {
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
@@ -956,52 +958,52 @@
   font-variant-numeric: tabular-nums;
 }
 
-.fp-weather-step .fp-icon {
+.dio-weather-step .dio-icon {
   width: 22px;
   height: 22px;
   --mdc-icon-size: 22px;
 }
 
-.fp-weather-when {
+.dio-weather-when {
   font-size: var(--_state-size);
   font-weight: 600;
   opacity: 0.85;
   white-space: nowrap;
 }
 
-.fp-weather-step-temp {
+.dio-weather-step-temp {
   font-size: 17px;
   font-weight: 600;
 }
 
 /* Small, a square: the temperature under the name, and the sky, the
    high and the low at its foot. */
-.fp-weather-small {
+.dio-weather-small {
   justify-content: space-between;
 }
 
-.fp-weather-small .fp-weather-temp {
+.dio-weather-small .dio-weather-temp {
   font-size: 44px;
 }
 
-.fp-weather-foot {
+.dio-weather-foot {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.fp-weather-foot .fp-icon {
+.dio-weather-foot .dio-icon {
   width: 24px;
   height: 24px;
   --mdc-icon-size: 24px;
 }
 
-.fp-weather-foot .fp-weather-icon {
+.dio-weather-foot .dio-weather-icon {
   margin-bottom: 2px;
 }
 
-.fp-weather-small .fp-weather-condition {
+.dio-weather-small .dio-weather-condition {
   font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1009,12 +1011,12 @@
 }
 
 /* Large, the days under the hours, apart from them by a faint line. */
-.fp-weather-large {
+.dio-weather-large {
   justify-content: flex-start;
   gap: 12px;
 }
 
-.fp-weather-days {
+.dio-weather-days {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -1025,7 +1027,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.fp-weather-day {
+.dio-weather-day {
   display: grid;
   grid-template-columns: 3.4em 28px 2.4em minmax(0, 1fr) 2.4em;
   align-items: center;
@@ -1034,29 +1036,29 @@
   font-weight: 600;
 }
 
-.fp-weather-day .fp-icon {
+.dio-weather-day .dio-icon {
   width: 22px;
   height: 22px;
   --mdc-icon-size: 22px;
 }
 
-.fp-weather-day-name {
+.dio-weather-day-name {
   white-space: nowrap;
 }
 
-.fp-weather-low {
+.dio-weather-low {
   text-align: right;
   opacity: 0.6;
 }
 
-.fp-weather-bar {
+.dio-weather-bar {
   position: relative;
   height: 5px;
   border-radius: 3px;
   background: rgba(0, 0, 0, 0.18);
 }
 
-.fp-weather-bar > span {
+.dio-weather-bar > span {
   position: absolute;
   inset-block: 0;
   border-radius: inherit;
@@ -1064,7 +1066,7 @@
 }
 
 /* The temperature now, on today's bar. */
-.fp-weather-bar > i {
+.dio-weather-bar > i {
   position: absolute;
   top: 50%;
   width: 7px;
@@ -1077,7 +1079,7 @@
 
 /* A feature along the bottom of a tile, at any size: a bar, a menu, a
    switch or a set of buttons, the whole width of the tile. */
-.fp-feature {
+.dio-feature {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
@@ -1085,13 +1087,13 @@
   container-type: inline-size;
 }
 
-.fp-feature > * {
+.dio-feature > * {
   flex: 1 1 auto;
   min-width: 0;
 }
 
 /* Round buttons side by side in one frosted pill, spread out to fill it. */
-.fp-group {
+.dio-group {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1102,7 +1104,7 @@
   background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
-.fp-feature .fp-group > .fp-control {
+.dio-feature .dio-group > .dio-control {
   flex: 1 1 0;
   width: auto;
   min-width: 0;
@@ -1110,11 +1112,11 @@
   height: 38px;
 }
 
-.fp-feature .fp-group:has(> .fp-pill) {
+.dio-feature .dio-group:has(> .dio-pill) {
   gap: 3px;
 }
 
-.fp-group > .fp-pill {
+.dio-group > .dio-pill {
   flex: 1 1 0;
   height: 38px;
   padding: 0 6px;
@@ -1124,18 +1126,18 @@
 /* Pills with a word and no icon, like 25% or 50%, a size smaller once
    there are five of them in a small tile, so each fits whole. */
 @container (max-width: 260px) {
-  .fp-group > .fp-pill {
+  .dio-group > .dio-pill {
     font-size: 13px;
   }
 
-  .fp-group > .fp-pill:has(> .fp-icon) .fp-pill-label {
+  .dio-group > .dio-pill:has(> .dio-icon) .dio-pill-label {
     display: none;
   }
 }
 
 /* A slider: a thick rounded bar that fills from the left as far as its
    value, the value written inside it. */
-.fp-slider {
+.dio-slider {
   position: relative;
   display: flex;
   align-items: center;
@@ -1150,16 +1152,16 @@
   transition: transform var(--_duration) cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.fp-slider-dragging {
+.dio-slider-dragging {
   transform: scaleY(1.06);
 }
 
-.fp-slider:focus-visible {
+.dio-slider:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
 
-.fp-slider-fill {
+.dio-slider-fill {
   position: absolute;
   inset: 0 auto 0 0;
   width: calc(var(--_share) * 100%);
@@ -1167,11 +1169,11 @@
   transition: width 120ms ease-out;
 }
 
-.fp-slider-dragging .fp-slider-fill {
+.dio-slider-dragging .dio-slider-fill {
   transition: none;
 }
 
-.fp-slider-label {
+.dio-slider-label {
   position: relative;
   display: flex;
   align-items: center;
@@ -1185,12 +1187,12 @@
   pointer-events: none;
 }
 
-.fp-slider-label > span {
+.dio-slider-label > span {
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.fp-tile .fp-slider-label > .fp-icon {
+.dio-tile .dio-slider-label > .dio-icon {
   width: 20px;
   height: 20px;
   --mdc-icon-size: 20px;
@@ -1199,26 +1201,26 @@
 
 /* The words again in another color, cut to the part of the bar that is
    filled, so they read over a fill as light or as dark as they are. */
-.fp-slider-ink {
+.dio-slider-ink {
   position: absolute;
   inset: 0;
   clip-path: inset(0 calc((1 - var(--_share)) * 100%) 0 0);
   transition: clip-path 120ms ease-out;
 }
 
-.fp-slider-dragging .fp-slider-ink {
+.dio-slider-dragging .dio-slider-ink {
   transition: none;
 }
 
 /* A bar that is a scale of its own, like a rainbow, shows a knob where its
    value is, its words in white over the colors. */
-.fp-slider-scale {
+.dio-slider-scale {
   background: var(--_track);
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
-.fp-slider-knob {
+.dio-slider-knob {
   position: absolute;
   top: 5px;
   bottom: 5px;
@@ -1232,12 +1234,12 @@
   transition: left 120ms ease-out;
 }
 
-.fp-slider-dragging .fp-slider-knob {
+.dio-slider-dragging .dio-slider-knob {
   transition: none;
 }
 
 /* A pill with words, for a menu, a switch or an action. */
-.fp-pill {
+.dio-pill {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1262,7 +1264,7 @@
     transform var(--_duration) ease;
 }
 
-.fp-tile .fp-pill > .fp-icon {
+.dio-tile .dio-pill > .dio-icon {
   width: 20px;
   height: 20px;
   --mdc-icon-size: 20px;
@@ -1271,50 +1273,50 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .fp-pill:not(:disabled):hover {
+  .dio-pill:not(:disabled):hover {
     box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 7%, transparent);
   }
 }
 
-.fp-pill:not(:disabled):active {
+.dio-pill:not(:disabled):active {
   transform: scale(0.96);
   box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 14%, transparent);
 }
 
-.fp-pill:focus-visible {
+.dio-pill:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: -2px;
 }
 
-.fp-pill:disabled {
+.dio-pill:disabled {
   cursor: default;
   opacity: 0.55;
 }
 
-.fp-pill-label,
-.fp-pill-value {
+.dio-pill-label,
+.dio-pill-value {
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 /* A menu names what it picks in a dimmer weight, then the choice. */
-.fp-pill-menu {
+.dio-pill-menu {
   justify-content: flex-start;
 }
 
-.fp-pill-menu .fp-pill-label {
+.dio-pill-menu .dio-pill-label {
   flex: none;
   font-weight: 500;
   opacity: var(--_secondary);
 }
 
-.fp-pill-menu .fp-pill-value {
+.dio-pill-menu .dio-pill-value {
   flex: 1 1 auto;
   min-width: 0;
   text-align: left;
 }
 
-.fp-tile .fp-pill > .fp-pill-caret {
+.dio-tile .dio-pill > .dio-pill-caret {
   width: 14px;
   height: 14px;
   opacity: var(--_secondary);
@@ -1323,37 +1325,37 @@
 /* A narrow tile has room for the choice only, or for what the menu picks
    while nothing is chosen, like a fan running at a speed of its own. */
 @container (max-width: 220px) {
-  .fp-pill-menu:not([data-empty]) .fp-pill-label {
+  .dio-pill-menu:not([data-empty]) .dio-pill-label {
     display: none;
   }
 
-  .fp-pill-menu[data-empty] .fp-pill-label {
+  .dio-pill-menu[data-empty] .dio-pill-label {
     flex: 1 1 auto;
     text-align: left;
   }
 }
 
 /* A pill that does what a button does lights up the same way. */
-.fp-pill-action[data-flash='lit'] {
+.dio-pill-action[data-flash='lit'] {
   background-color: var(--_bg-active);
   color: var(--_text-active);
 }
 
-.fp-pill-action[data-flash='fading'] {
+.dio-pill-action[data-flash='fading'] {
   --_duration: 1000ms;
 }
 
 /* A pill that stays pressed while what it says is on, filled in the color
    of its words, with the words in the color of the tile. */
-.fp-pill-toggle[aria-pressed='true'] {
+.dio-pill-toggle[aria-pressed='true'] {
   background: currentColor;
 }
 
-.fp-tile .fp-pill-toggle[aria-pressed='true'] > * {
+.dio-tile .dio-pill-toggle[aria-pressed='true'] > * {
   color: var(--_text-active);
 }
 
-.fp-tile[data-active] .fp-pill-toggle[aria-pressed='true'] > * {
+.dio-tile[data-active] .dio-pill-toggle[aria-pressed='true'] > * {
   color: var(--_text-inactive);
 }
 
@@ -1361,43 +1363,43 @@
    and the finger it lets a little of the tile through instead, little
    enough for the words to stay readable. */
 @media (hover: hover) and (pointer: fine) {
-  .fp-pill-toggle[aria-pressed='true']:not(:disabled):hover {
+  .dio-pill-toggle[aria-pressed='true']:not(:disabled):hover {
     background: color-mix(in srgb, currentColor 80%, transparent);
     box-shadow: none;
   }
 }
 
-.fp-pill-toggle[aria-pressed='true']:not(:disabled):active {
+.dio-pill-toggle[aria-pressed='true']:not(:disabled):active {
   background: color-mix(in srgb, currentColor 70%, transparent);
   box-shadow: none;
 }
 
 /* One of a set, like the position of a lock, filled while it is the one. */
-.fp-pill[aria-checked='true'] {
+.dio-pill[aria-checked='true'] {
   background: color-mix(in srgb, currentColor 22%, transparent);
 }
 
-.fp-group > .fp-pill[aria-checked='true'] {
+.dio-group > .dio-pill[aria-checked='true'] {
   background: var(--_bg-chosen, color-mix(in srgb, currentColor 18%, transparent));
 }
 
 /* The action a sheet is for, like Disarm, in the accent. */
-.fp-pill-primary:not(:disabled) {
+.dio-pill-primary:not(:disabled) {
   background: color-mix(in oklab, var(--_accent), black 15%);
   color: #fff;
 }
 
 /* A stepper fills its pill: minus on the left, plus on the right. */
-.fp-stepper > .fp-stepper-value,
-.fp-feature .fp-group > .fp-stepper-value,
-.fp-feature .fp-group > .fp-stepper-range {
+.dio-stepper > .dio-stepper-value,
+.dio-feature .dio-group > .dio-stepper-value,
+.dio-feature .dio-group > .dio-stepper-range {
   flex: 1 1 auto;
   width: auto;
   justify-content: center;
 }
 
 /* A few colors a press away. */
-.fp-swatches {
+.dio-swatches {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1405,7 +1407,7 @@
   padding: 3px;
 }
 
-.fp-swatch {
+.dio-swatch {
   flex: 0 1 38px;
   aspect-ratio: 1;
   min-width: 0;
@@ -1418,17 +1420,17 @@
   transition: transform var(--_duration) ease;
 }
 
-.fp-swatch:active {
+.dio-swatch:active {
   transform: scale(0.88);
 }
 
-.fp-swatch:focus-visible {
+.dio-swatch:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
 
 /* The line of a reading's last day along the bottom of a tile. */
-.fp-sparkline {
+.dio-sparkline {
   display: block;
   width: 100%;
   height: 44px;
@@ -1436,17 +1438,17 @@
   overflow: visible;
 }
 
-.fp-feature-date {
+.dio-feature-date {
   position: relative;
   display: flex;
 }
 
-.fp-feature-date > .fp-pill {
+.dio-feature-date > .dio-pill {
   flex: 1 1 auto;
 }
 
 /* The native picker opens from a field no one sees, under its pill. */
-.fp-hidden-input {
+.dio-hidden-input {
   position: absolute;
   inset: auto 0 0;
   width: 100%;
@@ -1459,7 +1461,7 @@
 
 /* A sheet in the middle of the screen, over the dashboard, like the keypad
    an alarm asks for its code with. */
-.fp-sheet {
+.dio-sheet {
   position: fixed;
   inset: 0;
   width: min(340px, calc(100vw - 32px));
@@ -1468,8 +1470,8 @@
   padding: 22px 20px 20px;
   border: none;
   border-radius: 28px;
-  background: var(--fp-menu-bg, rgba(44, 44, 48, 0.86));
-  color: var(--fp-menu-text, #fff);
+  background: var(--dio-menu-bg, var(--fp-menu-bg, rgba(44, 44, 48, 0.86)));
+  color: var(--dio-menu-text, var(--fp-menu-text, #fff));
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
   -webkit-backdrop-filter: blur(30px) saturate(1.8);
   backdrop-filter: blur(30px) saturate(1.8);
@@ -1483,28 +1485,28 @@
     display var(--_duration) allow-discrete;
 }
 
-.fp-sheet:popover-open {
+.dio-sheet:popover-open {
   opacity: 1;
   transform: none;
 }
 
 @starting-style {
-  .fp-sheet:popover-open {
+  .dio-sheet:popover-open {
     opacity: 0;
     transform: scale(0.94);
   }
 }
 
-.fp-sheet::backdrop {
+.dio-sheet::backdrop {
   background: rgba(0, 0, 0, 0.35);
 }
 
-:host([data-light]) .fp-sheet {
-  background: var(--fp-menu-bg, rgba(250, 250, 252, 0.9));
-  color: var(--fp-menu-text, #1c1c1e);
+:host([data-light]) .dio-sheet {
+  background: var(--dio-menu-bg, var(--fp-menu-bg, rgba(250, 250, 252, 0.9)));
+  color: var(--dio-menu-text, var(--fp-menu-text, #1c1c1e));
 }
 
-.fp-sheet-title {
+.dio-sheet-title {
   margin-bottom: 4px;
   font-size: 17px;
   font-weight: 600;
@@ -1512,7 +1514,7 @@
 }
 
 /* The keypad: the code as dots, round keys three across, and the action. */
-.fp-keypad {
+.dio-keypad {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1520,7 +1522,7 @@
   width: 100%;
 }
 
-.fp-keypad-dots {
+.dio-keypad-dots {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1528,27 +1530,27 @@
   height: 28px;
 }
 
-.fp-keypad-hint {
+.dio-keypad-hint {
   font-size: 15px;
   font-weight: 500;
   opacity: var(--_secondary);
 }
 
-.fp-keypad-dot {
+.dio-keypad-dot {
   width: 12px;
   height: 12px;
   border-radius: 999px;
   background: currentColor;
 }
 
-.fp-keypad-keys {
+.dio-keypad-keys {
   display: grid;
   grid-template-columns: repeat(3, 72px);
   gap: 14px 22px;
   justify-content: center;
 }
 
-.fp-key {
+.dio-key {
   display: grid;
   width: 72px;
   height: 72px;
@@ -1566,31 +1568,31 @@
   transition: background-color 120ms ease;
 }
 
-.fp-key:active {
+.dio-key:active {
   background: color-mix(in srgb, currentColor 32%, transparent);
 }
 
-.fp-key:focus-visible {
+.dio-key:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
 
-.fp-key-plain {
+.dio-key-plain {
   background: transparent;
 }
 
-.fp-key:disabled {
+.dio-key:disabled {
   opacity: 0.3;
   cursor: default;
 }
 
-.fp-key > .fp-icon {
+.dio-key > .dio-icon {
   width: 26px;
   height: 26px;
   --mdc-icon-size: 26px;
 }
 
-.fp-keypad-field {
+.dio-keypad-field {
   width: 100%;
   height: 44px;
   padding: 0 16px;
@@ -1602,13 +1604,13 @@
   font-size: 17px;
 }
 
-.fp-keypad-actions {
+.dio-keypad-actions {
   display: flex;
   gap: 10px;
   width: 100%;
 }
 
-.fp-keypad-actions > .fp-pill {
+.dio-keypad-actions > .dio-pill {
   flex: 1 1 0;
 }
 
@@ -1616,28 +1618,28 @@
    as tall as what it holds, the icon in the top left, its buttons in the
    top right on one round, the name and the state in the bottom left and
    what it shows in the bottom right. */
-.fp-card {
+.dio-card {
   height: 100%;
 }
 
-.fp-card > .fp-tile {
+.dio-card > .dio-tile {
   height: auto;
   min-height: 100%;
 }
 
-.fp-card .fp-controls > .fp-group {
+.dio-card .dio-controls > .dio-group {
   padding: 0;
   background: none;
 }
 
-.fp-card .fp-aside {
+.dio-card .dio-aside {
   margin: 0;
 }
 
 /* Beside a dial, the name and the state are never cut short. Where they
    run longer than the room it leaves them, they go on over it, in front,
    and let a drag through to what is under them. */
-.fp-big-dial .fp-bottom > .fp-text {
+.dio-big-dial .dio-bottom > .dio-text {
   position: relative;
   z-index: 1;
   flex: 1 1 0;
@@ -1645,7 +1647,7 @@
   pointer-events: none;
 }
 
-.fp-big-dial .fp-bottom :is(.fp-name, .fp-state) {
+.dio-big-dial .dio-bottom :is(.dio-name, .dio-state) {
   display: block;
   overflow: visible;
   white-space: nowrap;
@@ -1655,18 +1657,18 @@
 /* A card of a set height, like the calendar or the graph, gives what it
    shows all the height under the icon, and as much of the width as it
    can leave the name. */
-.fp-card:is(.fp-calendar, .fp-graph, .fp-todo) .fp-bottom {
+.dio-card:is(.dio-calendar, .dio-graph, .dio-todo) .dio-bottom {
   flex: 1;
   min-height: 0;
   align-items: stretch;
 }
 
-.fp-card:is(.fp-calendar, .fp-graph, .fp-todo) .fp-bottom > .fp-text {
+.dio-card:is(.dio-calendar, .dio-graph, .dio-todo) .dio-bottom > .dio-text {
   flex: 1 1 30%;
   align-self: flex-end;
 }
 
-.fp-card:is(.fp-calendar, .fp-graph, .fp-todo) .fp-aside {
+.dio-card:is(.dio-calendar, .dio-graph, .dio-todo) .dio-aside {
   flex: 0 1 62%;
   flex-direction: column;
   gap: 10px;
@@ -1676,101 +1678,101 @@
 
 /* The calendar's agenda and the to-do list take the whole width instead,
    under the icon, and end just over the name. */
-.fp-card:is(.fp-calendar, .fp-todo) .fp-bottom {
+.dio-card:is(.dio-calendar, .dio-todo) .dio-bottom {
   flex-direction: column-reverse;
   gap: 2px;
   margin-top: 12px;
 }
 
-:is(.fp-calendar .fp-agenda, .fp-todo-body) {
+:is(.dio-calendar .dio-agenda, .dio-todo-body) {
   --_fade: 14px;
   margin-top: calc(-1 * var(--_fade));
   padding-top: var(--_fade);
   padding-bottom: var(--_fade);
 }
 
-.fp-card:is(.fp-calendar, .fp-todo) .fp-bottom > .fp-text {
+.dio-card:is(.dio-calendar, .dio-todo) .dio-bottom > .dio-text {
   flex: none;
   align-self: stretch;
 }
 
-.fp-card:is(.fp-calendar, .fp-todo) .fp-aside {
+.dio-card:is(.dio-calendar, .dio-todo) .dio-aside {
   flex: 1;
 }
 
 /* How far back the graph goes, plain in the top right. */
-.fp-graph .fp-controls {
+.dio-graph .dio-controls {
   margin: 0;
   padding: 0;
   background: none;
 }
 
-.fp-graph-range {
+.dio-graph-range {
   font-size: var(--_state-size);
   font-weight: 600;
   opacity: var(--_secondary);
 }
 
 /* A mode picked to wait for the code, its fill pulsing until it is sent. */
-.fp-mode-picked {
-  animation: fp-waiting 1.4s ease-in-out infinite;
+.dio-mode-picked {
+  animation: dio-waiting 1.4s ease-in-out infinite;
 }
 
-@keyframes fp-waiting {
+@keyframes dio-waiting {
   50% {
     background: color-mix(in srgb, var(--_mode-color, currentColor) 8%, transparent);
   }
 }
 
 /* A button that cannot be pressed for now, like the modes of an armed alarm. */
-.fp-control:disabled {
+.dio-control:disabled {
   opacity: 0.3;
   cursor: default;
 }
 
 /* A keypad on a tile: smaller keys, packed to the right. */
-.fp-keypad-compact {
+.dio-keypad-compact {
   gap: 10px;
   width: auto;
 }
 
-.fp-keypad-compact .fp-keypad-dots {
+.dio-keypad-compact .dio-keypad-dots {
   height: 20px;
   gap: 10px;
 }
 
-.fp-keypad-compact .fp-keypad-hint {
+.dio-keypad-compact .dio-keypad-hint {
   font-size: var(--_state-size);
 }
 
-.fp-keypad-compact .fp-keypad-dot {
+.dio-keypad-compact .dio-keypad-dot {
   width: 10px;
   height: 10px;
 }
 
-.fp-keypad-compact .fp-keypad-keys {
+.dio-keypad-compact .dio-keypad-keys {
   grid-template-columns: repeat(3, 52px);
   gap: 8px 12px;
 }
 
-.fp-keypad-compact .fp-key {
+.dio-keypad-compact .dio-key {
   width: 52px;
   height: 52px;
   font-size: 22px;
 }
 
-.fp-keypad-compact .fp-key > .fp-icon {
+.dio-keypad-compact .dio-key > .dio-icon {
   width: 22px;
   height: 22px;
   --mdc-icon-size: 22px;
 }
 
-.fp-keypad-compact .fp-keypad-field {
+.dio-keypad-compact .dio-keypad-field {
   width: 200px;
 }
 
 /* The code large in the middle of the left half, over the name. */
-.fp-alarm .fp-keypad-dots {
+.dio-alarm .dio-keypad-dots {
   position: absolute;
   top: 50%;
   left: var(--_padding);
@@ -1779,12 +1781,12 @@
   transform: translateY(-50%);
 }
 
-.fp-alarm .fp-keypad-dot {
+.dio-alarm .dio-keypad-dot {
   width: 16px;
   height: 16px;
 }
 
-.fp-alarm .fp-keypad-compact .fp-keypad-hint {
+.dio-alarm .dio-keypad-compact .dio-keypad-hint {
   max-width: 140px;
   font-size: 20px;
   font-weight: 600;
@@ -1793,22 +1795,22 @@
 
 /* The key that sends the code, in the color of what it does once there is
    a code to send, faint in it before. */
-.fp-key-go {
+.dio-key-go {
   color: var(--_go-color, inherit);
 }
 
-.fp-key-go:not(:disabled) {
+.dio-key-go:not(:disabled) {
   background: color-mix(in oklab, var(--_go-color, var(--_tile-accent, var(--_accent))), black 15%);
   color: #fff;
 }
 
 /* White on its fill, even on a lit tile whose icons take its color. */
-.fp-tile .fp-key-go:not(:disabled) > .fp-icon {
+.dio-tile .dio-key-go:not(:disabled) > .dio-icon {
   color: inherit;
 }
 
 /* A link like button, for Clear. */
-.fp-link {
+.dio-link {
   padding: 4px 8px;
   margin: -4px -8px;
   border: none;
@@ -1821,19 +1823,19 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .fp-link:hover {
+  .dio-link:hover {
     box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 12%, transparent);
   }
 }
 
-.fp-link:focus-visible {
+.dio-link:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: -2px;
 }
 
 /* The calendar: a day by day agenda, each day a small heading over its
    events, each event a rounded row with a bar in its calendar's color. */
-:is(.fp-agenda, .fp-todo-body) {
+:is(.dio-agenda, .dio-todo-body) {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1848,38 +1850,38 @@
 /* Whatever scrolls fades out at its top and bottom edges rather than
    being cut off there, and keeps as much room inside those edges, so its
    first and last rows show whole once it is scrolled to either end. */
-:is(.fp-agenda, .fp-todo-body, .fp-menu-list) {
+:is(.dio-agenda, .dio-todo-body, .dio-menu-list) {
   mask-image: linear-gradient(to bottom, transparent, #000 var(--_fade), #000 calc(100% - var(--_fade)), transparent);
 }
 
 /* A thin quiet scrollbar in the text's color with no track. */
-:is(.fp-agenda, .fp-todo-body, .fp-menu-list) {
+:is(.dio-agenda, .dio-todo-body, .dio-menu-list) {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, currentColor 22%, transparent) transparent;
 }
 
 /* Where the standard colors are not read, a thin rounded thumb of the
    same color with no track, in the gap the agenda keeps on its right. */
-:is(.fp-agenda, .fp-todo-body, .fp-menu-list)::-webkit-scrollbar {
+:is(.dio-agenda, .dio-todo-body, .dio-menu-list)::-webkit-scrollbar {
   width: 4px;
 }
 
-:is(.fp-agenda, .fp-todo-body, .fp-menu-list)::-webkit-scrollbar-track {
+:is(.dio-agenda, .dio-todo-body, .dio-menu-list)::-webkit-scrollbar-track {
   background: transparent;
 }
 
-:is(.fp-agenda, .fp-todo-body, .fp-menu-list)::-webkit-scrollbar-thumb {
+:is(.dio-agenda, .dio-todo-body, .dio-menu-list)::-webkit-scrollbar-thumb {
   border-radius: 2px;
   background: color-mix(in srgb, currentColor 22%, transparent);
 }
 
-.fp-agenda-section {
+.dio-agenda-section {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.fp-agenda-day {
+.dio-agenda-day {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1887,12 +1889,12 @@
   opacity: var(--_secondary);
 }
 
-.fp-agenda-day[data-today] {
+.dio-agenda-day[data-today] {
   color: color-mix(in oklab, var(--_tile-accent, var(--_accent)), var(--_ink-to) var(--_deep-text));
   opacity: 1;
 }
 
-.fp-agenda-event {
+.dio-agenda-event {
   padding: 10px 12px;
   border-radius: 14px;
   background: var(--_event-bg);
@@ -1900,35 +1902,35 @@
 
 /* Each event is tinted in its calendar's color, a little darker than the
    card behind it so it never reads lighter than the card. */
-.fp-agenda-event {
+.dio-agenda-event {
   --_event-bg: color-mix(in srgb, var(--_event, currentColor) 14%, transparent);
   --_event-now: color-mix(in srgb, var(--_event, currentColor) 34%, transparent);
 }
 
-:host([data-light]) .fp-agenda-event {
+:host([data-light]) .dio-agenda-event {
   --_event-bg: color-mix(in srgb, var(--_event, currentColor) 22%, transparent);
   --_event-now: color-mix(in srgb, var(--_event, currentColor), #000 12%);
 }
 
 /* On a light dashboard the event going on now is its color itself, with
    white words, the way a tile that is on is dark there. */
-:host([data-light]) .fp-agenda-event[data-now] {
+:host([data-light]) .dio-agenda-event[data-now] {
   color: #fff;
 }
 
-.fp-agenda-event[data-now] {
+.dio-agenda-event[data-now] {
   background: var(--_event-now);
 }
 
 /* The events that last all day: just their names, in plain grey round
    pills over the day's other events. */
-.fp-agenda-pills {
+.dio-agenda-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.fp-agenda-pill {
+.dio-agenda-pill {
   max-width: 100%;
   overflow: hidden;
   padding: 6px 12px;
@@ -1940,7 +1942,7 @@
   text-overflow: ellipsis;
 }
 
-.fp-agenda-title {
+.dio-agenda-title {
   overflow: hidden;
   font-size: 15px;
   font-weight: 600;
@@ -1949,7 +1951,7 @@
   text-overflow: ellipsis;
 }
 
-.fp-agenda-time {
+.dio-agenda-time {
   overflow: hidden;
   font-size: 13px;
   font-weight: 500;
@@ -1959,8 +1961,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.fp-agenda-empty,
-.fp-graph-empty {
+.dio-agenda-empty,
+.dio-graph-empty {
   display: grid;
   place-items: center;
   min-height: 80px;
@@ -1971,7 +1973,7 @@
 
 /* The to-do list: a field to add to, then the rows, each with a round box
    to tick. A ticked row fades and is struck through. */
-.fp-todo-add {
+.dio-todo-add {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1980,7 +1982,7 @@
   background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
-.fp-todo-field {
+.dio-todo-field {
   flex: 1;
   min-width: 0;
   height: 38px;
@@ -1993,26 +1995,26 @@
   font-size: 15px;
 }
 
-.fp-todo-field::placeholder {
+.dio-todo-field::placeholder {
   color: inherit;
   opacity: 0.5;
 }
 
-.fp-todo-add > .fp-control {
+.dio-todo-add > .dio-control {
   width: 38px;
   height: 38px;
   background: var(--_tile-accent, var(--_accent));
   color: #fff;
 }
 
-.fp-todo-add > .fp-control:disabled {
+.dio-todo-add > .dio-control:disabled {
   background: color-mix(in srgb, currentColor 14%, transparent);
   color: inherit;
   opacity: 0.5;
   cursor: default;
 }
 
-.fp-todo-list {
+.dio-todo-list {
   display: flex;
   flex-direction: column;
   margin: 0;
@@ -2020,38 +2022,38 @@
   list-style: none;
 }
 
-.fp-todo-item {
+.dio-todo-item {
   display: flex;
   align-items: center;
   gap: 12px;
   min-height: 44px;
 }
 
-.fp-todo-text {
+.dio-todo-text {
   flex: 1;
   min-width: 0;
   padding: 8px 0;
 }
 
-.fp-todo-summary {
+.dio-todo-summary {
   font-size: 15px;
   font-weight: 500;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
-.fp-todo-due {
+.dio-todo-due {
   font-size: 12px;
   font-weight: 500;
   opacity: var(--_secondary);
 }
 
-.fp-todo-item[data-done] .fp-todo-text {
+.dio-todo-item[data-done] .dio-todo-text {
   text-decoration: line-through;
   opacity: var(--_secondary);
 }
 
-.fp-todo-head {
+.dio-todo-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2062,18 +2064,18 @@
   letter-spacing: 0.04em;
 }
 
-.fp-todo-head > span {
+.dio-todo-head > span {
   opacity: var(--_secondary);
 }
 
-.fp-todo-head > .fp-link {
+.dio-todo-head > .dio-link {
   text-transform: none;
   letter-spacing: 0;
   font-size: 14px;
 }
 
 /* A round box to tick, filled in the accent once ticked. */
-.fp-todo-item > .fp-check {
+.dio-todo-item > .dio-check {
   display: grid;
   flex: none;
   width: 24px;
@@ -2091,28 +2093,28 @@
     transform var(--_duration) ease;
 }
 
-.fp-todo-item > .fp-check[aria-checked='true'] {
+.dio-todo-item > .dio-check[aria-checked='true'] {
   border-color: var(--_tile-accent, var(--_accent));
   background: var(--_tile-accent, var(--_accent));
   color: #1c1c1e;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .fp-todo-item > .fp-check:not(:disabled):hover {
+  .dio-todo-item > .dio-check:not(:disabled):hover {
     border-color: var(--_tile-accent, var(--_accent));
   }
 }
 
-.fp-todo-item > .fp-check:active {
+.dio-todo-item > .dio-check:active {
   transform: scale(0.88);
 }
 
-.fp-todo-item > .fp-check:focus-visible {
+.dio-todo-item > .dio-check:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
 
-.fp-tile .fp-todo-item > .fp-check > .fp-icon {
+.dio-tile .dio-todo-item > .dio-check > .dio-icon {
   width: 14px;
   height: 14px;
   --mdc-icon-size: 14px;
@@ -2121,11 +2123,11 @@
 
 /* The graph: the chart fills the rest of the card, in the accent, with the
    highest and lowest values up its side and the hours under it. */
-.fp-graph {
+.dio-graph {
   height: 100%;
 }
 
-.fp-graph-chart {
+.dio-graph-chart {
   position: relative;
   display: flex;
   flex: 1;
@@ -2135,14 +2137,14 @@
   color: color-mix(in oklab, var(--_tile-accent, var(--_accent)), var(--_ink-to) var(--_deep));
 }
 
-.fp-graph-chart > svg {
+.dio-graph-chart > svg {
   flex: 1;
   width: 100%;
   min-height: 0;
   overflow: visible;
 }
 
-.fp-graph-scale {
+.dio-graph-scale {
   position: absolute;
   top: 0;
   right: 0;
@@ -2154,28 +2156,28 @@
   pointer-events: none;
 }
 
-.fp-graph-scale > span,
-.fp-graph-axis {
+.dio-graph-scale > span,
+.dio-graph-axis {
   color: var(--_text-inactive);
   font-size: 11px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-.fp-graph-scale > span {
+.dio-graph-scale > span {
   padding: 1px 6px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--_bg-inactive) 80%, transparent);
   opacity: 0.8;
 }
 
-.fp-graph-axis {
+.dio-graph-axis {
   display: flex;
   justify-content: space-between;
   opacity: var(--_secondary);
 }
 
-.fp-bars {
+.dio-bars {
   display: flex;
   flex: 1;
   align-items: stretch;
@@ -2183,7 +2185,7 @@
   min-height: 72px;
 }
 
-.fp-bar {
+.dio-bar {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -2192,7 +2194,7 @@
   gap: 6px;
 }
 
-.fp-bar-fill {
+.dio-bar-fill {
   display: block;
   border-radius: 6px;
   background: currentColor;
@@ -2200,11 +2202,11 @@
   transition: height 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.fp-bar:last-child .fp-bar-fill {
+.dio-bar:last-child .dio-bar-fill {
   opacity: 1;
 }
 
-.fp-bar-day {
+.dio-bar-day {
   color: var(--_text-inactive);
   font-size: 11px;
   font-weight: 600;
@@ -2212,11 +2214,11 @@
   opacity: var(--_secondary);
 }
 
-.fp-timeline-chart {
+.dio-timeline-chart {
   justify-content: flex-end;
 }
 
-.fp-timeline {
+.dio-timeline {
   position: relative;
   height: 32px;
   overflow: hidden;
@@ -2224,17 +2226,17 @@
   background: color-mix(in srgb, var(--_text-inactive) 10%, transparent);
 }
 
-.fp-timeline-span {
+.dio-timeline-span {
   position: absolute;
   top: 0;
   bottom: 0;
 }
 
-.fp-timeline-span[data-on] {
+.dio-timeline-span[data-on] {
   background: currentColor;
 }
 
-.fp-timeline-span[data-off] {
+.dio-timeline-span[data-off] {
   background: repeating-linear-gradient(
     -45deg,
     color-mix(in srgb, var(--_text-inactive) 18%, transparent) 0 4px,
@@ -2243,37 +2245,37 @@
 }
 
 /* The gauge: a small ring open at the bottom, across from the name. */
-.fp-gauge-ring {
+.dio-gauge-ring {
   width: 64px;
   height: 59px;
   color: color-mix(in oklab, var(--_tile-accent, var(--_accent)), var(--_ink-to) var(--_deep));
 }
 
-.fp-gauge-track,
-.fp-gauge-fill {
+.dio-gauge-track,
+.dio-gauge-fill {
   fill: none;
   stroke-width: 12;
   stroke-linecap: round;
 }
 
-.fp-gauge-track {
+.dio-gauge-track {
   stroke: color-mix(in srgb, currentColor 18%, transparent);
 }
 
-.fp-gauge-fill {
+.dio-gauge-fill {
   stroke: currentColor;
   transition: stroke-dasharray 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* A card of a set height stays that tall. */
-.fp-card:is(.fp-calendar, .fp-graph, .fp-gauge, .fp-map) > .fp-tile {
+.dio-card:is(.dio-calendar, .dio-graph, .dio-gauge, .dio-map) > .dio-tile {
   height: 100%;
 }
 
 /* The dial: a big ring to drag, open at the bottom, with what it aims for
    in its middle and the plus over the minus on its left. The ring reaches
    down into its open bottom, so it takes the height the buttons left. */
-.fp-dial {
+.dio-dial {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -2283,22 +2285,22 @@
 
 /* A stretch with a color of its own, like the heat and the cool ends of a
    range, deepens it the same way the ring's color is. */
-.fp-dial-segment[style*='--_segment'] {
+.dio-dial-segment[style*='--_segment'] {
   color: color-mix(in oklab, var(--_segment), var(--_ink-to) var(--_deep));
 }
 
-.fp-dial-face {
+.dio-dial-face {
   display: grid;
   justify-items: center;
   align-items: center;
 }
 
-.fp-dial-ring,
-.fp-dial-center {
+.dio-dial-ring,
+.dio-dial-center {
   grid-area: 1 / 1;
 }
 
-.fp-dial-ring {
+.dio-dial-ring {
   width: 224px;
   aspect-ratio: 1;
   overflow: visible;
@@ -2307,22 +2309,22 @@
   outline: none;
 }
 
-.fp-dial[data-dragging] .fp-dial-ring {
+.dio-dial[data-dragging] .dio-dial-ring {
   cursor: grabbing;
 }
 
-.fp-dial-track,
-.fp-dial-fill {
+.dio-dial-track,
+.dio-dial-fill {
   fill: none;
   stroke-width: 18;
   stroke-linecap: round;
 }
 
-.fp-dial-track {
+.dio-dial-track {
   stroke: color-mix(in srgb, currentColor 14%, transparent);
 }
 
-.fp-dial-fill {
+.dio-dial-fill {
   stroke: currentColor;
   transition:
     stroke-dasharray var(--_duration) ease,
@@ -2330,36 +2332,36 @@
     stroke var(--_duration) ease;
 }
 
-.fp-dial[data-dragging] .fp-dial-fill {
+.dio-dial[data-dragging] .dio-dial-fill {
   transition: none;
 }
 
-.fp-dial[data-off] .fp-dial-fill {
+.dio-dial[data-off] .dio-dial-fill {
   stroke: color-mix(in srgb, var(--_text-inactive) 40%, transparent);
 }
 
 /* The stretch between where the room is now and where it is heading, paler
    than the fill, with arrows along it that point at the knob and light up
    one after another toward it. */
-.fp-dial-toward {
+.dio-dial-toward {
   fill: none;
   stroke: color-mix(in srgb, currentColor 36%, transparent);
   stroke-width: 18;
   stroke-linecap: round;
 }
 
-.fp-dial-arrow {
+.dio-dial-arrow {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.25;
-  animation: fp-dial-run 1.4s ease-in-out infinite;
+  animation: dio-dial-run 1.4s ease-in-out infinite;
   animation-delay: calc(var(--_i) * 0.12s);
 }
 
-@keyframes fp-dial-run {
+@keyframes dio-dial-run {
   30% {
     opacity: 0.7;
   }
@@ -2369,30 +2371,30 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fp-dial-arrow {
+  .dio-dial-arrow {
     opacity: 0.55;
     animation: none;
   }
 }
 
-.fp-dial[data-dragging] .fp-dial-toward,
-.fp-dial[data-dragging] .fp-dial-arrow {
+.dio-dial[data-dragging] .dio-dial-toward,
+.dio-dial[data-dragging] .dio-dial-arrow {
   opacity: 0.6;
   animation: none;
 }
 
 /* Where the room is now, while it is not heading anywhere: a small dot,
    faint on the track and white on the fill. */
-.fp-dial-mark {
+.dio-dial-mark {
   fill: color-mix(in srgb, currentColor 55%, transparent);
   pointer-events: none;
 }
 
-.fp-dial-mark[data-on-fill] {
+.dio-dial-mark[data-on-fill] {
   fill: rgb(255 255 255 / 0.85);
 }
 
-.fp-dial-knob {
+.dio-dial-knob {
   fill: #fff;
   stroke: color-mix(in srgb, #000 12%, transparent);
   stroke-width: 1;
@@ -2400,12 +2402,12 @@
   transition: r var(--_duration) ease;
 }
 
-.fp-dial-ring:focus-visible .fp-dial-knob[data-active],
-.fp-dial[data-dragging] .fp-dial-knob[data-active] {
+.dio-dial-ring:focus-visible .dio-dial-knob[data-active],
+.dio-dial[data-dragging] .dio-dial-knob[data-active] {
   r: 13;
 }
 
-.fp-dial-center {
+.dio-dial-center {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2413,13 +2415,13 @@
   pointer-events: none;
 }
 
-.fp-dial-label {
+.dio-dial-label {
   font-size: 13px;
   font-weight: 600;
   opacity: var(--_secondary);
 }
 
-.fp-dial-value {
+.dio-dial-value {
   display: flex;
   align-items: baseline;
   justify-content: center;
@@ -2433,30 +2435,30 @@
 
 /* A range stacks its two ends, the top one over the bottom one, like the
    ring they sit in. */
-.fp-dial[data-range] .fp-dial-value {
+.dio-dial[data-range] .dio-dial-value {
   flex-direction: column-reverse;
   align-items: center;
   gap: 2px;
 }
 
-.fp-dial-value > span {
+.dio-dial-value > span {
   min-width: var(--_digits);
   text-align: center;
 }
 
 /* The whole degrees right aligned in the room of the widest, with the
    degree sign over the tenths small beside them. */
-.fp-degrees {
+.dio-degrees {
   display: inline-flex;
   align-items: stretch;
 }
 
-.fp-degrees-whole {
+.dio-degrees-whole {
   min-width: var(--_whole, auto);
   text-align: right;
 }
 
-.fp-degrees-side {
+.dio-degrees-side {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -2468,11 +2470,11 @@
   text-align: left;
 }
 
-.fp-degrees-side > [data-empty] {
+.dio-degrees-side > [data-empty] {
   visibility: hidden;
 }
 
-.fp-dial-end {
+.dio-dial-end {
   padding: 2px 8px;
   border: none;
   border-radius: 12px;
@@ -2489,36 +2491,36 @@
     opacity var(--_duration) ease;
 }
 
-.fp-dial-end[aria-pressed='true'] {
+.dio-dial-end[aria-pressed='true'] {
   background: color-mix(in srgb, currentColor 12%, transparent);
   opacity: 1;
 }
 
-.fp-dial-end:focus-visible {
+.dio-dial-end:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: -2px;
 }
 
-.fp-dial-now {
+.dio-dial-now {
   font-size: 13px;
   font-weight: 500;
   opacity: var(--_secondary);
 }
 
-.fp-dial-buttons {
+.dio-dial-buttons {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-bottom: 26px;
 }
 
-.fp-dial-buttons > .fp-control {
+.dio-dial-buttons > .dio-control {
   background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 /* The media control: the cover art, large and blurred, washes the whole
    card. */
-.fp-media-control[style*='--_art'] > .fp-tile::before {
+.dio-media-control[style*='--_art'] > .dio-tile::before {
   content: '';
   position: absolute;
   inset: -40px;
@@ -2528,12 +2530,12 @@
   opacity: 0.85;
 }
 
-.fp-media-control > .fp-tile {
+.dio-media-control > .dio-tile {
   min-height: 168px;
   isolation: isolate;
 }
 
-.fp-media-control[style*='--_art'] > .fp-tile {
+.dio-media-control[style*='--_art'] > .dio-tile {
   color: #fff;
 }
 
@@ -2542,19 +2544,19 @@
    taller than the one with the art behind it. The title stays in the
    bottom left, the buttons in the top right and what is across from the
    title in the bottom right. */
-.fp-media-cover > .fp-tile {
+.dio-media-cover > .dio-tile {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 55%);
   grid-template-rows: auto 1fr auto;
   gap: 8px 12px;
 }
 
-.fp-media-cover .fp-top,
-.fp-media-cover .fp-bottom {
+.dio-media-cover .dio-top,
+.dio-media-cover .dio-bottom {
   display: contents;
 }
 
-.fp-media-cover .fp-picture {
+.dio-media-cover .dio-picture {
   grid-area: 1 / 1 / 3 / 2;
   width: auto;
   max-width: 100%;
@@ -2562,16 +2564,16 @@
   min-height: calc(100% - var(--_padding) + 8px);
 }
 
-.fp-media-cover .fp-controls {
+.dio-media-cover .dio-controls {
   grid-area: 1 / 2;
   justify-self: end;
 }
 
-.fp-media-cover .fp-text {
+.dio-media-cover .dio-text {
   grid-area: 3 / 1;
 }
 
-.fp-media-cover .fp-aside {
+.dio-media-cover .dio-aside {
   grid-area: 2 / 2 / 4 / 3;
   align-self: end;
 }
@@ -2579,20 +2581,23 @@
 /* The card fills from the left as far into the song as it is, with a
    faint shade between what is behind it and the words, and a drag sideways
    anywhere on it moves along the song. */
-.fp-media-seek {
+.dio-media-seek {
   height: 100%;
 }
 
-.fp-media-seek[data-seekable] {
+.dio-media-seek[data-seekable] {
   touch-action: pan-y;
 }
 
-.fp-media-control[style*='--_progress'] > .fp-tile::after {
+.dio-media-control[style*='--_progress'] > .dio-tile::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--fp-media-progress, color-mix(in srgb, #000 var(--_progress-shade, 20%), transparent));
+  background: var(
+    --dio-media-progress,
+    var(--fp-media-progress, color-mix(in srgb, #000 var(--_progress-shade, 20%), transparent))
+  );
   /* As wide as the song has gone, and clear behind the boxes of buttons
      and of the volume, so they stay the same glass as the rest. */
   mask:
@@ -2606,30 +2611,30 @@
 /* On the light glass with the art small the boxes of buttons and of the
    volume are a light grey of their own, so the shade goes darker than
    them to stand apart. */
-:host([data-light]) .fp-media-control:not([style*='--_art']) {
+:host([data-light]) .dio-media-control:not([style*='--_art']) {
   --_progress-shade: 24%;
 }
 
-.fp-media-seek[data-dragging] .fp-tile::after {
+.dio-media-seek[data-dragging] .dio-tile::after {
   transition: none;
 }
 
 /* How far in, on the left of the buttons. */
-.fp-media-control .fp-controls {
+.dio-media-control .dio-controls {
   align-items: center;
   gap: 10px;
   padding: 0;
   background: none;
 }
 
-.fp-media-time {
+.dio-media-time {
   font-size: 13px;
   font-weight: 600;
   opacity: var(--_secondary);
   font-variant-numeric: tabular-nums;
 }
 
-.fp-media-buttons {
+.dio-media-buttons {
   display: flex;
   gap: 4px;
   padding: 3px;
@@ -2640,21 +2645,21 @@
 /* The volume across from the title, with shuffle and repeat to its
    right. It fills in the card's own text color, white on a dark card and
    black on a light one, and its words over the fill take the other. */
-.fp-media-control {
+.dio-media-control {
   --_volume-fill: currentColor;
   --_volume-ink: #000;
 }
 
-:host([data-light]) .fp-media-control:not([style*='--_art']) {
+:host([data-light]) .dio-media-control:not([style*='--_art']) {
   --_volume-ink: #fff;
 }
 
-.fp-media-control .fp-aside {
+.dio-media-control .dio-aside {
   flex: 0 1 55%;
   min-width: max-content;
 }
 
-.fp-media-row {
+.dio-media-row {
   display: flex;
   flex: 1;
   align-items: center;
@@ -2662,20 +2667,20 @@
   min-width: 0;
 }
 
-.fp-media-row > .fp-feature {
+.dio-media-row > .dio-feature {
   flex: 1;
   min-width: 104px;
 }
 
-.fp-tile .fp-media-small > .fp-icon {
+.dio-tile .dio-media-small > .dio-icon {
   opacity: 0.6;
 }
 
-.fp-media-small[aria-checked='true'] {
+.dio-media-small[aria-checked='true'] {
   background: color-mix(in srgb, currentColor 18%, transparent);
 }
 
-.fp-tile .fp-media-small[aria-checked='true'] > .fp-icon {
+.dio-tile .dio-media-small[aria-checked='true'] > .dio-icon {
   opacity: 1;
 }
 
@@ -2683,11 +2688,11 @@
    no icon, and the name and the state in the bottom left in white over a
    dark shade that rises from the bottom, so they read on a light map and
    a dark one. */
-.fp-map .fp-top {
+.dio-map .dio-top {
   display: none;
 }
 
-.fp-map-box {
+.dio-map-box {
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -2698,16 +2703,16 @@
   --ha-card-box-shadow: none;
 }
 
-.fp-map-box > * {
+.dio-map-box > * {
   display: block;
   height: 100%;
 }
 
-.fp-map-full .fp-bottom {
+.dio-map-full .dio-bottom {
   margin-top: auto;
 }
 
-.fp-map-full .fp-text {
+.dio-map-full .dio-text {
   position: relative;
   color: #fff;
   text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
@@ -2715,7 +2720,7 @@
   pointer-events: none;
 }
 
-.fp-map-full .fp-bottom::before {
+.dio-map-full .dio-bottom::before {
   content: '';
   position: absolute;
   right: 0;
@@ -2729,66 +2734,66 @@
 
 /* Across the top, the map takes all the card above the name and the
    state, inside the padding, with rounded corners. */
-.fp-map-top .fp-bottom {
+.dio-map-top .dio-bottom {
   flex: 1;
   flex-direction: column-reverse;
   align-items: stretch;
   gap: 10px;
 }
 
-.fp-map-top .fp-bottom > .fp-text {
+.dio-map-top .dio-bottom > .dio-text {
   flex: none;
 }
 
-.fp-map-top .fp-aside {
+.dio-map-top .dio-aside {
   position: relative;
   flex: 1;
   min-height: 0;
   margin: 0;
 }
 
-.fp-map-top .fp-map-box {
+.dio-map-top .dio-map-box {
   border-radius: calc(var(--_radius) - var(--_padding) / 2);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fp-tile,
-  .fp-icon,
-  .fp-control,
-  .fp-stepper-end,
-  .fp-menu,
-  .fp-slider,
-  .fp-slider-fill,
-  .fp-slider-knob,
-  .fp-pill,
-  .fp-swatch,
-  .fp-sheet,
-  .fp-key,
-  .fp-todo-item > .fp-check,
-  .fp-bar-fill,
-  .fp-gauge-fill,
-  .fp-dial-fill,
-  .fp-dial-knob,
-  .fp-dial-end {
+  .dio-tile,
+  .dio-icon,
+  .dio-control,
+  .dio-stepper-end,
+  .dio-menu,
+  .dio-slider,
+  .dio-slider-fill,
+  .dio-slider-knob,
+  .dio-pill,
+  .dio-swatch,
+  .dio-sheet,
+  .dio-key,
+  .dio-todo-item > .dio-check,
+  .dio-bar-fill,
+  .dio-gauge-fill,
+  .dio-dial-fill,
+  .dio-dial-knob,
+  .dio-dial-end {
     transition: none;
   }
 
-  .fp-tile[data-pressed],
-  .fp-tile:focus-visible {
+  .dio-tile[data-pressed],
+  .dio-tile:focus-visible {
     transform: none;
   }
 
-  .fp-mode-picked,
-  .fp-icon-layer {
+  .dio-mode-picked,
+  .dio-icon-layer {
     animation: none;
   }
 
-  .fp-icon-layer[data-out] {
+  .dio-icon-layer[data-out] {
     display: none;
   }
 
   /* With no growth to show focus, a ring inside the edge shows it. */
-  .fp-tile:focus-visible {
+  .dio-tile:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: -2px;
   }
@@ -2798,13 +2803,13 @@
    or cuts runs frame by frame, with no easing of its own. A button that
    ran fades back from the plain tile under it, with the lit copy gone at
    once. */
-.fp-confirm[data-step='1'] .fp-fill-lit,
-.fp-confirm[data-fading] .fp-fill-lit {
+.dio-confirm[data-step='1'] .dio-fill-lit,
+.dio-confirm[data-fading] .dio-fill-lit {
   transition: none;
 }
 
 /* The lock's green wash waits for the second tap and fades in then. */
-.fp-open-door .fp-tile {
+.dio-open-door .dio-tile {
   --_wash: 0;
   transition:
     background-color var(--_duration) ease,
@@ -2814,6 +2819,6 @@
     --_wash 600ms ease;
 }
 
-.fp-open-door[data-done] .fp-tile {
+.dio-open-door[data-done] .dio-tile {
   --_wash: 1;
 }

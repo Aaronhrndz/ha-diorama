@@ -35,7 +35,7 @@ type Props = {
 // bottom left and what it shows in the bottom right, as small as it can be.
 export function Panel({ env, config, onTap, children, className, style, ...tile }: Props) {
   return (
-    <div className={cn('fp-card', className)} style={style}>
+    <div className={cn('dio-card', className)} style={style}>
       <Tile
         env={env}
         config={{ ...config, size: 'wide' }}

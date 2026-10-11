@@ -70,23 +70,23 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
     setDraft('')
   }
   const row = (item: Item) => (
-    <li key={item.uid} className="fp-todo-item" data-done={item.status === 'completed' || undefined}>
+    <li key={item.uid} className="dio-todo-item" data-done={item.status === 'completed' || undefined}>
       <button
         {...insideTile}
         type="button"
         role="checkbox"
         aria-checked={item.status === 'completed'}
         aria-label={item.summary}
-        className="fp-check"
+        className="dio-check"
         disabled={!supports(entity, UPDATE)}
         onClick={() => tick(item)}
       >
         {item.status === 'completed' && <Icon icon="ph:check-bold" on />}
       </button>
-      <div className="fp-todo-text">
-        <div className="fp-todo-summary">{item.summary}</div>
+      <div className="dio-todo-text">
+        <div className="dio-todo-summary">{item.summary}</div>
         {item.due && (
-          <div className="fp-todo-due">
+          <div className="dio-todo-due">
             {new Date(item.due.length === 10 ? `${item.due}T00:00:00` : item.due).toLocaleDateString(language, {
               weekday: 'short',
               day: 'numeric',
@@ -104,7 +104,7 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
       entity={entity}
       state={!items ? 'Loading' : open.length === 0 ? 'All done' : `${open.length} to do`}
       accent={ACCENT}
-      className="fp-todo"
+      className="dio-todo"
       controls={
         (supports(entity, CREATE) || (done.length > 0 && supports(entity, DELETE))) && (
           <>
@@ -122,14 +122,14 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
         )
       }
     >
-      <div className="fp-todo-body">
+      <div className="dio-todo-body">
         {adding && (
           <form
             // The tile takes a click as its own tap and cancels it, and Enter
             // in the field clicks the add button, so the form keeps its
             // clicks to itself or it would never be sent.
             onClick={e => e.stopPropagation()}
-            className="fp-todo-add"
+            className="dio-todo-add"
             onSubmit={e => {
               e.preventDefault()
               add()
@@ -137,7 +137,7 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
           >
             <input
               {...insideTile}
-              className="fp-todo-field"
+              className="dio-todo-field"
               value={draft}
               placeholder="Add an item"
               aria-label="Add an item"
@@ -147,18 +147,18 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
               onChange={e => setDraft(e.target.value)}
               onKeyDown={e => e.stopPropagation()}
             />
-            <button {...insideTile} type="submit" className="fp-control" aria-label="Add" disabled={!draft.trim()}>
+            <button {...insideTile} type="submit" className="dio-control" aria-label="Add" disabled={!draft.trim()}>
               <Icon icon="ph:plus-bold" on />
             </button>
           </form>
         )}
-        {open.length > 0 && <ul className="fp-todo-list">{open.map(row)}</ul>}
+        {open.length > 0 && <ul className="dio-todo-list">{open.map(row)}</ul>}
         {done.length > 0 && (
           <>
-            <div className="fp-todo-head">
+            <div className="dio-todo-head">
               <span>Done</span>
             </div>
-            <ul className="fp-todo-list">{done.map(row)}</ul>
+            <ul className="dio-todo-list">{done.map(row)}</ul>
           </>
         )}
       </div>

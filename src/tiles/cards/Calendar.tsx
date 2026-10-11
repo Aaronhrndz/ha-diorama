@@ -118,23 +118,23 @@ export default function Calendar({ env, config }: { env: TileEnv; config: Calend
         : `Next: ${next.title}${next.allDay ? '' : `, ${time(next.start)}`}`
 
   return (
-    <Panel env={env} config={config} entity={entity} state={state} accent={COLORS[0]} className="fp-calendar">
-      <div className="fp-agenda" role="list">
-        {events && coming.length === 0 && <div className="fp-agenda-empty">No events</div>}
+    <Panel env={env} config={config} entity={entity} state={state} accent={COLORS[0]} className="dio-calendar">
+      <div className="dio-agenda" role="list">
+        {events && coming.length === 0 && <div className="dio-agenda-empty">No events</div>}
         {[...byDay].map(([day, list]) => (
-          <section key={day} className="fp-agenda-section" aria-label={dayName(day)}>
-            <div className="fp-agenda-day" data-today={day === today || undefined}>
+          <section key={day} className="dio-agenda-section" aria-label={dayName(day)}>
+            <div className="dio-agenda-day" data-today={day === today || undefined}>
               {dayName(day)}
             </div>
             {list.some(event => event.allDay) && (
-              <div className="fp-agenda-pills">
+              <div className="dio-agenda-pills">
                 {list
                   .filter(event => event.allDay)
                   .map((event, i) => (
                     <div
                       key={`${event.calendar}-${event.start.getTime()}-${i}`}
                       role="listitem"
-                      className="fp-agenda-pill"
+                      className="dio-agenda-pill"
                     >
                       {event.title}
                     </div>
@@ -147,12 +147,12 @@ export default function Calendar({ env, config }: { env: TileEnv; config: Calend
                 <div
                   key={`${event.calendar}-${event.start.getTime()}-${i}`}
                   role="listitem"
-                  className="fp-agenda-event"
+                  className="dio-agenda-event"
                   data-now={event.start.getTime() <= now || undefined}
                   style={{ '--_event': COLORS[event.calendar % COLORS.length] } as CSSProperties}
                 >
-                  <div className="fp-agenda-title">{event.title}</div>
-                  <div className="fp-agenda-time">
+                  <div className="dio-agenda-title">{event.title}</div>
+                  <div className="dio-agenda-time">
                     {`${time(event.start)} to ${time(event.end)}`}
                     {event.location && ` · ${event.location}`}
                   </div>

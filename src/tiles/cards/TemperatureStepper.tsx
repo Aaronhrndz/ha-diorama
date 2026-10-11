@@ -80,12 +80,12 @@ export default function TemperatureStepper({ env, entityId }: Props) {
     <>
       <Control icon="ph:minus-bold" label="Lower the temperature" onPress={nudge(-1)} />
       {range ? (
-        <span className="fp-stepper-range">
+        <span className="dio-stepper-range">
           <End label="Lowest" value={degrees(aim.low)} picked={end === 'low'} onPick={() => setEnd('low')} />
           <End label="Highest" value={degrees(aim.high)} picked={end === 'high'} onPick={() => setEnd('high')} />
         </span>
       ) : (
-        <span className="fp-stepper-value" aria-live="polite">
+        <span className="dio-stepper-value" aria-live="polite">
           {degrees(aim.temperature)}
         </span>
       )}
@@ -104,7 +104,7 @@ function End({ label, value, picked, onPick }: EndProps) {
       type="button"
       aria-label={`${label} ${value}`}
       aria-pressed={picked}
-      className="fp-stepper-end"
+      className="dio-stepper-end"
       onClick={e => {
         e.stopPropagation()
         onPick()

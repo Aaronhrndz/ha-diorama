@@ -4,6 +4,7 @@ import { useBackToHome } from '#/lib/backButton.ts'
 import { cn } from '#/lib/utils.ts'
 import { EDGE_FADE_MASK } from '#/theme.ts'
 import { useEditorOpen } from '#/lib/editorOpen.ts'
+import { useEmptyClick } from '#/lib/emptyClick.ts'
 import { usePreviewRoom } from '#/lib/previewRoom.ts'
 import { useRoomFilter } from '#/lib/roomFilter.ts'
 import Scene, { type CameraHandle } from '#/scene/Scene.tsx'
@@ -53,7 +54,7 @@ export default function Card({ hass, config, panel = false, preview = false }: P
   }
   // A room that has left the plan holds no focus.
   const focused = focus !== null && roomOf(focus) ? focus : null
-  // The side panel follows the room in view, and the Floorplan tiles on the
+  // The side panel follows the room in view, and the Diorama tiles on the
   // dashboard too when the card says so.
   useRoomFilter(focused ? roomOf(focused) : undefined, config.filter_tiles === true)
   const goHome = () => {
@@ -63,6 +64,9 @@ export default function Card({ hass, config, panel = false, preview = false }: P
   // The back button, a phone's own too, takes a room in view back to the
   // whole home. Not in the edit dialog, whose back closes it.
   useBackToHome(focused !== null, goHome, !preview)
+  // So does a click on empty space anywhere on the dashboard, like the side
+  // panel around its tiles or the gaps between cards.
+  useEmptyClick(focused !== null && !preview, goHome)
   const showRoom = (asked: string, through?: string[]) => {
     // A press on a door or a window in the wall of the focused room goes
     // through it, to the room on its other side, when that one has a view.
@@ -173,7 +177,7 @@ export default function Card({ hass, config, panel = false, preview = false }: P
           ) : (
             <div className="font-montserrat flex h-full flex-col items-center justify-center gap-1 p-4 text-center">
               <p className="text-sm font-semibold">No rooms yet</p>
-              <p className="text-xs opacity-70">Add rooms to the card config to see your floorplan.</p>
+              <p className="text-xs opacity-70">Add rooms to the card config to see your diorama.</p>
             </div>
           )}
         </div>

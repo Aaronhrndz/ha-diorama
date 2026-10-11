@@ -33,7 +33,7 @@ export function Icon({ icon, on = false, className }: Props) {
   return (
     <span
       aria-hidden
-      className={cn('fp-icon', className)}
+      className={cn('dio-icon', className)}
       onAnimationEnd={event => {
         if (event.target instanceof HTMLElement && event.target.dataset.out !== undefined) setOld(null)
       }}
@@ -46,15 +46,15 @@ export function Icon({ icon, on = false, className }: Props) {
 
 function Layer({ drawn, out, fresh }: { drawn: Drawn; out?: boolean; fresh?: boolean }) {
   const flags = { 'data-out': out || undefined, 'data-in': fresh || undefined }
-  if (!drawn.icon.startsWith('ph:')) return <ha-icon className="fp-icon-layer" icon={drawn.icon} {...flags} />
+  if (!drawn.icon.startsWith('ph:')) return <ha-icon className="dio-icon-layer" icon={drawn.icon} {...flags} />
   const name = drawn.icon.slice(3)
   let svg = phosphor(name, drawn.on)
   if (!svg) {
     if (!warned.has(name)) {
       warned.add(name)
-      console.warn(`Floorplan tiles: ph:${name} is not one of the bundled icons: ${PHOSPHOR_ICONS.join(', ')}`)
+      console.warn(`Diorama tiles: ph:${name} is not one of the bundled icons: ${PHOSPHOR_ICONS.join(', ')}`)
     }
     svg = phosphor('question', drawn.on)
   }
-  return <span className="fp-icon-layer" {...flags} dangerouslySetInnerHTML={{ __html: svg ?? '' }} />
+  return <span className="dio-icon-layer" {...flags} dangerouslySetInnerHTML={{ __html: svg ?? '' }} />
 }

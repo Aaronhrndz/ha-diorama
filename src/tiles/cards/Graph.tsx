@@ -47,8 +47,8 @@ export default function Graph({ env, config }: { env: TileEnv; config: GraphConf
       config={config}
       entity={entity}
       state={formatState(env.hass, entity)}
-      controls={<span className="fp-graph-range">{range}</span>}
-      className="fp-graph"
+      controls={<span className="dio-graph-range">{range}</span>}
+      className="dio-graph"
     >
       {bars ? (
         <Bars hass={env.hass} entity={entity} days={config.days ?? 7} unit={unit} />
@@ -63,14 +63,14 @@ export default function Graph({ env, config }: { env: TileEnv; config: GraphConf
 
 function Line({ hass, entityId, hours, unit }: { hass: HomeAssistant; entityId: string; hours: number; unit: string }) {
   const points = useHistory(hass, entityId, hours)
-  const id = `fp-graph-${useId().replace(/[^a-zA-Z0-9-]/g, '')}`
+  const id = `dio-graph-${useId().replace(/[^a-zA-Z0-9-]/g, '')}`
   const paths = points && points.length > 1 ? linePaths(points, WIDTH, HEIGHT, false, 6) : null
   const language = hass.locale?.language ?? hass.language
   const label = (value: number) => `${formatNumber(hass, value)}${unit ? ` ${unit}` : ''}`
-  if (!paths || !points) return <div className="fp-graph-chart fp-graph-empty">{points ? 'No history' : ''}</div>
+  if (!paths || !points) return <div className="dio-graph-chart dio-graph-empty">{points ? 'No history' : ''}</div>
   const hour = (time: number) => new Date(time).toLocaleTimeString(language, { hour: 'numeric' })
   return (
-    <div className="fp-graph-chart">
+    <div className="dio-graph-chart">
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
@@ -81,11 +81,11 @@ function Line({ hass, entityId, hours, unit }: { hass: HomeAssistant; entityId: 
         <path d={paths.area} fill={`url(#${id})`} />
         <path d={paths.line} fill="none" stroke="currentColor" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
       </svg>
-      <div className="fp-graph-scale" aria-hidden="true">
+      <div className="dio-graph-scale" aria-hidden="true">
         <span>{label(paths.high)}</span>
         <span>{label(paths.low)}</span>
       </div>
-      <div className="fp-graph-axis" aria-hidden="true">
+      <div className="dio-graph-axis" aria-hidden="true">
         <span>{hour(points[0].t)}</span>
         <span>{hour((points[0].t + points[points.length - 1].t) / 2)}</span>
         <span>Now</span>
@@ -112,17 +112,17 @@ function Bars({
   const low = Math.min(...values, 0)
   const language = hass.locale?.language ?? hass.language
   if (!rows || rows.length === 0)
-    return <div className="fp-graph-chart fp-graph-empty">{rows ? 'No statistics yet' : ''}</div>
+    return <div className="dio-graph-chart dio-graph-empty">{rows ? 'No statistics yet' : ''}</div>
   return (
-    <div className="fp-graph-chart">
-      <div className="fp-bars">
+    <div className="dio-graph-chart">
+      <div className="dio-bars">
         {rows.map((row, i) => {
           const share = high - low > 0 ? (values[i] - low) / (high - low) : 0
           const label = `${formatNumber(hass, values[i])}${unit ? ` ${unit}` : ''}`
           return (
-            <div key={row.start} className="fp-bar" title={label}>
-              <span className="fp-bar-fill" style={{ height: `${Math.max(share * 100, 3)}%` }} />
-              <span className="fp-bar-day">
+            <div key={row.start} className="dio-bar" title={label}>
+              <span className="dio-bar-fill" style={{ height: `${Math.max(share * 100, 3)}%` }} />
+              <span className="dio-bar-day">
                 {new Date(row.start).toLocaleDateString(language, { weekday: 'narrow' })}
               </span>
             </div>
@@ -136,19 +136,19 @@ function Bars({
 function Timeline({ hass, entity, hours }: { hass: HomeAssistant; entity: EntityState | undefined; hours: number }) {
   const spans = useTimeline(hass, entity?.entity_id, hours)
   if (!spans || spans.length === 0)
-    return <div className="fp-graph-chart fp-graph-empty">{spans ? 'No history' : ''}</div>
+    return <div className="dio-graph-chart dio-graph-empty">{spans ? 'No history' : ''}</div>
   const start = spans[0].from
   const end = Math.max(spans[spans.length - 1].to, start + 1)
   const language = hass.locale?.language ?? hass.language
   const hour = (time: number) => new Date(time).toLocaleTimeString(language, { hour: 'numeric' })
   const word = (span: Span) => (entity ? (hass.formatEntityState?.(entity, span.state) ?? span.state) : span.state)
   return (
-    <div className="fp-graph-chart fp-timeline-chart">
-      <div className="fp-timeline">
+    <div className="dio-graph-chart dio-timeline-chart">
+      <div className="dio-timeline">
         {spans.map(span => (
           <span
             key={span.from}
-            className="fp-timeline-span"
+            className="dio-timeline-span"
             data-on={ON.includes(span.state) || undefined}
             data-off={['unavailable', 'unknown'].includes(span.state) || undefined}
             title={word(span)}
@@ -159,7 +159,7 @@ function Timeline({ hass, entity, hours }: { hass: HomeAssistant; entity: Entity
           />
         ))}
       </div>
-      <div className="fp-graph-axis" aria-hidden="true">
+      <div className="dio-graph-axis" aria-hidden="true">
         <span>{hour(start)}</span>
         <span>{hour((start + end) / 2)}</span>
         <span>Now</span>

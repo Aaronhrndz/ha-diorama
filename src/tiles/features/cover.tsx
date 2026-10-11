@@ -82,7 +82,7 @@ export function Favorites({ env, config, entity, tilt }: FeatureProps & { tilt?:
           position,
         })
   return (
-    <div className="fp-group" role="radiogroup" aria-label={tilt ? 'Favorite tilts' : 'Favorite positions'}>
+    <div className="dio-group" role="radiogroup" aria-label={tilt ? 'Favorite tilts' : 'Favorite positions'}>
       {favorites.map(position => (
         <Pill
           key={position}
@@ -124,7 +124,7 @@ export function FanDirection({ env, entity }: FeatureProps) {
         label="Forward"
         role="radio"
         checked={entity.attributes.direction === 'forward'}
-        className="fp-mode"
+        className="dio-mode"
         onPress={set('forward')}
       />
       <Control
@@ -132,7 +132,7 @@ export function FanDirection({ env, entity }: FeatureProps) {
         label="Reverse"
         role="radio"
         checked={entity.attributes.direction === 'reverse'}
-        className="fp-mode"
+        className="dio-mode"
         onPress={set('reverse')}
       />
     </Group>
@@ -191,7 +191,7 @@ export function FanSpeeds({ env, entity }: FeatureProps) {
           label={speedWord(speed, count)}
           role="radio"
           checked={current === speed}
-          className="fp-mode"
+          className="dio-mode"
           onPress={() => current !== speed && setSpeed(env, entity, speed, count)}
         />
       ))}
