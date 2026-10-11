@@ -11,7 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
-- A slider tile with a few stops, like a fan's speeds, shows a faint dot at each stop across its middle.
+- A slider tile with a few stops, like a fan's speeds, shows a faint short tick at each stop hanging from its top edge.
 - The card's settings have a Height on a phone slider that sets how tall the floorplan is on a narrow card, over the side panel too, so the tiles under it start higher.
 - Any Floorplan tile can be set to Never hide, `never_hide: true`, to keep showing whatever room the floorplan card is in.
 - A dial that is not heading for its knob shows a small dot on the ring where the room is now, in place of the arrows.

@@ -326,34 +326,40 @@
   top: calc(100% - var(--_inset) - 4px);
 }
 
-/* A dot at each stop a fill with few of them snaps to, faint over the
-   empty part and over the filled one alike. */
-.fp-fill-dot {
+/* A short tick at each stop a fill with few of them snaps to, hanging
+   from the very top edge with its free end rounded, faint over the empty
+   part and over the filled one alike. One that fills up or down has them
+   on its left edge instead, pointing in. */
+.fp-fill-tick {
   position: absolute;
-  top: 50%;
+  top: 0;
   left: var(--_at);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
+  width: 3px;
+  height: 9px;
+  border-radius: 0 0 1.5px 1.5px;
   background: var(--_text-inactive);
-  opacity: 0.3;
-  transform: translate(-50%, -50%);
+  opacity: 0.25;
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
-.fp-fill-lit .fp-fill-dot {
+.fp-fill-lit .fp-fill-tick {
   background: var(--_text-active);
 }
 
-.fp-fill[data-vertical] .fp-fill-dot {
-  left: 50%;
+.fp-fill[data-vertical] .fp-fill-tick {
+  left: 0;
+  width: 9px;
+  height: 3px;
+  border-radius: 0 1.5px 1.5px 0;
+  transform: translateY(-50%);
 }
 
-.fp-fill[data-from='top'] .fp-fill-dot {
+.fp-fill[data-from='top'] .fp-fill-tick {
   top: var(--_at);
 }
 
-.fp-fill[data-from='bottom'] .fp-fill-dot {
+.fp-fill[data-from='bottom'] .fp-fill-tick {
   top: calc(100% - var(--_at));
 }
 

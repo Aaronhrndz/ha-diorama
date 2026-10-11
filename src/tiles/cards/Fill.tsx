@@ -46,17 +46,17 @@ const GRIP_TO = 5
 const GRIP_OPACITY = 0.35
 // How long the arrow keys wait for another press before they send.
 const SEND_MS = 700
-// The smallest step that gets a dot at each stop, so a fan's few speeds
+// The smallest step that gets a tick at each stop, so a fan's few speeds
 // show and a percent at a time does not.
 const DOTS_FROM_STEP = 5
 
-// A small dot at each stop past the start and short of the end, across
-// the middle of the tile, in the color of the words on the side it is on.
-function StepDots({ step }: { step: number }) {
+// A short tick at each stop past the start and short of the end, along
+// the edge of the tile, in the color of the words on the side it is on.
+function StepTicks({ step }: { step: number }) {
   if (step < DOTS_FROM_STEP) return null
   const stops: number[] = []
   for (let at = step; at < 100 - step / 100; at += step) stops.push(at)
-  return stops.map(at => <span key={at} className="fp-fill-dot" style={{ '--_at': `${at}%` } as CSSProperties} />)
+  return stops.map(at => <span key={at} className="fp-fill-tick" style={{ '--_at': `${at}%` } as CSSProperties} />)
 }
 
 // A tile that is a value from 0 to 100 across its whole width, like a
@@ -193,7 +193,7 @@ export function FillTile({
         state={state}
         onTap={onTap}
       />
-      {!readOnly && <StepDots step={step} />}
+      {!readOnly && <StepTicks step={step} />}
       {!readOnly && (
         <span
           className="fp-fill-grip"
@@ -213,7 +213,7 @@ export function FillTile({
         }}
       >
         <Tile env={env} config={config} entity={entity} active accent={accent} glow={glow} state={state} />
-        {!readOnly && <StepDots step={step} />}
+        {!readOnly && <StepTicks step={step} />}
         {!readOnly && (
           <span
             className="fp-fill-grip"
