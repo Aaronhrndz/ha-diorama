@@ -38,8 +38,12 @@ function useItems(hass: HomeAssistant, entityId: string | undefined) {
   return items
 }
 
+// The teal the first calendar of a calendar card takes, so the two cards
+// match side by side.
+const ACCENT = '#12a594'
+
 // A to-do list: what is left to do with a round check to tick each off, and
-// what is done under it, in the bottom right corner across from the name.
+// what is done under it, across the card from under the icon to the name.
 // Plus in the top right opens a field over the list to add to it, and a
 // broom beside it clears away what is done.
 export default function Todo({ env, config }: { env: TileEnv; config: TileConfig }) {
@@ -99,7 +103,7 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
       config={config}
       entity={entity}
       state={!items ? 'Loading' : open.length === 0 ? 'All done' : `${open.length} to do`}
-      accent="var(--_accent-light)"
+      accent={ACCENT}
       className="fp-todo"
       controls={
         (supports(entity, CREATE) || (done.length > 0 && supports(entity, DELETE))) && (
@@ -118,40 +122,42 @@ export default function Todo({ env, config }: { env: TileEnv; config: TileConfig
         )
       }
     >
-      {adding && (
-        <form
-          className="fp-todo-add"
-          onSubmit={e => {
-            e.preventDefault()
-            add()
-          }}
-        >
-          <input
-            {...insideTile}
-            className="fp-todo-field"
-            value={draft}
-            placeholder="Add an item"
-            aria-label="Add an item"
-            enterKeyHint="done"
-            autoFocus
-            onBlur={() => !draft.trim() && setAdding(false)}
-            onChange={e => setDraft(e.target.value)}
-            onKeyDown={e => e.stopPropagation()}
-          />
-          <button {...insideTile} type="submit" className="fp-control" aria-label="Add" disabled={!draft.trim()}>
-            <Icon icon="ph:plus-bold" on />
-          </button>
-        </form>
-      )}
-      {open.length > 0 && <ul className="fp-todo-list">{open.map(row)}</ul>}
-      {done.length > 0 && (
-        <>
-          <div className="fp-todo-head">
-            <span>Done</span>
-          </div>
-          <ul className="fp-todo-list">{done.map(row)}</ul>
-        </>
-      )}
+      <div className="fp-todo-body">
+        {adding && (
+          <form
+            className="fp-todo-add"
+            onSubmit={e => {
+              e.preventDefault()
+              add()
+            }}
+          >
+            <input
+              {...insideTile}
+              className="fp-todo-field"
+              value={draft}
+              placeholder="Add an item"
+              aria-label="Add an item"
+              enterKeyHint="done"
+              autoFocus
+              onBlur={() => !draft.trim() && setAdding(false)}
+              onChange={e => setDraft(e.target.value)}
+              onKeyDown={e => e.stopPropagation()}
+            />
+            <button {...insideTile} type="submit" className="fp-control" aria-label="Add" disabled={!draft.trim()}>
+              <Icon icon="ph:plus-bold" on />
+            </button>
+          </form>
+        )}
+        {open.length > 0 && <ul className="fp-todo-list">{open.map(row)}</ul>}
+        {done.length > 0 && (
+          <>
+            <div className="fp-todo-head">
+              <span>Done</span>
+            </div>
+            <ul className="fp-todo-list">{done.map(row)}</ul>
+          </>
+        )}
+      </div>
     </Panel>
   )
 }

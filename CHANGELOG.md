@@ -48,6 +48,7 @@ moves that section under the new version and uses it as the release notes.
 - The calendar card shows the events that last all day as round pills with just their names over each day's other events, drops the colored bar beside each event, and tints its events lighter on a light dashboard.
 - The first calendar of a calendar card is teal, then blue, orange, purple, pink and yellow, the event going on now stands out more, on a light dashboard the events are a deeper tint and the one going on now is solid, and the all day pills are plain grey, and the card with only today's events says Today over them too.
 - The calendar's list and the option menus fade out at their top and bottom edges as they scroll, with the same thin, quiet scrollbar.
+- The to-do list card lists its items across the whole card down to just over its name, in the same teal as the calendar, and fades out at its edges when it scrolls.
 - The calendar card lists its events across the whole card down to just over its name, with a thin, quiet scrollbar, and can show only today's events, offered as its own card in the card picker.
 - The Now Playing card fills from the left with a faint dark shade as the song goes on, passing behind its buttons and its volume without showing through them, shows the time played beside its buttons, seeks when swiped sideways anywhere on it, and plays or pauses with a tap.
 - The Now Playing card's volume fills white on a dark card and black on a light one, with shuffle and repeat to its right, and its level no longer gets cut off on a phone.

@@ -1477,27 +1477,27 @@
   min-height: 0;
 }
 
-/* The calendar's agenda takes the whole width instead, under the icon,
-   and ends just over the name. */
-.fp-calendar .fp-bottom {
+/* The calendar's agenda and the to-do list take the whole width instead,
+   under the icon, and end just over the name. */
+.fp-card:is(.fp-calendar, .fp-todo) .fp-bottom {
   flex-direction: column-reverse;
   gap: 2px;
   margin-top: 12px;
 }
 
-.fp-calendar .fp-agenda {
+:is(.fp-calendar .fp-agenda, .fp-todo-body) {
   --_fade: 14px;
   margin-top: calc(-1 * var(--_fade));
   padding-top: var(--_fade);
   padding-bottom: var(--_fade);
 }
 
-.fp-card.fp-calendar .fp-bottom > .fp-text {
+.fp-card:is(.fp-calendar, .fp-todo) .fp-bottom > .fp-text {
   flex: none;
   align-self: stretch;
 }
 
-.fp-card.fp-calendar .fp-aside {
+.fp-card:is(.fp-calendar, .fp-todo) .fp-aside {
   flex: 1;
 }
 
@@ -1636,7 +1636,7 @@
 
 /* The calendar: a day by day agenda, each day a small heading over its
    events, each event a rounded row with a bar in its calendar's color. */
-.fp-agenda {
+:is(.fp-agenda, .fp-todo-body) {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1651,27 +1651,27 @@
 /* Whatever scrolls fades out at its top and bottom edges rather than
    being cut off there, and keeps as much room inside those edges, so its
    first and last rows show whole once it is scrolled to either end. */
-:is(.fp-agenda, .fp-menu-list) {
+:is(.fp-agenda, .fp-todo-body, .fp-menu-list) {
   mask-image: linear-gradient(to bottom, transparent, #000 var(--_fade), #000 calc(100% - var(--_fade)), transparent);
 }
 
 /* A thin quiet scrollbar in the text's color with no track. */
-:is(.fp-agenda, .fp-menu-list) {
+:is(.fp-agenda, .fp-todo-body, .fp-menu-list) {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, currentColor 22%, transparent) transparent;
 }
 
 /* Where the standard colors are not read, a thin rounded thumb of the
    same color with no track, in the gap the agenda keeps on its right. */
-:is(.fp-agenda, .fp-menu-list)::-webkit-scrollbar {
+:is(.fp-agenda, .fp-todo-body, .fp-menu-list)::-webkit-scrollbar {
   width: 4px;
 }
 
-:is(.fp-agenda, .fp-menu-list)::-webkit-scrollbar-track {
+:is(.fp-agenda, .fp-todo-body, .fp-menu-list)::-webkit-scrollbar-track {
   background: transparent;
 }
 
-:is(.fp-agenda, .fp-menu-list)::-webkit-scrollbar-thumb {
+:is(.fp-agenda, .fp-todo-body, .fp-menu-list)::-webkit-scrollbar-thumb {
   border-radius: 2px;
   background: color-mix(in srgb, currentColor 22%, transparent);
 }
