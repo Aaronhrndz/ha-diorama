@@ -351,8 +351,11 @@ const CARDS: Card[] = [
     extra: true,
     domains: ['calendar'],
     name: 'Floorplan Calendar',
-    does: 'The coming events, day by day',
     description: 'The coming events of one calendar or more, day by day',
+    suggest: (_, entityId) => [
+      { label: 'The coming events, day by day', config: { type: 'custom:fp-calendar', entity: entityId } },
+      { label: "Only today's events", config: { type: 'custom:fp-calendar', entity: entityId, days: 1 } },
+    ],
   },
   {
     type: 'fp-todo',

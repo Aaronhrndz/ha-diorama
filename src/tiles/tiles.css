@@ -1465,6 +1465,29 @@
   min-height: 0;
 }
 
+/* The calendar's agenda takes the whole width instead, under the icon,
+   and ends just over the name, fading out there rather than cut off. Its
+   last event clears the fade once it is scrolled to the end. */
+.fp-calendar .fp-bottom {
+  flex-direction: column-reverse;
+  gap: 2px;
+  margin-top: 12px;
+}
+
+.fp-calendar .fp-agenda {
+  padding-bottom: 14px;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
+}
+
+.fp-card.fp-calendar .fp-bottom > .fp-text {
+  flex: none;
+  align-self: stretch;
+}
+
+.fp-card.fp-calendar .fp-aside {
+  flex: 1;
+}
+
 /* How far back the graph goes, plain in the top right. */
 .fp-graph .fp-controls {
   margin: 0;
@@ -1606,11 +1629,27 @@
   gap: 16px;
   flex: 1;
   min-height: 0;
-  margin: 0 -6px;
-  padding: 0 6px;
+  margin: 0 calc(6px - var(--_padding)) 0 -6px;
+  padding: 0 calc(var(--_padding) - 6px) 0 6px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, currentColor 22%, transparent) transparent;
+}
+
+/* Where the standard colors are not read, a thin rounded thumb of the
+   same color with no track, in the gap the agenda keeps on its right. */
+.fp-agenda::-webkit-scrollbar {
+  width: 4px;
+}
+
+.fp-agenda::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fp-agenda::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  background: color-mix(in srgb, currentColor 22%, transparent);
 }
 
 .fp-agenda-section {

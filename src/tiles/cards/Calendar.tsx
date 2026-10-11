@@ -74,9 +74,11 @@ function useEvents(hass: HomeAssistant, ids: string[], days: number) {
   return events
 }
 
-// The coming events of one calendar or more, the whole width and tall:
-// day by day, each event with its time and a bar in its calendar's color.
-// The line under the name says what is next.
+// The coming events of one calendar or more, across the whole card from
+// under the icon down to the name: day by day, each event with its time
+// and a bar in its calendar's color. With a single day it shows only
+// today's, with no heading over them. The line under the name says what
+// is next.
 export default function Calendar({ env, config }: { env: TileEnv; config: CalendarConfig }) {
   const entity = env.hass.states[config.entity!]
   const ids = [config.entity!, ...(config.entities ?? []).filter(id => id !== config.entity)]
@@ -107,7 +109,9 @@ export default function Calendar({ env, config }: { env: TileEnv; config: Calend
   const state = !events
     ? 'Loading'
     : !next
-      ? `Nothing in the next ${days} days`
+      ? days === 1
+        ? 'Nothing more today'
+        : `Nothing in the next ${days} days`
       : next.start.getTime() <= now
         ? `Now: ${next.title}`
         : `Next: ${next.title}${next.allDay ? '' : `, ${time(next.start)}`}`
@@ -118,9 +122,11 @@ export default function Calendar({ env, config }: { env: TileEnv; config: Calend
         {events && coming.length === 0 && <div className="fp-agenda-empty">No events</div>}
         {[...byDay].map(([day, list]) => (
           <section key={day} className="fp-agenda-section" aria-label={dayName(day)}>
-            <div className="fp-agenda-day" data-today={day === today || undefined}>
-              {dayName(day)}
-            </div>
+            {days > 1 && (
+              <div className="fp-agenda-day" data-today={day === today || undefined}>
+                {dayName(day)}
+              </div>
+            )}
             {list.map((event, i) => (
               <div
                 key={`${event.calendar}-${event.start.getTime()}-${i}`}
