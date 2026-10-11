@@ -19,7 +19,8 @@ export type TileConfig = {
   color?: string
   // Replaces the line under the name.
   state_text?: string
-  size?: 'small' | 'wide'
+  // Large only means something to the weather tile.
+  size?: 'small' | 'wide' | 'large'
   // A row of controls along the bottom, like a brightness slider or the
   // modes of an alarm, by the names Home Assistant gives its own tile
   // features. It makes the tile a row taller.
@@ -33,6 +34,8 @@ export type TileConfig = {
   // with no area does while a room is in view. room shows the tile only
   // while its own room is in view, home only while the whole home is.
   room_filter?: 'hide' | 'show' | 'room' | 'home'
+  // Keeps the tile showing whatever room is in view, like room_filter show.
+  never_hide?: boolean
   tap_action?: ActionConfig
   hold_action?: ActionConfig
   haptic?: boolean
@@ -67,7 +70,7 @@ function noteMissingArea(label: string) {
   clearTimeout(missingTimer)
   missingTimer = setTimeout(() => {
     console.warn(
-      `Floorplan tiles: no area found for ${missingNew.join(', ')}. Set area on these cards, or room_filter: show to keep them in every room.`,
+      `Floorplan tiles: no area found for ${missingNew.join(', ')}. Set area on these cards, or never_hide: true to keep them in every room.`,
     )
     missingNew = []
   }, 500)
@@ -82,6 +85,12 @@ export function resolveArea(hass: HomeAssistant, area: string | undefined, entit
   }
   return entityId ? entityArea(hass, entityId) : null
 }
+
+// A section of a dashboard about as wide as Home Assistant makes one, in
+// twelve columns with a gap between each, and the height of one of its rows.
+const SECTION_WIDTH = 360
+const GRID_GAP = 8
+const ROW_HEIGHT = 56
 
 // The states of an entity that is not in use.
 const IDLE = ['off', 'standby', 'idle', 'unavailable', 'unknown']
@@ -112,6 +121,7 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
   protected abstract readonly domains: string[] | 'any' | null
   private _preview = false
   private unsubscribe: (() => void) | null = null
+  private pickerBox: ResizeObserver | null = null
 
   constructor() {
     super()
@@ -129,11 +139,13 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
       if (this.domains !== 'any' && !this.domains.includes(domain))
         throw new Error(`${config.entity} is not one of ${this.domains.map(d => `${d}.*`).join(', ')}`)
     }
-    if (config.size && config.size !== 'small' && config.size !== 'wide') throw new Error('size must be small or wide')
+    if (config.size && !['small', 'wide', 'large'].includes(config.size))
+      throw new Error('size must be small, wide or large')
     if (config.room_filter && !['hide', 'show', 'room', 'home'].includes(config.room_filter))
       throw new Error('room_filter must be hide, show, room or home')
     this._config = config
     this.applyFilter()
+    this.fitPicker()
     this.render()
   }
 
@@ -164,6 +176,7 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
     this._hass = hass
     this.toggleAttribute('data-light', hass.themes?.darkMode === false)
     this.applyFilter()
+    this.fitPicker()
     this.render()
   }
 
@@ -175,12 +188,45 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
     super.connectedCallback()
     this.unsubscribe ??= onRoomFilter(() => this.applyFilter())
     this.applyFilter()
+    const box = this.pickerPreview()
+    if (box) {
+      this.pickerBox = new ResizeObserver(() => this.fitPicker())
+      this.pickerBox.observe(box)
+    }
   }
 
   disconnectedCallback() {
     this.unsubscribe?.()
     this.unsubscribe = null
+    this.pickerBox?.disconnect()
+    this.pickerBox = null
     super.disconnectedCallback()
+  }
+
+  // The box Home Assistant shows the card in while a card is picked, by
+  // card or as a suggestion for an entity, where the card sits in a hui-card.
+  private pickerPreview() {
+    const box = this.parentElement?.localName === 'hui-card' ? this.parentElement.parentElement : this.parentElement
+    const picker = (box?.getRootNode() as ShadowRoot | undefined)?.host?.localName
+    return box?.classList.contains('preview') && (picker === 'hui-card-picker' || picker === 'hui-suggestion-card')
+      ? box
+      : null
+  }
+
+  // Home Assistant's card picker shows each card in a narrow box that gives
+  // it no height. There the card takes the width and rows it would in a
+  // section and shrinks to fit the box, so it looks as it will once added.
+  private fitPicker() {
+    const box = this.pickerPreview()
+    if (!this.pickerBox || !box || !this._config) return
+    const { columns: wanted, rows } = { ...this.getGridOptions(), ...this._config.grid_options }
+    const columns = typeof wanted === 'number' ? Math.min(wanted, 12) : 12
+    const column = (SECTION_WIDTH - 11 * GRID_GAP) / 12
+    const width = columns * column + (columns - 1) * GRID_GAP
+    this.style.width = `${width}px`
+    this.style.marginInline = 'auto'
+    this.style.height = typeof rows === 'number' ? `${rows * ROW_HEIGHT + (rows - 1) * GRID_GAP}px` : ''
+    this.style.zoom = `${Math.min(1, box.clientWidth / width)}`
   }
 
   protected area() {
@@ -190,10 +236,12 @@ export abstract class TileHost<C extends TileConfig> extends ReactHost<C> {
 
   private visible() {
     if (!this._config || !this._hass || this._preview) return true
-    const filter = roomFilter()
+    // A floorplan card that leaves the dashboard's tiles alone shows them
+    // the whole home whatever room it is in.
+    const filter = roomFilter()?.tiles ? roomFilter() : null
     const mode = this._config.room_filter
+    if (this._config.never_hide || mode === 'show') return true
     if (mode === 'home') return !filter
-    if (mode === 'show') return true
     if (!filter) return mode !== 'room'
     // A room with no area matches no tile.
     if (!filter.area_id) return mode !== 'room'

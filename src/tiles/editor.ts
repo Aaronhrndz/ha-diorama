@@ -15,6 +15,7 @@ const LABELS: Record<string, string> = {
   size: 'Size',
   area: 'Area',
   room_filter: 'With a room in view',
+  never_hide: 'Never hide',
   tap_action: 'Tap action',
   hold_action: 'Hold action',
   haptic: 'Vibrate on tap',
@@ -36,12 +37,15 @@ const LABELS: Record<string, string> = {
   min: 'Minimum',
   max: 'Maximum',
   hours_to_show: 'Path of the last hours',
+  layout: 'Layout',
   forecast_type: 'Forecast',
   interactions: 'Interactions',
 }
 
 const HELPERS: Record<string, string> = {
   area: 'The room filter uses the entity area when this is empty',
+  room_filter: 'Only while a floorplan card hides the tiles of other rooms',
+  never_hide: 'Keeps it showing whatever room a floorplan card is in',
   color: 'Any CSS color, like #ffb340',
   state_text: 'Replaces the line under the name',
   invert: 'For a screen that comes down to open',
@@ -51,6 +55,8 @@ const HELPERS: Record<string, string> = {
   feature: 'A control beside the icon. Some only fit a wide tile and make it wide',
 }
 
+const NEVER_HIDE: Field = { name: 'never_hide', selector: { boolean: {} } }
+
 const ROOM_FILTER: Field = {
   name: 'room_filter',
   selector: {
@@ -58,7 +64,6 @@ const ROOM_FILTER: Field = {
       mode: 'dropdown',
       options: [
         { value: 'hide', label: 'Show it only in its own area (or always, with no area)' },
-        { value: 'show', label: 'Always show it' },
         { value: 'room', label: 'Show it only in its own room' },
         { value: 'home', label: 'Show it only with the whole home in view' },
       ],
@@ -123,7 +128,21 @@ const EXTRAS: Record<Extra, Field[]> = {
     { name: 'min', selector: { number: { mode: 'box' } } },
     { name: 'max', selector: { number: { mode: 'box' } } },
   ],
-  map: [{ name: 'hours_to_show', selector: { number: { min: 0, max: 168, mode: 'box' } } }],
+  map: [
+    {
+      name: 'layout',
+      selector: {
+        select: {
+          mode: 'dropdown',
+          options: [
+            { value: 'full', label: 'Over the whole card, with the name on it' },
+            { value: 'top', label: 'Across the top, over the name' },
+          ],
+        },
+      },
+    },
+    { name: 'hours_to_show', selector: { number: { min: 0, max: 168, mode: 'box' } } },
+  ],
   forecast: [
     {
       name: 'forecast_type',
@@ -192,6 +211,7 @@ export function tileForm(domains: string[] | 'any', extras: Extra[] = [], panel 
                         options: [
                           { value: 'small', label: 'Small' },
                           { value: 'wide', label: 'Wide' },
+                          ...(extras.includes('forecast') ? [{ value: 'large', label: 'Large' }] : []),
                         ],
                       },
                     },
@@ -205,6 +225,7 @@ export function tileForm(domains: string[] | 'any', extras: Extra[] = [], panel 
         ...(panel ? [] : featureField(domains)),
         ...extras.flatMap(extra => EXTRAS[extra]),
         { name: 'area', selector: { area: {} } },
+        NEVER_HIDE,
         ROOM_FILTER,
       ],
     },
@@ -229,7 +250,12 @@ function featureField(domains: string[] | 'any'): Field[] {
 }
 
 export function titleForm() {
-  return form([{ name: 'title', selector: { text: {} } }, { name: 'area', selector: { area: {} } }, ROOM_FILTER])
+  return form([
+    { name: 'title', selector: { text: {} } },
+    { name: 'area', selector: { area: {} } },
+    NEVER_HIDE,
+    ROOM_FILTER,
+  ])
 }
 
 type IconSet = {

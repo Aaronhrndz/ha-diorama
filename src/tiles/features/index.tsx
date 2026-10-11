@@ -128,6 +128,22 @@ export const FEATURES: FeatureDef[] = [
   },
   { id: 'speed', label: 'Speed slider', does: 'drag for speed', domains: ['fan'], supports: bit(cover.FAN.speed) },
   {
+    id: 'speed-buttons',
+    label: 'Speed buttons',
+    domains: ['fan'],
+    // Off and up to four speeds, like Home Assistant's own.
+    supports: e => supports(e, cover.FAN.speed) && cover.speedCount(e) > 0 && cover.speedCount(e) <= 4,
+    View: cover.FanSpeeds,
+    wide: e => cover.speedCount(e) > 2,
+  },
+  {
+    id: 'speed-menu',
+    label: 'Speed menu',
+    domains: ['fan'],
+    supports: e => supports(e, cover.FAN.speed) && cover.speedCount(e) > 0 && cover.speedCount(e) <= 10,
+    View: cover.FanSpeedMenu,
+  },
+  {
     id: 'preset-modes',
     label: 'Preset menu',
     domains: ['fan'],
@@ -188,11 +204,33 @@ export const FEATURES: FeatureDef[] = [
     View: menu('swing-horizontal-modes'),
   },
   {
+    id: 'humidity-slider',
+    label: 'Humidity slider',
+    does: 'drag for the humidity to hold',
+    domains: ['humidifier'],
+    supports: e => numberOf(e, 'humidity') !== null,
+  },
+  {
     id: 'target-humidity',
     label: 'Humidity minus and plus buttons',
     domains: ['climate', 'humidifier'],
     supports: e => numberOf(e, 'humidity') !== null && (domainOf(e) === 'humidifier' || supports(e, 4)),
     View: climate.TargetHumidity,
+  },
+  {
+    id: 'temperature-slider',
+    label: 'Temperature slider',
+    does: 'drag for the temperature to hold',
+    domains: ['climate', 'water_heater'],
+    supports: e => numberOf(e, 'temperature') !== null,
+  },
+  {
+    id: 'operation-mode-buttons',
+    label: 'Operation mode buttons',
+    domains: ['water_heater'],
+    supports: has('operation_list'),
+    View: climate.OperationModes,
+    wide: e => listOf(e, 'operation_list').length > 2,
   },
   {
     id: 'operation-modes',
@@ -336,17 +374,19 @@ export const isWide = (config: { size?: string; entity?: string; feature?: strin
         (typeof f.wide === 'function' ? !!entity && f.wide(entity) : !!f.wide),
     ))
 
+// The modes a wide thermostat or water heater shows along its bottom.
+export const MODE_LISTS: Record<string, string> = { climate: 'hvac_modes', water_heater: 'operation_list' }
+
 // How many rows a tile takes: three for a feature along its bottom, or for
-// a wide thermostat with its temperature in the top right corner and its
-// modes along the bottom, and two for the rest.
-export const tileRows = (config: { size?: string; entity?: string; feature?: string }, entity?: EntityState) =>
-  addsRow(config.feature) ||
-  (config.size === 'wide' &&
-    !config.feature &&
-    !!config.entity?.startsWith('climate.') &&
-    (!entity || listOf(entity, 'hvac_modes').length > 0))
+// a wide thermostat or water heater with its temperature in the top right
+// corner and its modes along the bottom, and two for the rest.
+export const tileRows = (config: { size?: string; entity?: string; feature?: string }, entity?: EntityState) => {
+  const list = MODE_LISTS[config.entity?.split('.')[0] ?? '']
+  return addsRow(config.feature) ||
+    (config.size === 'wide' && !config.feature && !!list && (!entity || listOf(entity, list).length > 0))
     ? 3
     : 2
+}
 
 // Whether the feature is drawn across from the icon.
 export const besideIcon = (feature: string | undefined) =>

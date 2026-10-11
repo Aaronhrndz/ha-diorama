@@ -1,5 +1,6 @@
 import { callService } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
+import type { EntityState } from '#/types.ts'
 import {
   domainOf,
   Group,
@@ -135,6 +136,82 @@ export function FanDirection({ env, entity }: FeatureProps) {
         onPress={set('reverse')}
       />
     </Group>
+  )
+}
+
+// How many speeds a fan has, from the step between them, or none for one
+// that goes up by the percent.
+export function speedCount(entity: EntityState) {
+  const step = numberOf(entity, 'percentage_step')
+  return step && step > 1 ? Math.round(100 / step) : 0
+}
+
+// The speed a fan runs at, from 1 up to its count, or 0 while it is off.
+const speedOf = (entity: EntityState, count: number) =>
+  entity.state === 'on' ? Math.max(1, Math.round(((numberOf(entity, 'percentage') ?? 100) * count) / 100)) : 0
+
+const SPEED_WORDS: Record<number, string[]> = {
+  1: ['On'],
+  2: ['Low', 'High'],
+  3: ['Low', 'Medium', 'High'],
+  4: ['Low', 'Medium', 'High', 'Highest'],
+}
+const SPEED_ICONS = ['cell-signal-low', 'cell-signal-medium', 'cell-signal-high', 'cell-signal-full']
+
+// What a speed is called, by its place among the fan's speeds or, for a
+// fan with many, by its percent.
+const speedWord = (speed: number, count: number) =>
+  speed === 0 ? 'Off' : (SPEED_WORDS[count]?.[speed - 1] ?? percent(Math.round((speed * 100) / count)))
+
+// Sets the fan to a speed, or turns it off for 0.
+const setSpeed = (env: FeatureProps['env'], entity: EntityState, speed: number, count: number) =>
+  speed === 0
+    ? callService(env.hass, 'fan.turn_off', { entity_id: entity.entity_id })
+    : callService(env.hass, 'fan.set_percentage', {
+        entity_id: entity.entity_id,
+        percentage: Math.min(100, Math.round((speed * 100) / count)),
+      })
+
+// A round button for off and for each of a few speeds, the one it runs at
+// filled, the bars rising with the speed.
+export function FanSpeeds({ env, entity }: FeatureProps) {
+  const count = speedCount(entity)
+  const current = speedOf(entity, count)
+  const speeds = Array.from({ length: count + 1 }, (_, speed) => speed)
+  return (
+    <Group label="Speed" radio>
+      {speeds.map(speed => (
+        <Control
+          key={speed}
+          icon={
+            speed === 0
+              ? 'ph:power'
+              : `ph:${SPEED_ICONS[count === 1 ? 3 : Math.round(((speed - 1) * 3) / (count - 1))]}`
+          }
+          label={speedWord(speed, count)}
+          role="radio"
+          checked={current === speed}
+          className="fp-mode"
+          onPress={() => current !== speed && setSpeed(env, entity, speed, count)}
+        />
+      ))}
+    </Group>
+  )
+}
+
+// The same speeds as a menu, for a fan with too many for buttons.
+export function FanSpeedMenu({ env, entity }: FeatureProps) {
+  const count = speedCount(entity)
+  const options = Array.from({ length: count + 1 }, (_, speed) => String(speed))
+  return (
+    <MenuPill
+      icon="ph:fan"
+      label="Speed"
+      options={options}
+      current={String(speedOf(entity, count))}
+      word={option => speedWord(Number(option), count)}
+      onPick={option => setSpeed(env, entity, Number(option), count)}
+    />
   )
 }
 

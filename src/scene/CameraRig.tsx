@@ -1,6 +1,7 @@
 import {
   CAMERA_FIT_MARGIN,
   CAMERA_FIT_MARGIN_NARROW,
+  CAMERA_SPILL_NARROW,
   CAMERA_FLIGHT_S,
   CAMERA_ROOM_FIT_MARGIN,
   CAMERA_TURN_S,
@@ -106,6 +107,8 @@ const turn = (from: number, to: number) => MathUtils.euclideanModulo(to - from +
 
 // A card as narrow as a phone frames the home closer to its edges.
 const fitMargin = (width: number) => (width < NARROW_CARD_PX ? CAMERA_FIT_MARGIN_NARROW : CAMERA_FIT_MARGIN)
+// And lets the home run a little past its sides, so it fills the picture.
+const sideSpill = (width: number) => (width < NARROW_CARD_PX ? CAMERA_SPILL_NARROW : 1)
 
 const round = (v: number) => Math.round(v * 100) / 100
 const triple = (v: Vector3): [number, number, number] => [round(v.x), round(v.y), round(v.z)]
@@ -173,13 +176,14 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
     shown: RoomConfig[],
     items: DecorationConfig[],
     margin = fitMargin(size.width),
+    spill = sideSpill(size.width),
   ): CameraView => {
     const aspect = size.width / size.height
     const height = sceneHeight(items)
     const narrow = size.width < NARROW_CARD_PX
     const { position, target } = saved
-      ? fitView(saved, shown, aspect, height, margin, narrow)
-      : frameRooms(shown, aspect, height, undefined, margin, narrow)
+      ? fitView(saved, shown, aspect, height, margin, narrow, spill)
+      : frameRooms(shown, aspect, height, undefined, margin, narrow, spill)
     return { position: triple(position), target: triple(target) }
   }
 
@@ -198,6 +202,8 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
         sceneHeight(decorations),
         undefined,
         fitMargin(size.width),
+        size.width < NARROW_CARD_PX,
+        sideSpill(size.width),
       )
       return { position: triple(whole.position), target: triple(whole.target) }
     }
@@ -211,6 +217,7 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
       [from.x, from.y, from.z],
       CAMERA_ROOM_FIT_MARGIN,
       true,
+      sideSpill(size.width),
     )
     return { position: triple(position), target: triple(target) }
   }

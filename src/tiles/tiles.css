@@ -326,6 +326,43 @@
   top: calc(100% - var(--_inset) - 4px);
 }
 
+/* A short tick at each stop a fill with few of them snaps to, hanging
+   from the very top edge with its free end rounded, faint over the empty
+   part and over the filled one alike. One that fills up or down has them
+   on its left edge instead, pointing in. */
+.fp-fill-tick {
+  position: absolute;
+  top: 0;
+  left: var(--_at);
+  width: 3px;
+  height: 9px;
+  border-radius: 0 0 1.5px 1.5px;
+  background: var(--_text-inactive);
+  opacity: 0.25;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.fp-fill-lit .fp-fill-tick {
+  background: var(--_text-active);
+}
+
+.fp-fill[data-vertical] .fp-fill-tick {
+  left: 0;
+  width: 9px;
+  height: 3px;
+  border-radius: 0 1.5px 1.5px 0;
+  transform: translateY(-50%);
+}
+
+.fp-fill[data-from='top'] .fp-fill-tick {
+  top: var(--_at);
+}
+
+.fp-fill[data-from='bottom'] .fp-fill-tick {
+  top: calc(100% - var(--_at));
+}
+
 .fp-top {
   display: flex;
   align-items: flex-start;
@@ -896,6 +933,107 @@
   font-weight: 600;
 }
 
+/* Small, a square: the temperature under the name, and the sky, the
+   high and the low at its foot. */
+.fp-weather-small {
+  justify-content: space-between;
+}
+
+.fp-weather-small .fp-weather-temp {
+  font-size: 44px;
+}
+
+.fp-weather-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fp-weather-foot .fp-icon {
+  width: 24px;
+  height: 24px;
+  --mdc-icon-size: 24px;
+}
+
+.fp-weather-foot .fp-weather-icon {
+  margin-bottom: 2px;
+}
+
+.fp-weather-small .fp-weather-condition {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Large, the days under the hours, apart from them by a faint line. */
+.fp-weather-large {
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.fp-weather-days {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-variant-numeric: tabular-nums;
+}
+
+.fp-weather-day {
+  display: grid;
+  grid-template-columns: 3.4em 28px 2.4em minmax(0, 1fr) 2.4em;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.fp-weather-day .fp-icon {
+  width: 22px;
+  height: 22px;
+  --mdc-icon-size: 22px;
+}
+
+.fp-weather-day-name {
+  white-space: nowrap;
+}
+
+.fp-weather-low {
+  text-align: right;
+  opacity: 0.6;
+}
+
+.fp-weather-bar {
+  position: relative;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.fp-weather-bar > span {
+  position: absolute;
+  inset-block: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #64d2ff, #ffd60a 60%, #ff9f0a);
+}
+
+/* The temperature now, on today's bar. */
+.fp-weather-bar > i {
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+  transform: translate(-50%, -50%);
+}
+
 /* A feature along the bottom of a tile, at any size: a bar, a menu, a
    switch or a set of buttons, the whole width of the tile. */
 .fp-feature {
@@ -1453,6 +1591,24 @@
 
 .fp-card .fp-aside {
   margin: 0;
+}
+
+/* Beside a dial, the name and the state are never cut short. Where they
+   run longer than the room it leaves them, they go on over it, in front,
+   and let a drag through to what is under them. */
+.fp-big-dial .fp-bottom > .fp-text {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  width: 0;
+  pointer-events: none;
+}
+
+.fp-big-dial .fp-bottom :is(.fp-name, .fp-state) {
+  display: block;
+  overflow: visible;
+  white-space: nowrap;
+  text-overflow: clip;
 }
 
 /* A card of a set height, like the calendar or the graph, gives what it
@@ -2084,6 +2240,12 @@
   color: color-mix(in oklab, var(--_dial, var(--_accent)), var(--_ink-to) var(--_deep));
 }
 
+/* A stretch with a color of its own, like the heat and the cool ends of a
+   range, deepens it the same way the ring's color is. */
+.fp-dial-segment[style*='--_segment'] {
+  color: color-mix(in oklab, var(--_segment), var(--_ink-to) var(--_deep));
+}
+
 .fp-dial-face {
   display: grid;
   justify-items: center;
@@ -2133,6 +2295,60 @@
 
 .fp-dial[data-off] .fp-dial-fill {
   stroke: color-mix(in srgb, var(--_text-inactive) 40%, transparent);
+}
+
+/* The stretch between where the room is now and where it is heading, paler
+   than the fill, with arrows along it that point at the knob and light up
+   one after another toward it. */
+.fp-dial-toward {
+  fill: none;
+  stroke: color-mix(in srgb, currentColor 36%, transparent);
+  stroke-width: 18;
+  stroke-linecap: round;
+}
+
+.fp-dial-arrow {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.25;
+  animation: fp-dial-run 1.4s ease-in-out infinite;
+  animation-delay: calc(var(--_i) * 0.12s);
+}
+
+@keyframes fp-dial-run {
+  30% {
+    opacity: 0.7;
+  }
+  60% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-dial-arrow {
+    opacity: 0.55;
+    animation: none;
+  }
+}
+
+.fp-dial[data-dragging] .fp-dial-toward,
+.fp-dial[data-dragging] .fp-dial-arrow {
+  opacity: 0.6;
+  animation: none;
+}
+
+/* Where the room is now, while it is not heading anywhere: a small dot,
+   faint on the track and white on the fill. */
+.fp-dial-mark {
+  fill: color-mix(in srgb, currentColor 55%, transparent);
+  pointer-events: none;
+}
+
+.fp-dial-mark[data-on-fill] {
+  fill: rgb(255 255 255 / 0.85);
 }
 
 .fp-dial-knob {
@@ -2187,6 +2403,34 @@
   text-align: center;
 }
 
+/* The whole degrees right aligned in the room of the widest, with the
+   degree sign over the tenths small beside them. */
+.fp-degrees {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.fp-degrees-whole {
+  min-width: var(--_whole, auto);
+  text-align: right;
+}
+
+.fp-degrees-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-left: 0.04em;
+  padding-block: 0.06em;
+  font-size: 0.42em;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.fp-degrees-side > [data-empty] {
+  visibility: hidden;
+}
+
 .fp-dial-end {
   padding: 2px 8px;
   border: none;
@@ -2239,7 +2483,7 @@
   inset: -40px;
   z-index: -1;
   background: var(--_art) center / cover;
-  filter: blur(40px) saturate(1.4) brightness(0.7);
+  filter: blur(16px) saturate(1.3) brightness(0.7);
   opacity: 0.85;
 }
 
@@ -2394,16 +2638,18 @@
   opacity: 1;
 }
 
-/* The map: Home Assistant's own, filling the right of the tile from top
-   to bottom, inset as far as the padding, with rounded corners. */
+/* The map: Home Assistant's own, over the whole card edge to edge, with
+   no icon, and the name and the state in the bottom left in white over a
+   dark shade that rises from the bottom, so they read on a light map and
+   a dark one. */
+.fp-map .fp-top {
+  display: none;
+}
+
 .fp-map-box {
   position: absolute;
-  top: var(--_padding);
-  right: var(--_padding);
-  bottom: var(--_padding);
-  width: 62%;
+  inset: 0;
   overflow: hidden;
-  border-radius: calc(var(--_radius) - var(--_padding) / 2);
   cursor: default;
   --ha-card-border-radius: 0;
   --ha-card-border-width: 0;
@@ -2414,6 +2660,54 @@
 .fp-map-box > * {
   display: block;
   height: 100%;
+}
+
+.fp-map-full .fp-bottom {
+  margin-top: auto;
+}
+
+.fp-map-full .fp-text {
+  position: relative;
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.fp-map-full .fp-bottom::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  height: 96px;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0.35) 55%, transparent);
+  pointer-events: none;
+}
+
+/* Across the top, the map takes all the card above the name and the
+   state, inside the padding, with rounded corners. */
+.fp-map-top .fp-bottom {
+  flex: 1;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.fp-map-top .fp-bottom > .fp-text {
+  flex: none;
+}
+
+.fp-map-top .fp-aside {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+}
+
+.fp-map-top .fp-map-box {
+  border-radius: calc(var(--_radius) - var(--_padding) / 2);
 }
 
 @media (prefers-reduced-motion: reduce) {

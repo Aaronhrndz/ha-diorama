@@ -11,6 +11,15 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
+- A slider tile with a few stops, like a fan's speeds, shows a faint short tick at each stop hanging from its top edge.
+- The card's settings have a Height on a phone slider that sets how tall the floorplan is on a narrow card, over the side panel too, so the tiles under it start higher.
+- Any Floorplan tile can be set to Never hide, `never_hide: true`, to keep showing whatever room the floorplan card is in.
+- A dial that is not heading for its knob shows a small dot on the ring where the room is now, in place of the arrows.
+- The map card spreads its map over the whole card with the name and place on it in the bottom left, or across the top over a bar with them, with no icon either way.
+- A water heater tile can show its modes as round buttons with icons beside its icon, and a wide water heater tile shows them across from its name, like a thermostat's.
+- A thermostat or water heater tile can be a slider for the temperature it holds, filled as far along its range as that temperature.
+- A humidifier tile can be a slider for the humidity it aims for, filled as far as that humidity, with how humid the room is now beside it.
+- A fan with a few speeds can show them as round buttons beside its icon, off and each speed, or as a menu, like Home Assistant's own speed buttons.
 - The floorplan card lays a soft gradient behind its view, with five to choose from in the card's editor and a separate choice for a light and a dark dashboard.
 - Buttons, scripts and scenes can drive nearly every piece that switches on: each press plays it once and it goes back, so a light blinks, a fan goes one turn round, a fridge or a window opens and shuts, and a litter box turns over and back a single time.
 
@@ -51,12 +60,27 @@ moves that section under the new version and uses it as the release notes.
 - The to-do list card lists its items across the whole card down to just over its name, in the same teal as the calendar, without lines between them, and fades out at its edges when it scrolls.
 - The calendar card lists its events across the whole card down to just over its name, with a thin, quiet scrollbar, and can show only today's events, offered as its own card in the card picker.
 - The Now Playing card fills from the left with a faint dark shade as the song goes on, passing behind its buttons and its volume without showing through them, shows the time played beside its buttons, seeks when swiped sideways anywhere on it, and plays or pauses with a tap.
+- The Now Playing card blurs the cover art behind it less, so it can still be made out.
+- The card picker no longer offers the Now Playing card for a media player that can only browse or search, as it would show next to nothing.
 - The Now Playing card's volume fills white on a dark card and black on a light one, with shuffle and repeat to its right, and its level no longer gets cut off on a phone.
 - The dial's ring is bigger and reaches down beside the name, with plus over minus on its left, and its number stays still as it changes, like from 21° to 21.5°, with the two ends of a range large and one over the other inside the ring.
 - The alarm panel is a wide tile like the others, with its modes in the top right, a keypad beside a large line saying what the code will do, a red lock key to arm and a green open lock to disarm, and a red or green wash for armed or disarmed.
+- Each tile in the side panel's home and room lists in the card's editor shows which card it is, and a press on that opens live previews of every floorplan card the entity can be, to pick another one.
+- The weather tile comes in two more sizes: a square half as wide with only the weather now, and one twice as tall that lists the next days under the hours, each with its low and high on a bar across the week, and the card picker offers both.
 
 ### Changed
 
+- On a phone, the tiles start right under the floorplan, with no gap between them.
+- Picking the card for a tile in the side panel opens a page of its own in place of the settings, with the device's name and a Back button at the top, and the picked card ticked in its corner.
+- A dial's name and state are never cut short, and run over the dial when they need the room.
+- A dial shows the tenths of a degree small under the degree sign, and keeps their room when there are none, so the number no longer shifts as it changes.
+- The Floorplan tiles elsewhere on the dashboard no longer hide when the floorplan card flies to a room, unless Hide other rooms' tiles is turned on in the card's editor, so the page no longer jumps. The side panel still follows the room.
+- In Home Assistant's card picker and its suggestions for an entity, each tile card shows at the width and height it takes once added to a section, shrunk to fit, so a map, a graph or a dial no longer looks squashed.
+- The arrows on a dial's paler stretch sit closer together, and at least one always shows past the knob even when the room is only a degree away.
+- A thermostat's dial with a range of two temperatures fills from its start up to the low end in orange and from the high end on in blue, like Home Assistant's, with the arrows toward whichever end the room is heading for.
+- While the room is heading for the value set on a dial, the stretch of its ring from where the room is now is paler, with faint arrows pointing the way it goes.
+- A dial fills on the same side as Home Assistant's own, from the value to the end of the ring for cooling or a dehumidifier and all the way round on auto.
+- A humidifier tile says how humid the room is beside On or Off, a fan tile says its speed while it is on, and a valve tile how far it is open.
 - A media player that is playing shows its icon and its volume in a green leaning to teal.
 - A media player tile with the volume is its volume across the whole tile, dragged sideways like a light's brightness, while a tap still plays or pauses it.
 - A media player tile with the volume buttons says how loud it plays before what is playing.
@@ -105,9 +129,17 @@ moves that section under the new version and uses it as the release notes.
 - Temperatures on thermostats and dials show a degree sign, like 22°, and a thermostat's state reads as one phrase, like 20.5° to 22°.
 - A thermostat's icon takes the color of the mode it runs in on every one of its tiles, and that color washes down from the top of the tile while it is on. In auto, or keeping a range, it takes the color of what it is doing, like orange while it heats, and no color while it waits.
 - Each thermostat mode has its own color: orange for heating, blue for cooling, yellow for drying and teal for the fan alone, while auto and keeping a range look plain like off. Water heaters, humidifiers and the alarm panel's warning share the same orange and blue. In the 3D view, the air out of an air conditioner and the glow of a thermostat take the same color as its tiles.
+- The side panel's tiles fade out at its top and bottom edges as they scroll, showing the background, instead of being cut off.
+- The camera tile shows the camera's state under its name.
+- Covers, vacuums, thermostats and media players are offered as a small tile that only answers a tap, as well as wide with their buttons.
+- A calendar or a to-do list in the side panel shows as the calendar or the to-do card, and Floorplan Any Entity is no longer offered for a calendar.
+- On a phone, the home and a room you fly to sit in the middle of the card and fill it, running a little past its sides rather than leaving empty space around them.
 
 ### Fixed
 
+- A thermostat on auto with a single temperature shows the paler stretch and its arrows toward it from either side, where it showed none.
+- Dragging a dial's knob or a slider no longer opens the card's dialog when it is let go.
+- In a sections dashboard, a floorplan card with its side panel and a set number of rows keeps the tiles inside the card when they drop under the floorplan on a narrow screen, scrolling them there instead of covering the editor and the cards below.
 - Adding an item to the to-do list card with Enter or the plus beside the field now adds it to the list.
 - Buttons keep their fill and stay readable under the pointer, on a tile that is on or off and on a light or a dark dashboard.
 - Colored icons, words and lines on the tiles, like the chosen mode, the Clear link of a to-do list or a light's icon, now stand out clearly from the tile in light and in dark, and the dimmer second lines are a little stronger.
@@ -117,6 +149,7 @@ moves that section under the new version and uses it as the release notes.
 - A piece can be set on top of a basin, where it used to sink into it.
 - Picking an option from a menu on a tile, like the mode of a humidifier, or typing an alarm code, no longer also turns the tile on or off.
 - A small tile with a menu where nothing is chosen, like a fan running without a preset, now says what the menu picks instead of showing an empty pill.
+- Without the side panel, the floorplan in a sections view with a set number of rows fills them instead of spilling over what is under it.
 
 ## [1.2.5] - 2026-10-08
 

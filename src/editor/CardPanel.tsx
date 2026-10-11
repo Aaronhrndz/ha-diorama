@@ -1,3 +1,4 @@
+import { aspectRatioNumber } from '#/lib/aspect.ts'
 import { BACKGROUNDS, DEFAULT_BACKGROUND, PLAIN_SWATCH, THEME_BACKGROUND } from '#/lib/background.ts'
 import { setPreviewRoom } from '#/lib/previewRoom.ts'
 import { cn } from '#/lib/utils.ts'
@@ -7,11 +8,14 @@ import { ResetButton, Slider, Switch } from '#/editor/panel.tsx'
 import { SUN_DIRECTION_DEG } from '#/constants.ts'
 import { EDITOR_TINT_COLOR } from '#/theme.ts'
 import { entityName } from '#/devices/catalog.ts'
-import type { BackgroundConfig, CardConfig, HomeAssistant, HomeConfig, RoomConfig } from '#/types.ts'
-import { roomEntities } from '#/tiles/auto.ts'
+import type { BackgroundConfig, CardConfig, HomeAssistant, HomeConfig, RoomConfig, TileChoices } from '#/types.ts'
+import { autoTiles } from '#/tiles/auto.ts'
+import { tileName, TilePicker } from '#/editor/TilePicker.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { defaultIcon } from '#/tiles/icons.ts'
 import {
+  faArrowLeft,
+  faChevronRight,
   faCirclePlus,
   faGripVertical,
   faLocationArrow,
@@ -26,6 +30,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
@@ -43,9 +48,30 @@ type Props = {
 // editor first, then how the card answers a click and where its light
 // comes from, then the side panel and what goes in it, the background, and
 // how to move the view last.
+const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a)
+
 export default function CardPanel({ hass, config, onChange, opening, onOpen }: Props) {
   const rooms = config.rooms ?? []
   const sidePanel = config.side_panel === true
+  // The tile whose card is being picked, on a page of its own in place of
+  // the settings, and the row it was opened from, to go back to.
+  const [choosing, setChoosing] = useState<Choosing | null>(null)
+  const root = useRef<HTMLDivElement>(null)
+  const back = useRef<string | null>(null)
+  const choose = (room: string | null, id: string) => {
+    back.current = null
+    setPreviewRoom(room)
+    setChoosing({ room, id })
+  }
+  const close = () => {
+    if (choosing) back.current = choosing.id
+    setChoosing(null)
+  }
+  useLayoutEffect(() => {
+    if (choosing) root.current?.scrollIntoView({ block: 'start' })
+    else if (back.current)
+      root.current?.querySelector(`[data-choose="${CSS.escape(back.current)}"]`)?.scrollIntoView({ block: 'center' })
+  }, [choosing])
   // The preview starts on the whole home each time the settings open.
   useEffect(() => () => setPreviewRoom(null), [])
 
@@ -64,19 +90,39 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     onChange(degrees === SUN_DIRECTION_DEG ? rest : { ...rest, sun_direction: degrees })
   }
 
+  // How tall the floorplan is on a phone, in percent of its width. With
+  // nothing said it is square, or the card's own shape when one is given,
+  // so square is only left out of the YAML when nothing else is given.
+  const wideShape = config.aspect_ratio && config.aspect_ratio !== 'fill' ? config.aspect_ratio : undefined
+  const tall = Math.round(100 / aspectRatioNumber(config.aspect_ratio_mobile ?? wideShape ?? '1:1'))
+  const setTall = (percent: number) => {
+    const { aspect_ratio_mobile: _, ...rest } = config
+    const d = gcd(100, percent)
+    onChange(percent === 100 && !wideShape ? rest : { ...rest, aspect_ratio_mobile: `${100 / d}:${percent / d}` })
+  }
+
+  // Whether the Floorplan tiles elsewhere on the dashboard follow the room
+  // in view. Off is the default, so it is not written down.
+  const filterTiles = config.filter_tiles === true
+  const setFilterTiles = (on: boolean) => {
+    const { filter_tiles: _, ...rest } = config
+    onChange(on ? { ...rest, filter_tiles: true } : rest)
+  }
+
   const setSidePanel = (on: boolean) => {
     const { side_panel: _, ...rest } = config
     onChange(on ? { ...rest, side_panel: true } : rest)
   }
 
-  // Writes a room's entities and tile order, leaving out a list that is
-  // empty so the YAML stays as short as it was.
-  const setRoom = (roomId: string, lists: { entities?: string[]; order?: string[] }) => {
+  // Writes a room's entities, tile order and chosen cards, leaving out what
+  // is empty so the YAML stays as short as it was.
+  const setRoom = (roomId: string, lists: RoomLists) => {
     const next = rooms.map(room => {
       if (room.id !== roomId) return room
       const updated: RoomConfig = { ...room, ...lists }
       if (!updated.entities?.length) delete updated.entities
       if (!updated.order?.length) delete updated.order
+      if (!Object.keys(updated.tiles ?? {}).length) delete updated.tiles
       return updated
     })
     onChange({ ...config, rooms: next })
@@ -90,6 +136,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     const next: HomeConfig = { ...home, ...changes }
     if (!next.name) delete next.name
     if (!next.entities?.length) delete next.entities
+    if (!Object.keys(next.tiles ?? {}).length) delete next.tiles
     const { home: _, ...rest } = config
     onChange(Object.keys(next).length ? { ...rest, home: next } : rest)
   }
@@ -109,9 +156,60 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     ...rooms.flatMap(room => room.entities ?? []),
   ]
 
+  const light = hass?.themes?.darkMode === false || undefined
+  const picking = choosing && hass && pickPage(hass, config, choosing)
+  if (picking) {
+    const { auto, tiles, room } = picking
+    const id = choosing!.id
+    const save = (next: TileChoices) => (room ? setRoom(room.id, { tiles: next }) : setHome({ tiles: next }))
+    return (
+      <div
+        ref={root}
+        data-light={light}
+        // The dialog's own color, so the page has no background of its own
+        // and the header still hides the cards scrolled under it.
+        style={
+          {
+            '--fp-surface':
+              'var(--ha-dialog-surface-background, var(--mdc-theme-surface, var(--card-background-color)))',
+          } as CSSProperties
+        }
+        className="fp-editor font-system flex min-h-full flex-col gap-3 px-4 pb-6 text-(--primary-text-color) antialiased"
+      >
+        <header className="sticky top-0 z-10 -mx-4 flex items-center gap-2 bg-(--fp-surface) px-4 pt-3 pb-2">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <h2 className="truncate text-[17px] font-semibold tracking-tight">{entityName(hass, id)}</h2>
+            <p className="text-label-2 truncate text-xs">
+              The card it shows in the side panel, {room ? roomName(hass, room) : home.name || 'Home'}
+            </p>
+          </div>
+          {/* Said in words and filled, so the way back is plain to see. */}
+          <button
+            type="button"
+            onClick={close}
+            className="bg-tint-fill flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full pr-4 pl-3.5 text-[13px] font-semibold text-white transition-[filter,transform] hover:brightness-110 active:scale-[0.97]"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} className="size-3.5" />
+            Back
+          </button>
+        </header>
+        <TilePicker
+          hass={hass}
+          auto={auto}
+          chosen={tiles?.[id]}
+          onChoose={choice => {
+            save(choice ? { ...tiles, [id]: choice } : without(tiles, id))
+            close()
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div
-      data-light={hass?.themes?.darkMode === false || undefined}
+      ref={root}
+      data-light={light}
       className="fp-editor font-system flex flex-col gap-6 px-5 py-6 text-(--primary-text-color) antialiased"
     >
       <Section
@@ -152,6 +250,20 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
             <span className="text-[13px]">Rooms first</span>
             <Switch checked={roomsFirst} accent={EDITOR_TINT_COLOR} label="Rooms first" onChange={setRoomsFirst} />
           </label>
+          <label className="border-separator flex cursor-pointer items-center justify-between gap-4 border-t py-2.5">
+            <span className="flex min-w-0 flex-col">
+              <span className="text-[13px]">Hide other rooms' tiles</span>
+              <span className="text-label-2 text-xs">
+                With a room in view, the Floorplan tiles on the dashboard from other areas hide
+              </span>
+            </span>
+            <Switch
+              checked={filterTiles}
+              accent={EDITOR_TINT_COLOR}
+              label="Hide other rooms' tiles"
+              onChange={setFilterTiles}
+            />
+          </label>
           <div className="border-separator flex flex-col gap-2 border-t py-3">
             <div className="flex items-center gap-2">
               <FontAwesomeIcon
@@ -176,6 +288,32 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
               step={5}
               value={sun}
               onChange={e => setSun(Number(e.target.value))}
+            />
+          </div>
+          <div className="border-separator flex flex-col gap-2 border-t py-3">
+            <div className="flex items-center gap-2">
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-[13px]">Height on a phone</span>
+                <span className="text-label-2 text-xs">On a card narrower than 600 px, over the side panel too</span>
+              </span>
+              <span className="text-label-2 text-xs tabular-nums">{tall}%</span>
+              <ResetButton
+                label="Height on a phone"
+                changed={config.aspect_ratio_mobile !== undefined}
+                onReset={() => {
+                  const { aspect_ratio_mobile: _, ...rest } = config
+                  onChange(rest)
+                }}
+              />
+            </div>
+            <Slider
+              aria-label="Height on a phone"
+              className="w-full"
+              min={40}
+              max={150}
+              step={5}
+              value={tall}
+              onChange={e => setTall(Number(e.target.value))}
             />
           </div>
         </div>
@@ -209,10 +347,12 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
             </label>
             {homeEntities.length > 0 && (
               <SortableList
-                items={homeEntities.map(id => ({
+                items={[...autoTiles(config, null)].map(([id, auto]) => ({
                   id,
                   title: hass ? entityName(hass, id) : id,
-                  onRemove: () => setHome({ entities: homeEntities.filter(other => other !== id) }),
+                  card: hass && { name: tileName(hass, auto, home.tiles?.[id]), onOpen: () => choose(null, id) },
+                  onRemove: () =>
+                    setHome({ entities: homeEntities.filter(other => other !== id), tiles: without(home.tiles, id) }),
                 }))}
                 onReorder={entities => setHome({ entities })}
               />
@@ -231,7 +371,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
       {sidePanel && (
         <Section
           title="Tiles by room"
-          description="Every device on the plan already has a tile in its room. Add the entities that have no piece on the plan, such as a scene, a sensor or a thermostat, and drag the handles to put the tiles in the order the panel shows them."
+          description="Every device on the plan already has a tile in its room. Add the entities that have no piece on the plan, such as a scene, a sensor or a thermostat, and drag the handles to put the tiles in the order the panel shows them. Each tile is the card made for its kind of entity until you pick another under its name."
         >
           {rooms.length === 0 ? (
             <p className={cn(group, 'text-label-2 text-[13px]')}>Draw a room in the editor first.</p>
@@ -244,6 +384,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
                 room={room}
                 taken={taken}
                 onChange={lists => setRoom(room.id, lists)}
+                onChoose={id => choose(room.id, id)}
               />
             ))
           )}
@@ -363,27 +504,34 @@ function RoomEntities({
   room,
   taken,
   onChange,
+  onChoose,
 }: {
   hass: HomeAssistant | null
   config: CardConfig
   room: RoomConfig
   taken: string[]
-  onChange: (lists: { entities?: string[]; order?: string[] }) => void
+  onChange: (lists: RoomLists) => void
+  onChoose: (id: string) => void
 }) {
   const extra = room.entities ?? []
-  const ids = roomEntities(config, room)
+  const tiles = autoTiles(config, room)
   const name = (id: string) => (hass ? entityName(hass, id) : id)
   const remove = (id: string) =>
-    onChange({ entities: extra.filter(other => other !== id), order: room.order?.filter(other => other !== id) })
+    onChange({
+      entities: extra.filter(other => other !== id),
+      order: room.order?.filter(other => other !== id),
+      tiles: without(room.tiles, id),
+    })
 
   return (
     <div className={group} {...showsInPreview(room.id)}>
       <p className="px-0.5 text-[13px] font-semibold">{roomName(hass, room)}</p>
-      {ids.length > 0 && (
+      {tiles.size > 0 && (
         <SortableList
-          items={ids.map(id => ({
+          items={[...tiles].map(([id, auto]) => ({
             id,
             title: name(id),
+            card: hass && { name: tileName(hass, auto, room.tiles?.[id]), onOpen: () => onChoose(id) },
             onRemove: extra.includes(id) ? () => remove(id) : undefined,
           }))}
           onReorder={order => onChange({ order })}
@@ -394,7 +542,34 @@ function RoomEntities({
   )
 }
 
-type Item = { id: string; title: string; onRemove?: () => void }
+type RoomLists = { entities?: string[]; order?: string[]; tiles?: TileChoices }
+
+// The chosen cards without the one for an entity.
+function without(tiles: TileChoices | undefined, id: string) {
+  const { [id]: _, ...rest } = tiles ?? {}
+  return rest
+}
+
+type Choosing = { room: string | null; id: string }
+
+// What the page for picking a tile's card needs: the tile the panel would
+// make, the cards already picked beside it, and the room it is in, or none
+// for the home.
+function pickPage(hass: HomeAssistant, config: CardConfig, { room: roomId, id }: Choosing) {
+  const room = roomId === null ? null : config.rooms?.find(other => other.id === roomId)
+  if (room === undefined) return null
+  const auto = autoTiles(config, room).get(id)
+  if (!auto || !hass.states[id]) return null
+  return { auto, room, tiles: room ? room.tiles : config.home?.tiles }
+}
+
+type Item = {
+  id: string
+  title: string
+  // The card the row's tile is, which opens the page to pick another.
+  card?: { name: string; onOpen: () => void } | null
+  onRemove?: () => void
+}
 type Drag = { id: string; grab: number; y: number }
 
 // A list whose rows are put in order by dragging the handle on their right,
@@ -480,41 +655,57 @@ function SortableList({ items, onReorder }: { items: Item[]; onReorder: (ids: st
               else rows.current.delete(id)
             }}
             className={cn(
-              'bg-raised not-first:border-separator flex h-10 items-center gap-0.5 pr-1 pl-3 not-first:border-t first:rounded-t-lg last:rounded-b-lg',
+              'bg-raised not-first:border-separator flex flex-col pr-1 pl-3 not-first:border-t first:rounded-t-lg last:rounded-b-lg',
               dragging &&
                 'relative z-10 rounded-lg border-transparent shadow-[0_10px_30px_-8px_rgba(0,0,0,0.45),0_0_0_0.5px_rgba(0,0,0,0.1)]',
             )}
           >
-            <span className="min-w-0 flex-1 truncate text-[13px]">{item.title}</span>
-            {item.onRemove && (
+            <div className={cn('flex items-center gap-0.5', item.card ? 'h-12' : 'h-10')}>
+              <span className="flex min-w-0 flex-1 flex-col items-start">
+                <span className="w-full truncate text-[13px]">{item.title}</span>
+                {item.card && (
+                  <button
+                    type="button"
+                    data-choose={id}
+                    aria-label={`Card for ${item.title}: ${item.card.name}`}
+                    onClick={item.card.onOpen}
+                    className="text-tint -mx-1 flex max-w-full cursor-pointer items-center gap-1 rounded px-1 text-[11px] font-medium transition-opacity hover:opacity-70"
+                  >
+                    <span className="truncate">{item.card.name}</span>
+                    <FontAwesomeIcon icon={faChevronRight} className="size-2.5 shrink-0" />
+                  </button>
+                )}
+              </span>
+              {item.onRemove && (
+                <button
+                  type="button"
+                  aria-label={`Remove ${item.title}`}
+                  onClick={item.onRemove}
+                  className={cn(
+                    iconButton,
+                    'text-label-2 size-8 shrink-0 cursor-pointer hover:text-(--primary-text-color)',
+                  )}
+                >
+                  <FontAwesomeIcon icon={faXmark} className="size-3.5" />
+                </button>
+              )}
               <button
                 type="button"
-                aria-label={`Remove ${item.title}`}
-                onClick={item.onRemove}
+                aria-label={`Move ${item.title}`}
+                onPointerDown={event => start(event, id)}
+                onPointerMove={move}
+                onPointerUp={end}
+                onPointerCancel={end}
+                onKeyDown={event => nudge(event, id)}
                 className={cn(
                   iconButton,
-                  'text-label-2 size-8 shrink-0 cursor-pointer hover:text-(--primary-text-color)',
+                  'text-label-2 size-8 shrink-0 touch-none hover:text-(--primary-text-color)',
+                  dragging ? 'cursor-grabbing' : 'cursor-grab',
                 )}
               >
-                <FontAwesomeIcon icon={faXmark} className="size-3.5" />
+                <FontAwesomeIcon icon={faGripVertical} className="size-3.5" />
               </button>
-            )}
-            <button
-              type="button"
-              aria-label={`Move ${item.title}`}
-              onPointerDown={event => start(event, id)}
-              onPointerMove={move}
-              onPointerUp={end}
-              onPointerCancel={end}
-              onKeyDown={event => nudge(event, id)}
-              className={cn(
-                iconButton,
-                'text-label-2 size-8 shrink-0 touch-none hover:text-(--primary-text-color)',
-                dragging ? 'cursor-grabbing' : 'cursor-grab',
-              )}
-            >
-              <FontAwesomeIcon icon={faGripVertical} className="size-3.5" />
-            </button>
+            </div>
           </li>
         )
       })}

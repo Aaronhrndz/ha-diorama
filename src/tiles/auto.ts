@@ -1,4 +1,4 @@
-import type { CardConfig, DecorationConfig, DeviceConfig, RoomConfig } from '#/types.ts'
+import type { CardConfig, DecorationConfig, DeviceConfig, RoomConfig, TileChoices } from '#/types.ts'
 
 // The tiles of the floorplan's side panel, made from the devices placed on
 // the floorplan and the entities given to each room: a heading per room,
@@ -32,6 +32,8 @@ const TILE_TYPES: Record<string, string> = {
   select: 'fp-select',
   input_select: 'fp-select',
   weather: 'fp-weather',
+  calendar: 'fp-calendar',
+  todo: 'fp-todo',
 }
 
 // Anything else, a sensor, a person or the weather, shows its state.
@@ -99,7 +101,7 @@ const KIND_ICONS: Record<string, string> = {
 
 function entityTile(entityId: string): AutoCard {
   const type = TILE_TYPES[entityId.split('.')[0]] ?? FALLBACK
-  const card: AutoCard = { type: `custom:${type}`, entity: entityId, room_filter: 'show' }
+  const card: AutoCard = { type: `custom:${type}`, entity: entityId, never_hide: true }
   if (WIDE.has(type)) card.size = 'wide'
   return card
 }
@@ -129,29 +131,46 @@ export function roomEntities(plan: CardConfig, room: RoomConfig) {
 }
 
 function heading(room: RoomConfig): AutoCard {
-  const card: AutoCard = { type: 'custom:fp-title', room_filter: 'show' }
+  const card: AutoCard = { type: 'custom:fp-title', never_hide: true }
   if (room.name) card.title = room.name
   else if (room.area_id) card.area = room.area_id
   else card.title = room.id
   return card
 }
 
-export function autoGroups(plan: CardConfig): AutoGroup[] {
+// An entity's tile as the panel shows it: the card chosen for it, if any,
+// in place of the one picked for its domain, keeping the piece's icon.
+function chosen(card: AutoCard, tiles: TileChoices | undefined): AutoCard {
+  const choice = tiles?.[String(card.entity)]
+  if (!choice) return card
+  const { type: _, size: __, ...kept } = card
+  return { ...kept, ...choice, entity: card.entity }
+}
+
+// The tiles a room or the home shows, by entity id, before any is chosen.
+export function autoTiles(plan: CardConfig, room: RoomConfig | null): Map<string, AutoCard> {
+  if (!room) return new Map((plan.home?.entities ?? []).map(id => [id, entityTile(id)]))
   const pieces = new Map((plan.decorations ?? []).map(piece => [piece.id, piece]))
+  const devices = new Map(
+    (plan.devices ?? []).filter(device => device.room === room.id).map(device => [device.entity_id, device]),
+  )
+  return new Map(
+    roomEntities(plan, room).map(id => {
+      const device = devices.get(id)
+      return [id, device ? tile(device, pieces) : entityTile(id)]
+    }),
+  )
+}
+
+export function autoGroups(plan: CardConfig): AutoGroup[] {
   const groups: AutoGroup[] = []
-  const home = [...new Set(plan.home?.entities ?? [])]
+  const home = [...autoTiles(plan, null).values()].map(card => chosen(card, plan.home?.tiles))
   if (home.length) {
-    const title: AutoCard = { type: 'custom:fp-title', title: plan.home?.name || 'Home', room_filter: 'show' }
-    groups.push({ room: null, cards: [title, ...home.map(entityTile)] })
+    const title: AutoCard = { type: 'custom:fp-title', title: plan.home?.name || 'Home', never_hide: true }
+    groups.push({ room: null, cards: [title, ...home] })
   }
   for (const room of plan.rooms ?? []) {
-    const devices = new Map(
-      (plan.devices ?? []).filter(device => device.room === room.id).map(device => [device.entity_id, device]),
-    )
-    const tiles = roomEntities(plan, room).map(id => {
-      const device = devices.get(id)
-      return device ? tile(device, pieces) : entityTile(id)
-    })
+    const tiles = [...autoTiles(plan, room).values()].map(card => chosen(card, room.tiles))
     if (tiles.length) groups.push({ room: room.id, cards: [heading(room), ...tiles] })
   }
   return groups

@@ -28,6 +28,10 @@ export const CAMERA_FIT_MARGIN = 1.1
 export const CAMERA_FIT_MARGIN_NARROW = 1.03
 // A room flown to fills the card right to its edges, on any card.
 export const CAMERA_ROOM_FIT_MARGIN = 1
+// On a card as narrow as a phone the home, and a room flown to, run this
+// far past the card's sides, as a factor of its width, so they fill the
+// picture. The corners they lose are empty floor.
+export const CAMERA_SPILL_NARROW = 1.12
 // Below this width a card counts as narrow, as on a phone.
 export const NARROW_CARD_PX = 600
 export const CAMERA_MIN_DISTANCE_M = 2

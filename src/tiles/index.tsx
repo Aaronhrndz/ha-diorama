@@ -21,6 +21,7 @@ import MediaControl, { type MediaControlConfig } from '#/tiles/cards/MediaContro
 import Todo from '#/tiles/cards/Todo.tsx'
 import Weather, { type WeatherConfig } from '#/tiles/cards/Weather.tsx'
 import { featuresFor, isWide } from '#/tiles/features/index.tsx'
+import { supports } from '#/tiles/features/parts.tsx'
 import type { HomeAssistant } from '#/types.ts'
 import type { ReactNode } from 'react'
 
@@ -52,6 +53,9 @@ const DIAL_DOMAINS = ['climate', 'water_heater', 'humidifier', 'light']
 const MAP_DOMAINS = ['person', 'device_tracker', 'zone']
 
 // What the dial is called for each domain in the card picker.
+// Pause, seek, volume set, previous, next, volume step, stop and play.
+const PLAYS = 1 | 2 | 4 | 16 | 32 | 1024 | 4096 | 16384
+
 const DIAL_NAMES: Record<string, string> = {
   climate: 'Drag the ring for the temperature',
   water_heater: 'Drag the ring for the temperature',
@@ -129,11 +133,12 @@ class CameraCard extends entityCard<CameraConfig>(CAMERA_DOMAINS, Camera, ['came
 
 class WeatherCard extends entityCard<WeatherConfig>(WEATHER_DOMAINS, Weather, ['forecast']) {
   getCardSize() {
-    return 3
+    return this._config?.size === 'large' ? 6 : 3
   }
 
   getGridOptions(): GridOptions {
-    return { columns: 'full', rows: 3 }
+    const size = this._config?.size
+    return { columns: size === 'small' ? 6 : 'full', rows: size === 'large' ? 6 : 3 }
   }
 }
 
@@ -288,11 +293,28 @@ const CARDS: Card[] = [
     suggest: (hass, entityId) => {
       const features = Number(hass.states[entityId]?.attributes.supported_features ?? 0)
       const config = { type: 'custom:fp-weather', entity: entityId }
+      const small = { label: 'The weather now, half as wide', config: { ...config, size: 'small' } }
+      // A large tile lists the days, under the hours when there are any.
+      const sized =
+        features & 1
+          ? [
+              small,
+              {
+                label:
+                  features & 2
+                    ? 'The weather now, the next hours and the next days'
+                    : 'The weather now and the next days',
+                config: { ...config, size: 'large' },
+              },
+            ]
+          : [small]
       // Both forecasts offered, one suggestion each, the hours first.
-      if (!(features & 1) || !(features & 2)) return [{ label: 'The weather now and what comes next', config }]
+      if (!(features & 1) || !(features & 2))
+        return [{ label: 'The weather now and what comes next', config }, ...sized]
       return [
         { label: 'The weather now and the next hours', config: { ...config, forecast_type: 'hourly' } },
         { label: 'The weather now and the next days', config: { ...config, forecast_type: 'daily' } },
+        ...sized,
       ]
     },
   },
@@ -334,16 +356,21 @@ const CARDS: Card[] = [
     domains: MEDIA_DOMAINS,
     name: 'Floorplan Now Playing',
     description: 'What is playing, with its art, how far in it is, its buttons and volume',
-    suggest: (_, entityId) => [
-      {
-        label: 'Its art blurred behind it, progress, buttons and volume',
-        config: { type: 'custom:fp-media-control', entity: entityId },
-      },
-      {
-        label: 'Its art in place of the icon, progress, buttons and volume',
-        config: { type: 'custom:fp-media-control', entity: entityId, art: 'icon' },
-      },
-    ],
+    // Only for a player that plays, pauses, skips or changes its volume,
+    // since one that only browses or searches would show next to nothing.
+    suggest: (hass, entityId) =>
+      !supports(hass.states[entityId], PLAYS)
+        ? []
+        : [
+            {
+              label: 'Its art blurred behind it, progress, buttons and volume',
+              config: { type: 'custom:fp-media-control', entity: entityId },
+            },
+            {
+              label: 'Its art in place of the icon, progress, buttons and volume',
+              config: { type: 'custom:fp-media-control', entity: entityId, art: 'icon' },
+            },
+          ],
   },
   {
     type: 'fp-calendar',
@@ -406,8 +433,19 @@ const CARDS: Card[] = [
     extra: true,
     domains: MAP_DOMAINS,
     name: 'Floorplan Map',
-    does: 'Where it is on a map',
     description: 'Where a person, a tracker or a zone is',
+    suggest: (_, entityId) =>
+      [
+        ['full', 'The map over the whole card, its name and place on it'],
+        ['top', 'The map across the top, its name and place under it'],
+      ].map(([layout, label]) => ({
+        label,
+        config: {
+          type: 'custom:fp-map',
+          entity: entityId,
+          ...(layout === 'full' ? {} : { layout }),
+        },
+      })),
   },
 ]
 
@@ -428,10 +466,9 @@ export function registerTiles() {
 }
 
 // The suggestions of a card for an entity picked in Home Assistant's card
-// picker: the tile, wide for a tile with controls, since the editor can
-// make it small, then the tile with each control it can show beside its
-// icon, as Home Assistant offers its own tile with each of its features.
-// Each is labelled with all the tile does, since the picker shows no
+// picker: the tile, then wide with its controls for a tile with them, then
+// the tile with each control it can show beside its icon, as Home
+// Assistant offers its own tile with each of its features. Each is labelled with all the tile does, since the picker shows no
 // description.
 function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggestion[] | null {
   if (!shows(card, entityId)) return null
@@ -440,11 +477,10 @@ function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggest
   const config = { type, entity: entityId }
   const domain = entityId.split('.')[0]
   const tap = typeof card.does === 'function' ? card.does(domain) : card.does
+  // A tile with controls comes small, the tap alone, and wide with them.
   const base = [
-    {
-      label: card.controls ? `${tap}, with ${card.controls}` : tap,
-      config: card.wide ? { ...config, size: 'wide' } : config,
-    },
+    { label: tap, config },
+    ...(card.wide ? [{ label: `${tap}, with ${card.controls}`, config: { ...config, size: 'wide' } }] : []),
   ]
   if (card.extra) return base
   const features = featuresFor(hass.states[entityId])
@@ -466,12 +502,38 @@ function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggest
 
 const lowerFirst = (text: string) => text[0].toLowerCase() + text.slice(1)
 
+// Domains whose state alone says nothing, like a calendar's on or off, so
+// Floorplan Entity is never offered for them.
+const SAYS_NOTHING = ['calendar']
+
 // Whether a card is the one to offer for an entity picked in Home
 // Assistant's card picker. Floorplan Entity is offered only for an entity
 // no other tile is made for, like a sensor.
 function shows(card: Card, entityId: string) {
   const domain = entityId.split('.')[0]
+  if (card.domains === 'any' && SAYS_NOTHING.includes(domain)) return false
   if (card.domains === 'any')
     return !CARDS.some(other => !other.extra && Array.isArray(other.domains) && other.domains.includes(domain))
   return !!card.domains?.includes(domain)
+}
+
+export type TileOption = { name: string; label?: string; config: Record<string, unknown> }
+
+// Every card of ours an entity can be shown as in the side panel, with
+// each way each one can be set up, the card made for its domain first.
+// Floorplan Entity is offered for any entity, as its state.
+export function tileOptions(hass: HomeAssistant, entityId: string): TileOption[] {
+  const domain = entityId.split('.')[0]
+  const fits = (card: Card) =>
+    card.domains === 'any' ? !SAYS_NOTHING.includes(domain) : !!card.domains?.includes(domain)
+  const made = (card: Card) => !card.extra && Array.isArray(card.domains) && card.domains.includes(domain)
+  const ranked = [...CARDS.filter(made), ...CARDS.filter(card => fits(card) && !made(card))]
+  return ranked.flatMap(card => {
+    const name = card.name.replace(/^Floorplan /, '')
+    const own =
+      card.domains === 'any' && !shows(card, entityId)
+        ? [{ config: { type: `custom:${card.type}`, entity: entityId } }]
+        : (suggestions(card, hass, entityId) ?? [])
+    return own.map(suggestion => ({ name, label: suggestion.label, config: suggestion.config }))
+  })
 }

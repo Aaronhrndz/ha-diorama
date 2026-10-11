@@ -13,6 +13,18 @@ export const HVAC_MODES: Record<string, { icon: string; color?: string }> = {
 }
 export const HVAC_ORDER = Object.keys(HVAC_MODES)
 
+// The icon for each way a water heater can run, in the order Home
+// Assistant lists them.
+export const WATER_HEATER_MODES: Record<string, string> = {
+  electric: 'ph:lightning',
+  gas: 'ph:flame',
+  heat_pump: 'ph:waves',
+  eco: 'ph:leaf',
+  performance: 'ph:rocket-launch',
+  high_demand: 'ph:fire',
+  off: 'ph:power-bold',
+}
+
 // The mode whose color each thing a thermostat does takes.
 const ACTION_MODES: Record<string, string> = {
   heating: 'heat',

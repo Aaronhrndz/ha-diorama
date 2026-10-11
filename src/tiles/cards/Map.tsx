@@ -7,13 +7,17 @@ import { useEffect, useRef, useState } from 'react'
 export type MapConfig = TileConfig & {
   // How many hours of a person's path the map draws behind them.
   hours_to_show?: number
+  // Where the map goes: over the whole card with the name and the state
+  // on it, the default, or across the top over a bar with them.
+  layout?: 'full' | 'top'
 }
 
-type Card = HTMLElement & { hass?: unknown; setConfig?: (config: Record<string, unknown>) => void }
+type Card = HTMLElement & { hass?: unknown; layout?: string; setConfig?: (config: Record<string, unknown>) => void }
 
-// Where a person, a tracker or a zone is: the name and the place in the
-// bottom left corner like every tile, and Home Assistant's own map filling
-// the right of it. The map takes its own drags and pinches.
+// Where a person, a tracker or a zone is: Home Assistant's own map over the
+// whole card with the name and the place on it in the bottom left, or
+// across the top over a bar with them, and no icon either way. The map
+// takes its own drags and pinches.
 export default function MapCard({ env, config }: { env: TileEnv; config: MapConfig }) {
   const entity = env.hass.states[config.entity!]
   const box = useRef<HTMLDivElement>(null)
@@ -32,6 +36,9 @@ export default function MapCard({ env, config }: { env: TileEnv; config: MapConf
           hours_to_show: hours,
           theme_mode: 'auto',
         }) as Card
+        // Laid out as in a grid, the map fills its box rather than keeping
+        // square, so it centers on what it shows.
+        made.layout = 'grid'
         setCard(made)
       })
       .catch(() => {})
@@ -50,7 +57,13 @@ export default function MapCard({ env, config }: { env: TileEnv; config: MapConf
   }, [card, env.hass])
 
   return (
-    <Panel env={env} config={config} entity={entity} state={formatState(env.hass, entity)} className="fp-map">
+    <Panel
+      env={env}
+      config={config}
+      entity={entity}
+      state={formatState(env.hass, entity)}
+      className={`fp-map fp-map-${config.layout ?? 'full'}`}
+    >
       <div {...insideTile} ref={box} className="fp-map-box" />
     </Panel>
   )

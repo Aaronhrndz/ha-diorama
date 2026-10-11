@@ -52,8 +52,9 @@ export default function Card({ hass, config, panel = false, preview = false }: P
   }
   // A room that has left the plan holds no focus.
   const focused = focus !== null && roomOf(focus) ? focus : null
-  // The Floorplan tiles on the dashboard follow the room in view.
-  useRoomFilter(focused ? roomOf(focused) : undefined)
+  // The side panel follows the room in view, and the Floorplan tiles on the
+  // dashboard too when the card says so.
+  useRoomFilter(focused ? roomOf(focused) : undefined, config.filter_tiles === true)
   const goHome = () => {
     setFocus(null)
     camera.current?.reset()

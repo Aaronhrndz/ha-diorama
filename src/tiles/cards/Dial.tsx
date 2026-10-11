@@ -1,14 +1,14 @@
 import { callService, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { HvacModes, MENUS, ModeMenu } from '#/tiles/features/climate.tsx'
-import { formatDegrees, listOf, numberOf, optionWord } from '#/tiles/features/parts.tsx'
+import { BigDegrees, formatDegrees, listOf, numberOf, optionWord } from '#/tiles/features/parts.tsx'
 import { insideTile } from '#/tiles/gestures.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
-import { climateColor } from '#/tiles/modes.ts'
+import { climateColor, HVAC_MODES } from '#/tiles/modes.ts'
 import { Panel } from '#/tiles/Panel.tsx'
 import { kelvinToRgb } from '#/signals.ts'
 import type { EntityState, HomeAssistant } from '#/types.ts'
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
 
 // The ring sweeps three quarters of a circle, open at the bottom, starting
 // from the bottom left.
@@ -33,10 +33,40 @@ type Model = {
   label: string
   // Under it, like what the room is at now.
   now?: string
+  // What the room is at now, where the paler stretch starts.
+  current?: number
+  // Which side of the value the ring fills: from its start up to it, from
+  // it to its end, or all of it.
+  fill: Fill
+  // The colors of the two ends of a range that each fill out to their own
+  // end of the ring, like heat up to the low end and cool from the high
+  // end on. Without them a range fills between its ends.
+  ends?: [string, string]
   format: (value: number) => string
+  // The value as the middle of the dial shows it, when not as format
+  // writes it.
+  show?: (value: number) => ReactNode
   send: (values: number[]) => void
+  // Whether it heads for a single value from either side, like a
+  // thermostat on auto that heats or cools to it.
+  both?: boolean
   // Off, the ring is dim and drags nothing.
   off?: boolean
+}
+
+type Fill = 'start' | 'end' | 'full'
+
+// The side a thermostat fills for each mode, as Home Assistant fills it:
+// heating fills up to the value, cooling from it, and the rest all round.
+const HVAC_FILL: Record<string, Fill> = { heat: 'start', cool: 'end' }
+
+// Off or on auto, a thermostat that only heats or only cools fills as it
+// would when doing that.
+function climateFill(entity: EntityState): Fill {
+  const modes = Array.isArray(entity.attributes.hvac_modes) ? entity.attributes.hvac_modes.map(String) : []
+  const doing = modes.filter(mode => ['heat', 'cool', 'heat_cool'].includes(mode))
+  const mode = doing.length === 1 && ['off', 'auto'].includes(entity.state) ? doing[0] : entity.state
+  return HVAC_FILL[mode] ?? 'full'
 }
 
 function model(hass: HomeAssistant, entity: EntityState): Model | null {
@@ -60,6 +90,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
       max: 100,
       step: 1,
       color,
+      fill: 'start',
       label: 'Brightness',
       format: value => (value > 0 ? `${Math.round(value)}%` : 'Off'),
       send: ([value]) =>
@@ -78,8 +109,11 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
       values: [humidity],
       min: numberOf(entity, 'min_humidity') ?? 0,
       max: numberOf(entity, 'max_humidity') ?? 100,
-      step: 1,
+      step: numberOf(entity, 'target_humidity_step') ?? 1,
       color: 'var(--_accent-cool)',
+      // A dehumidifier fills from the value up, as it brings the air down
+      // to it.
+      fill: entity.attributes.device_class === 'dehumidifier' ? 'end' : 'start',
       label:
         entity.state === 'on'
           ? optionWord(
@@ -90,6 +124,7 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
             )
           : 'Off',
       now: current !== null ? `Now ${Math.round(current)}%` : undefined,
+      current: current ?? undefined,
       format: value => `${Math.round(value)}%`,
       send: ([value]) => callService(hass, 'humidifier.set_humidity', { ...target, humidity: value }),
       off: entity.state !== 'on',
@@ -112,13 +147,18 @@ function model(hass: HomeAssistant, entity: EntityState): Model | null {
       domain === 'water_heater'
         ? 'var(--_accent-climate)'
         : (climateColor(mode, action) ?? (mode === 'off' ? 'currentColor' : 'var(--_accent-climate)')),
+    fill: domain === 'water_heater' ? 'start' : climateFill(entity),
+    both: ['auto', 'heat_cool'].includes(mode),
+    ends: range && domain === 'climate' ? [HVAC_MODES.heat.color!, HVAC_MODES.cool.color!] : undefined,
     label: action
       ? optionWord(hass, entity, action, 'hvac_action')
       : mode === 'off'
         ? 'Off'
         : formatState(hass, entity),
     now: current !== null ? `Now ${formatDegrees(hass, current)}` : undefined,
+    current: current ?? undefined,
     format: value => formatDegrees(hass, value),
+    show: value => <BigDegrees hass={hass} value={value} />,
     send: values =>
       callService(
         hass,
@@ -136,6 +176,74 @@ const shareOf = (m: Model, value: number) => Math.min(Math.max((value - m.min) /
 const point = (share: number) => {
   const angle = ((START + share * SWEEP) * Math.PI) / 180
   return { x: 100 + RADIUS * Math.cos(angle), y: 100 + RADIUS * Math.sin(angle) }
+}
+
+// The arc along the ring from one place to another, either way round.
+function arc(from: number, to: number) {
+  const a = point(from)
+  const b = point(to)
+  const large = Math.abs(to - from) * SWEEP > 180 ? 1 : 0
+  return `M${a.x} ${a.y}A${RADIUS} ${RADIUS} 0 ${large} ${to > from ? 1 : 0} ${b.x} ${b.y}`
+}
+
+// How far apart the arrows along that stretch are, how far from its start
+// they begin, and how far from the knob they stop so it never hides them,
+// along the ring.
+const ARROW_GAP = 8
+const ARROW_START = 4
+const ARROW_KNOB = 14
+
+// Arrows close together along the stretch from one place to another, each
+// pointing the way it goes. One too short for them all keeps at least one,
+// near where it starts.
+function arrows(from: number, to: number) {
+  const span = Math.abs(to - from) * LENGTH
+  const room = span - ARROW_START - ARROW_KNOB
+  const count = room > 0 ? Math.floor(room / ARROW_GAP) + 1 : 1
+  const way = to > from ? 1 : -1
+  return Array.from({ length: count }, (_, i) => {
+    const length =
+      room <= 0 ? Math.min(ARROW_START, span / 2) : ARROW_START + (count === 1 ? room / 2 : (i * room) / (count - 1))
+    const share = from + way * (length / LENGTH)
+    const angle = START + share * SWEEP + way * 90
+    return { ...point(share), angle }
+  })
+}
+
+// Where the room is now and the end it is heading for, while it is on and
+// not there yet: below a range it heads for its low end, above it for its
+// high end, and inside it for nowhere. A single value is headed for only
+// from the side the ring fills, so a heater below it or a cooler above it,
+// or from either side by one that both heats and cools.
+function heading(m: Model, values: number[]) {
+  if (m.off || m.current === undefined) return null
+  const target =
+    values.length === 2
+      ? m.current < values[0]
+        ? values[0]
+        : m.current > values[1]
+          ? values[1]
+          : null
+      : m.both || (m.fill === 'start' && m.current < values[0]) || (m.fill === 'end' && m.current > values[0])
+        ? values[0]
+        : null
+  if (target === null || Math.abs(target - m.current) < m.step / 2) return null
+  // A stretch too short to show an arrow past the knob starts a little
+  // further back, so one always shows.
+  const to = shareOf(m, target)
+  const from = shareOf(m, m.current)
+  const shortest = (ARROW_START + ARROW_KNOB + 8) / LENGTH
+  if (Math.abs(to - from) >= shortest) return { from, to }
+  return { from: Math.min(Math.max(to - Math.sign(to - from) * shortest, 0), 1), to }
+}
+
+// One stretch of the ring that fills, in its own color or the ring's, and
+// the stretch the room is heading along into it.
+type Segment = {
+  from: number
+  to: number
+  color?: string
+  toward: { from: number; to: number } | null
 }
 
 // The values sent, shown until Home Assistant reports them back.
@@ -157,7 +265,13 @@ function useHeldValues(reported: number[]) {
 
 // A thermostat, a water heater, a humidifier or a light on a big ring: drag the ring's knob, or press minus and plus, to set the
 // temperature, the humidity or the brightness it holds. The ring fills in
-// the color of what it is doing, like orange to heat. The ring sits in the
+// the color of what it is doing, like orange to heat, on the side Home
+// Assistant fills: up to the knob to heat or to humidify, from the knob
+// on to cool or to dry the air, and all round on auto. While the room is
+// on its way to the knob, the stretch from where it is now to the knob is
+// paler, with arrows along it that point at the knob and light up one
+// after another toward it. Otherwise a small dot marks where the room is
+// now, while that is not where a knob is. The ring sits in the
 // bottom right corner across from the name with minus and plus stacked on
 // its left, and the modes in the top right.
 export default function Dial({ env, config }: { env: TileEnv; config: TileConfig }) {
@@ -265,9 +379,58 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   // while it goes from 21° to 21.5°. A digit is about a ch wide, and a
   // point or a sign about half of one.
   const width = (text: string) => [...text].reduce((sum, char) => sum + (/\d/.test(char) ? 1 : 0.55), 0)
-  const widest = Math.max(...[m.min, m.max, m.min + m.step, m.max - m.step].map(value => width(m.format(snap(value)))))
-  const first = shareOf(m, values.length === 2 ? values[0] : m.min)
-  const last = shareOf(m, values[values.length - 1])
+  const samples = [m.min, m.max, m.min + m.step, m.max - m.step].map(value => m.format(snap(value)))
+  const widest = Math.max(...samples.map(width))
+  // Shown big, only the whole part needs the room, as the rest keeps its own.
+  const whole = Math.max(...samples.map(text => width(text.replace(/[.,]\d+|°/g, ''))))
+  const toward = heading(m, values)
+  const ends = values.length === 2 ? values.map(value => shareOf(m, value)) : null
+  // A range with a color for each end fills from the ring's start up to
+  // its low end and from its high end on, each in its own color, and the
+  // one the room is heading for fills only as far as the room is. Any
+  // other range fills between its ends. A single value fills its side of
+  // the ring, only as far as the room is while it is heading there, and
+  // the rest of the way is the stretch it is heading along. A ring filled
+  // all round leaves out the stretch the room is heading along.
+  const reached = toward ? toward.from : shareOf(m, values[0])
+  const segments: Segment[] =
+    ends && m.ends
+      ? [
+          {
+            from: 0,
+            to: toward && toward.to === ends[0] ? toward.from : ends[0],
+            color: m.ends[0],
+            toward: toward && toward.to === ends[0] ? toward : null,
+          },
+          {
+            from: toward && toward.to === ends[1] ? toward.from : ends[1],
+            to: 1,
+            color: m.ends[1],
+            toward: toward && toward.to === ends[1] ? toward : null,
+          },
+        ]
+      : !ends && m.fill === 'full' && toward
+        ? [
+            { from: 0, to: Math.min(toward.from, toward.to), toward },
+            { from: Math.max(toward.from, toward.to), to: 1, toward: null },
+          ]
+        : [
+            {
+              ...(ends
+                ? { from: ends[0], to: ends[1] }
+                : m.fill === 'full'
+                  ? { from: 0, to: 1 }
+                  : m.fill === 'end'
+                    ? { from: reached, to: 1 }
+                    : { from: 0, to: reached }),
+              toward,
+            },
+          ]
+  // Where the room is now, with no stretch toward a knob and away from them.
+  const now =
+    !toward && m.current !== undefined && values.every(value => Math.abs(value - m.current!) >= m.step / 2)
+      ? shareOf(m, m.current)
+      : null
   return (
     <Panel {...panel}>
       <div
@@ -275,7 +438,13 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
         data-off={m.off || undefined}
         data-dragging={dragging || undefined}
         data-range={values.length === 2 || undefined}
-        style={{ '--_dial': m.color, '--_digits': `${widest}ch` } as CSSProperties}
+        style={
+          {
+            '--_dial': m.color,
+            '--_digits': m.show ? 'auto' : `${widest}ch`,
+            '--_whole': `${whole}ch`,
+          } as CSSProperties
+        }
       >
         <div className="fp-dial-buttons">
           <Control icon="ph:plus-bold" label="Raise" onPress={nudge(1)} />
@@ -307,15 +476,41 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
           >
             <g transform={`rotate(${START} 100 100)`}>
               <circle className="fp-dial-track" cx="100" cy="100" r={RADIUS} strokeDasharray={`${LENGTH} 999`} />
-              <circle
-                className="fp-dial-fill"
-                cx="100"
-                cy="100"
-                r={RADIUS}
-                strokeDasharray={`${Math.max(LENGTH * (last - first), 0.01)} 999`}
-                strokeDashoffset={-LENGTH * first}
-              />
             </g>
+            {segments.map((segment, i) => (
+              <g key={i} className="fp-dial-segment" style={{ '--_segment': segment.color } as CSSProperties}>
+                {segment.toward && <path className="fp-dial-toward" d={arc(segment.toward.from, segment.toward.to)} />}
+                <g transform={`rotate(${START} 100 100)`}>
+                  <circle
+                    className="fp-dial-fill"
+                    cx="100"
+                    cy="100"
+                    r={RADIUS}
+                    strokeDasharray={`${Math.max(LENGTH * (segment.to - segment.from), 0.01)} 999`}
+                    strokeDashoffset={-LENGTH * segment.from}
+                  />
+                </g>
+                {segment.toward &&
+                  arrows(segment.toward.from, segment.toward.to).map((arrow, j) => (
+                    <path
+                      key={j}
+                      className="fp-dial-arrow"
+                      d="M-2.5 -4L2 0L-2.5 4"
+                      transform={`translate(${arrow.x} ${arrow.y}) rotate(${arrow.angle})`}
+                      style={{ '--_i': j } as CSSProperties}
+                    />
+                  ))}
+              </g>
+            ))}
+            {now !== null && (
+              <circle
+                className="fp-dial-mark"
+                data-on-fill={segments.some(segment => segment.from <= now && now <= segment.to) || undefined}
+                cx={point(now).x}
+                cy={point(now).y}
+                r="3.5"
+              />
+            )}
             {values.map((value, i) => {
               const at = point(shareOf(m, value))
               return (
@@ -346,11 +541,11 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
                       setActive(i)
                     }}
                   >
-                    {m.format(value)}
+                    {m.show?.(value) ?? m.format(value)}
                   </button>
                 ))
               ) : (
-                <span>{m.format(values[0])}</span>
+                <span>{m.show?.(values[0]) ?? m.format(values[0])}</span>
               )}
             </div>
             {m.now && <div className="fp-dial-now">{m.now}</div>}

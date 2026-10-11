@@ -1,4 +1,4 @@
-import { entityName, moreInfo, runAction, type TileEnv } from '#/tiles/actions.ts'
+import { entityName, formatState, moreInfo, runAction, type TileEnv } from '#/tiles/actions.ts'
 import { useTileGestures } from '#/tiles/gestures.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { useEffect, useState } from 'react'
@@ -38,8 +38,9 @@ function useImageElement() {
 
 type Props = { env: TileEnv; config: CameraConfig }
 
-// A camera picture, or an image entity's, that fills the tile, with its name over a dark fade at
-// the bottom. A tap or a hold opens it bigger.
+// A camera picture, or an image entity's, that fills the tile, with its
+// name and its state under it over a dark fade at the bottom. A tap or a
+// hold opens it bigger.
 export default function Camera({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const ready = useImageElement()
@@ -78,6 +79,7 @@ export default function Camera({ env, config }: Props) {
       )}
       <div className="fp-camera-overlay">
         <div className="fp-name">{entityName(config, entity)}</div>
+        {entity && <div className="fp-state">{formatState(env.hass, entity)}</div>}
       </div>
     </div>
   )

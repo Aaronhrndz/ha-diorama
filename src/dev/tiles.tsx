@@ -200,8 +200,8 @@ const sections: { title: Record<string, unknown>; cards: Record<string, unknown>
     cards: [{ type: 'fp-toggle', entity: 'light.office_lamp', icon: 'ph:lamp' }],
   },
   {
-    title: { type: 'fp-title', title: 'Everywhere', room_filter: 'show' },
-    cards: [{ type: 'fp-toggle', entity: 'input_boolean.projector_mode', room_filter: 'show', icon: 'ph:film-strip' }],
+    title: { type: 'fp-title', title: 'Everywhere', never_hide: true },
+    cards: [{ type: 'fp-toggle', entity: 'input_boolean.projector_mode', never_hide: true, icon: 'ph:film-strip' }],
   },
 ]
 
@@ -219,7 +219,7 @@ for (const [label, area] of [
 ] as const) {
   const b = document.createElement('button')
   b.textContent = label
-  b.onclick = () => setRoomFilter(area ? { area_id: area, room_id: area } : null)
+  b.onclick = () => setRoomFilter(area ? { area_id: area, room_id: area, tiles: true } : null)
   bar.appendChild(b)
 }
 document.body.appendChild(bar)

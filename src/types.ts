@@ -87,6 +87,9 @@ export type RoomConfig = {
   // The order of the room's tiles in the side panel, as entity ids, both
   // the devices on the plan and the entities above.
   order?: string[]
+  // The card each entity's tile is, by entity id, in place of the one the
+  // side panel picks for its domain.
+  tiles?: TileChoices
   // Rooms open beside this one whose sign on the floor is left out of this
   // room's view, as room ids.
   hide_arrows?: string[]
@@ -96,7 +99,13 @@ export type RoomConfig = {
 export type HomeConfig = {
   name?: string
   entities?: string[]
+  tiles?: TileChoices
 }
+
+// A card of the side panel chosen for an entity: its type and its options,
+// with the entity left out since it is the key.
+export type TileChoice = { type: string; [key: string]: unknown }
+export type TileChoices = Record<string, TileChoice>
 
 // The background laid behind the view the card is in, for a light and for
 // a dark dashboard: one of the card's own by its id, or `theme` to leave
@@ -173,6 +182,10 @@ export type CardConfig = {
   // the rest: a heading per room, then a tile for each of its devices and
   // of its `entities`. On a narrow card the panel goes under the floorplan.
   side_panel?: boolean
+  // Hides the Floorplan tiles elsewhere on the dashboard that belong to
+  // another area while a room is in view. Off, they all stay. The side
+  // panel follows the room either way.
+  filter_tiles?: boolean
   // The side panel's own section for the whole home, under its `name`,
   // Home by default: the tiles of its `entities`, in this order. With any
   // set, it is all the panel shows with the whole home in view, and each
