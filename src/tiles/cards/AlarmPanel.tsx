@@ -83,6 +83,7 @@ export default function AlarmPanel({ env, config }: Props) {
       accent={accent}
       glow={accent}
       glowFrom="left"
+      tint={armed ? undefined : accent}
       state={formatState(env.hass, entity)}
       className="fp-alarm"
       controls={

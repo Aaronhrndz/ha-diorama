@@ -26,6 +26,9 @@ type Props = {
   // Whether the glow comes from the top left corner, down from the top, or
   // in from the left.
   glowFrom?: 'corner' | 'top' | 'left'
+  // A color that washes in from the left over a tile that is off, and
+  // takes its icon, like the red of a locked lock. It stays glass.
+  tint?: string
   state: ReactNode
   // What a tap does when the config sets no tap_action.
   onTap?: () => void
@@ -65,6 +68,7 @@ export function Tile({
   accent,
   glow,
   glowFrom = 'corner',
+  tint,
   state,
   onTap,
   role = 'button',
@@ -123,6 +127,7 @@ export function Tile({
             ? `color-mix(in oklab, ${preview.color}, black 15%)`
             : (config.color ?? accent),
           '--_tile-glow': preview?.color ?? glow,
+          '--_tile-tint': tint,
         } as CSSProperties
       }
     >

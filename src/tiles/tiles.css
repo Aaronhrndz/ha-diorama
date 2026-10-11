@@ -29,6 +29,7 @@
   --_mode-dry: var(--fp-mode-dry, #ffc60a);
   --_mode-fan: var(--fp-mode-fan, #30c9a4);
   --_accent-unlocked: var(--fp-accent-unlocked, #46c46e);
+  --_accent-locked: var(--fp-accent-locked, #ff453a);
   --_alarm-armed: var(--fp-alarm-armed, #ff453a);
   --_alarm-disarmed: var(--fp-alarm-disarmed, #30d158);
   --_font-tile: var(--fp-font-tile, 'Inter', system-ui, sans-serif);
@@ -164,6 +165,22 @@
     color-mix(in srgb, var(--_tile-glow) calc(7% * var(--_wash)), transparent) 45%,
     transparent 80%
   );
+}
+
+/* A tile that is off with a tint stays glass, with the tint coming in
+   from the left and on its icon, like a locked lock or a disarmed alarm. */
+.fp-tile:not([data-active])[style*='--_tile-tint'] {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--_tile-tint) 22%, transparent) 0%,
+    color-mix(in srgb, var(--_tile-tint) 6%, transparent) 45%,
+    transparent 80%
+  );
+}
+
+.fp-tile:not([data-active])[style*='--_tile-tint'] .fp-top > .fp-icon {
+  color: var(--_tile-tint);
+  opacity: 1;
 }
 
 /* The color of a thermostat's mode, coming down from the top like the air
@@ -1433,22 +1450,6 @@
   font-size: var(--_state-size);
   font-weight: 600;
   opacity: var(--_secondary);
-}
-
-/* A disarmed alarm stays glass, with its green coming in from the left
-   and on its icon. */
-.fp-alarm .fp-tile:not([data-active])[style*='--_tile-glow'] {
-  background-image: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--_tile-glow) 22%, transparent) 0%,
-    color-mix(in srgb, var(--_tile-glow) 6%, transparent) 45%,
-    transparent 80%
-  );
-}
-
-.fp-alarm .fp-tile:not([data-active]) .fp-top > .fp-icon {
-  color: var(--_tile-glow);
-  opacity: 1;
 }
 
 /* A mode picked to wait for the code, its fill pulsing until it is sent. */

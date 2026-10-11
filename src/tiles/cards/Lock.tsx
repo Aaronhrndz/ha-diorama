@@ -13,10 +13,12 @@ const CONFIRM_FILL = 50
 // The lock's supported_features bit for opening the door.
 const OPEN = 1
 const GREEN = 'var(--_accent-unlocked)'
+const RED = 'var(--_accent-locked)'
 
 // A lock. A tap locks it, or unlocks it while it is locked. It is lit
 // while it is not locked, since that is the state worth seeing from afar,
-// with a green icon and a green wash from the left. With the open door
+// with a green icon and a green wash from the left. Locked it stays glass,
+// with a red icon and a red wash from the left. With the open door
 // feature a tap opens the door instead, and only on a second tap, so a
 // stray one never does.
 export default function Lock({ env, config }: Props) {
@@ -35,6 +37,7 @@ export default function Lock({ env, config }: Props) {
       accent={GREEN}
       glow={GREEN}
       glowFrom="left"
+      tint={locked ? RED : undefined}
       state={formatState(env.hass, entity)}
       onTap={() => callService(env.hass, locked ? 'lock.unlock' : 'lock.lock', { entity_id: config.entity })}
     />
@@ -44,10 +47,11 @@ export default function Lock({ env, config }: Props) {
 // The whole tile opens the door, in two taps. The first one lights half of
 // it, plain, which runs back to nothing over the time the second tap has,
 // and the second one lights it all, fades the green in and opens the door.
-// It stays lit while the door is open.
+// It stays lit while the door is open, and red while it is locked.
 function OpenDoorTile({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const open = entity?.state === 'open' || entity?.state === 'opening'
+  const locked = entity?.state === 'locked' || entity?.state === 'locking'
   // 0 before a tap, 1 waiting for the second, 2 sent.
   const [step, setStep] = useState(0)
   const lit = useRef<HTMLDivElement>(null)
@@ -93,6 +97,7 @@ function OpenDoorTile({ env, config }: Props) {
         accent={accent}
         glow={GREEN}
         glowFrom="left"
+        tint={locked ? RED : undefined}
         state={state}
         onTap={tap}
       />
