@@ -1,3 +1,4 @@
+import { cn } from '#/lib/utils.ts'
 import { callService, entityName, formatState, type TileEnv } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { MEDIA, VolumeSlider } from '#/tiles/features/media.tsx'
@@ -35,6 +36,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   const off = !entity || OFF.includes(entity.state)
   const picture = typeof attributes.entity_picture === 'string' ? attributes.entity_picture : null
   const square = config.art === 'icon'
+  const cover = square && !off ? picture : null
   const title = typeof attributes.media_title === 'string' ? attributes.media_title : null
   const artist = [attributes.media_artist, attributes.media_album_name, attributes.app_name].find(
     part => typeof part === 'string' && part,
@@ -108,8 +110,8 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
       entity={entity}
       state={off ? formatState(env.hass, entity) : (artist ?? (title ? name : formatState(env.hass, entity)))}
       accent="var(--_accent-media)"
-      className="fp-media-control"
-      picture={square && !off ? (picture ?? undefined) : undefined}
+      className={cn('fp-media-control', cover && 'fp-media-cover')}
+      picture={cover ?? undefined}
       style={picture && !square ? ({ '--_art': `url("${picture}")` } as CSSProperties) : undefined}
       controls={
         entity && (

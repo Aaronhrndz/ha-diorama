@@ -118,7 +118,7 @@ A wide tile shows pause or start, stop, and back to the dock, each only when the
 | `hours` | `24`    | How far back a line or a strip reaches                          |
 | `days`  | `7`     | How many days of bars                                           |
 
-`fp-gauge` takes `min` and `max`, and `fp-calendar` takes `entities`, more calendars to list along with its own, and `days`, how many days ahead it lists. `fp-map` takes `hours_to_show`, how many hours of a person's path it draws behind them, and `fp-weather` takes `forecast_type`, `hourly` or `daily`. `fp-media-control` takes `art`, `background` to wash the cover art blurred behind the whole card, the default, or `icon` to show it square in place of the icon, its corners rounded to match the card's.
+`fp-gauge` takes `min` and `max`, and `fp-calendar` takes `entities`, more calendars to list along with its own, and `days`, how many days ahead it lists. `fp-map` takes `hours_to_show`, how many hours of a person's path it draws behind them, and `fp-weather` takes `forecast_type`, `hourly` or `daily`. `fp-media-control` takes `art`, `background` to wash the cover art blurred behind the whole card, the default, or `icon` to show it square in place of the icon, as large as the card leaves it above the title, its corners rounded to match the card's. The card is as tall either way.
 
 `fp-select`
 
