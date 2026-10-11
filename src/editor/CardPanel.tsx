@@ -168,13 +168,14 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
               The card it shows in the side panel, {room ? roomName(hass, room) : home.name || 'Home'}
             </p>
           </div>
+          {/* Said in words and filled, so the way back is plain to see. */}
           <button
             type="button"
-            aria-label="Close"
             onClick={close}
-            className={cn(iconButton, 'bg-fill-strong size-8 shrink-0 cursor-pointer rounded-full')}
+            className="bg-tint-fill flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full pr-4 pl-3.5 text-[13px] font-semibold text-white transition-[filter,transform] hover:brightness-110 active:scale-[0.97]"
           >
             <FontAwesomeIcon icon={faXmark} className="size-3.5" />
+            Close
           </button>
         </header>
         <TilePicker
