@@ -266,7 +266,8 @@ function useHeldValues(reported: number[]) {
 // on to cool or to dry the air, and all round on auto. While the room is
 // on its way to the knob, the stretch from where it is now to the knob is
 // paler, with arrows along it that point at the knob and light up one
-// after another toward it. The ring sits in the
+// after another toward it. Otherwise a small dot marks where the room is
+// now, while that is not where a knob is. The ring sits in the
 // bottom right corner across from the name with minus and plus stacked on
 // its left, and the modes in the top right.
 export default function Dial({ env, config }: { env: TileEnv; config: TileConfig }) {
@@ -418,6 +419,11 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
               toward,
             },
           ]
+  // Where the room is now, with no stretch toward a knob and away from them.
+  const now =
+    !toward && m.current !== undefined && values.every(value => Math.abs(value - m.current!) >= m.step / 2)
+      ? shareOf(m, m.current)
+      : null
   return (
     <Panel {...panel}>
       <div
@@ -483,6 +489,15 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
                   ))}
               </g>
             ))}
+            {now !== null && (
+              <circle
+                className="fp-dial-mark"
+                data-on-fill={segments.some(segment => segment.from <= now && now <= segment.to) || undefined}
+                cx={point(now).x}
+                cy={point(now).y}
+                r="3.5"
+              />
+            )}
             {values.map((value, i) => {
               const at = point(shareOf(m, value))
               return (

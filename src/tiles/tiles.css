@@ -2184,6 +2184,17 @@
   animation: none;
 }
 
+/* Where the room is now, while it is not heading anywhere: a small dot,
+   faint on the track and white on the fill. */
+.fp-dial-mark {
+  fill: color-mix(in srgb, currentColor 55%, transparent);
+  pointer-events: none;
+}
+
+.fp-dial-mark[data-on-fill] {
+  fill: rgb(255 255 255 / 0.85);
+}
+
 .fp-dial-knob {
   fill: #fff;
   stroke: color-mix(in srgb, #000 12%, transparent);

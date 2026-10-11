@@ -11,6 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
+- A dial that is not heading for its knob shows a small dot on the ring where the room is now, in place of the arrows.
 - The map card spreads its map over the whole card with the name and place on it in the bottom left, or across the top over a bar with them, with no icon either way.
 - A water heater tile can show its modes as round buttons with icons beside its icon, and a wide water heater tile shows them across from its name, like a thermostat's.
 - A thermostat or water heater tile can be a slider for the temperature it holds, filled as far along its range as that temperature.
