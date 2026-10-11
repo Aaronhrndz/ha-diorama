@@ -85,7 +85,7 @@ export default function AlarmPanel({ env, config }: Props) {
       glowFrom="left"
       tint={armed ? undefined : accent}
       state={formatState(env.hass, entity)}
-      className="fp-alarm"
+      className="dio-alarm"
       controls={
         <Group label="Mode" radio>
           {modes
@@ -98,7 +98,7 @@ export default function AlarmPanel({ env, config }: Props) {
                 role="radio"
                 checked={(picked ?? entity).state === mode.state}
                 disabled={off(mode) && entity.state !== mode.state}
-                className={cn('fp-mode', picked?.state === mode.state && 'fp-mode-picked')}
+                className={cn('dio-mode', picked?.state === mode.state && 'dio-mode-picked')}
                 style={
                   { '--_mode-color': mode.bit ? 'var(--_alarm-armed)' : 'var(--_alarm-disarmed)' } as CSSProperties
                 }

@@ -3,9 +3,9 @@ views:
   - title: Home
     path: home
     type: panel
-    theme: Floorplan Glass
+    theme: Diorama Glass
     cards:
-      - type: custom:floorplan-3d
+      - type: custom:diorama-card
         side_panel: true
         first_click: room
         home:

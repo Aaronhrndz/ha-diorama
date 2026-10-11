@@ -1,4 +1,4 @@
-# Floorplan 3D development guide
+# Diorama development guide
 
 This guide is for people working on the card's code. If you only want to use the card in your Home Assistant, you do not need it: install it from HACS as the [README](../README.md) explains, and build your home in the card's own editor.
 
@@ -30,11 +30,11 @@ In Home Assistant go to Settings > Dashboards > three-dot menu (top right) > Res
 
 Every save rebuilds and reloads the dashboard. No cache busting needed. Keep only one of the two resources (dev server or `/local`) enabled at a time, otherwise the element gets registered twice.
 
-The dashboard fetches that URL on every load, so the dev server has to be running whenever the card is on screen. When it is not, Home Assistant says **Custom element doesn't exist: floorplan-3d**: nothing answered, so the module never ran and never registered the element. A reload will not help while the server is down. Start `pnpm dev` again, or switch the resource to the `/local` build below.
+The dashboard fetches that URL on every load, so the dev server has to be running whenever the card is on screen. When it is not, Home Assistant says **Custom element doesn't exist: diorama-card**: nothing answered, so the module never ran and never registered the element. A reload will not help while the server is down. Start `pnpm dev` again, or switch the resource to the `/local` build below.
 
-### Floorplan tiles
+### Diorama tiles
 
-The tiles live in `src/tiles/` and are registered from `src/main.tsx`, so they ship in the same `card.js`. `host.tsx` is the base every tile's element extends: it loads the styles from `tiles.css` into the shadow root, checks the config and follows the room filter. `Tile.tsx` is the shell the entity tiles share, and `cards/` holds one view per card. `sidePanel.ts` is the `fp-side-panel` element the floorplan card wraps itself in when `side_panel` is on, a plain element with no React that `WithSidePanel.tsx` mounts. It puts the floorplan and each tile `auto.ts` makes from the plan in Home Assistant's own `hui-card`, so the room filter can hide them. It needs a real Home Assistant to try, since the dev page has no `hui-card`. The room filter itself is `src/lib/roomFilter.ts`, which the floorplan card sets whenever it flies to a room.
+The tiles live in `src/tiles/` and are registered from `src/main.tsx`, so they ship in the same `card.js`. `host.tsx` is the base every tile's element extends: it loads the styles from `tiles.css` into the shadow root, checks the config and follows the room filter. `Tile.tsx` is the shell the entity tiles share, and `cards/` holds one view per card. `sidePanel.ts` is the `dio-side-panel` element the diorama card wraps itself in when `side_panel` is on, a plain element with no React that `WithSidePanel.tsx` mounts. It puts the diorama and each tile `auto.ts` makes from the plan in Home Assistant's own `hui-card`, so the room filter can hide them. It needs a real Home Assistant to try, since the dev page has no `hui-card`. The room filter itself is `src/lib/roomFilter.ts`, which the diorama card sets whenever it flies to a room.
 
 `http://localhost:5173/src/dev/tiles.html` shows every tile against a mock Home Assistant whose states change when tapped, in a mock sections grid, with buttons to set the room filter. Add `?light=1` for a light dashboard. Service calls and more info requests are logged in the page. The user facing reference is `docs/TILES.md`.
 
@@ -53,23 +53,23 @@ Mount `dist/` into Home Assistant. In `compose.yaml`, add a volume under the Hom
 ```yaml
 volumes:
   - ./config:/config
-  - ${HOME}/Documents/Repos/ha-floorplan/dist:/config/www/floorplan-3d
+  - ${HOME}/Documents/Repos/ha-diorama/dist:/config/www/diorama
 ```
 
 Then:
 
 ```bash
 docker compose up -d
-docker compose exec homeassistant ls /config/www/floorplan-3d
+docker compose exec homeassistant ls /config/www/diorama
 ```
 
 You should see `card.js`. If Home Assistant was started before `/config/www` existed, restart it once so it serves `/local/`.
 
-Register `/local/floorplan-3d/card.js?v=1` as a JavaScript module resource. Bump `?v=` after each new build so browsers pick it up. `pnpm watch` rebuilds `dist/card.js` on change if you want to test the bundle continuously. The build writes into a staging folder inside `dist` and renames the file into place, so Home Assistant never serves a half written `card.js`: a browser that fetched one mid write throws on load and then reports that the custom element does not exist until the page is reloaded.
+Register `/local/diorama/card.js?v=1` as a JavaScript module resource. Bump `?v=` after each new build so browsers pick it up. `pnpm watch` rebuilds `dist/card.js` on change if you want to test the bundle continuously. The build writes into a staging folder inside `dist` and renames the file into place, so Home Assistant never serves a half written `card.js`: a browser that fetched one mid write throws on load and then reports that the custom element does not exist until the page is reloaded.
 
 ### Add the card
 
-Create a dashboard, Edit, Add card. Search "Floorplan 3D". The card opens with a visual editor where you draw the rooms. You can also write the config by hand:
+Create a dashboard, Edit, Add card. Search "Diorama". The card opens with a visual editor where you draw the rooms. You can also write the config by hand:
 
 ## Editor
 
@@ -217,7 +217,7 @@ Only entities that drive at least one of the things an item can show are on offe
 | `camera`              |          | The view the card opens with, saved from the editor's 3D view, see below                                                                                                                   |
 | `frame_rooms`         |          | The rooms the view of the whole home zooms in on, as room ids, as if they were the only ones. The others still show and take clicks. Every room when empty                                 |
 | `first_click`         | `device` | What a click on a device goes to first: `device` acts on it from anywhere, `room` flies to its room first                                                                                  |
-| `filter_tiles`        | `false`  | With a room in view, hides the Floorplan tiles elsewhere on the dashboard that belong to another area. The side panel follows the room either way                                          |
+| `filter_tiles`        | `false`  | With a room in view, hides the Diorama tiles elsewhere on the dashboard that belong to another area. The side panel follows the room either way                                            |
 | `background`          |          | The background laid behind the view, as `light` and `dark`, each `graphite` (the default), `dusk`, `ocean`, `forest`, `ember` or `theme` (Plain in the editor) to keep the dashboard's own |
 | `devices`             | `[]`     | Entities bound to decoration items, see below                                                                                                                                              |
 | `decorations`         | `[]`     | List of placed decoration items, see below                                                                                                                                                 |
@@ -285,5 +285,5 @@ Home Assistant and the browser cache resources aggressively. After a rebuild, ha
 - `pnpm watch`: rebuild `dist/card.js` on change
 - `pnpm lint`: run oxlint
 - `pnpm showroom`: write `showroom.yaml`, a complete card with every decoration and each of its styles at their defaults, to paste into a dashboard
-- `pnpm demoflat`: write `demoflat.yaml`, the small furnished flat the README screenshots show, to paste into a dashboard, and `ha-demo/config/floorplan.yaml`, the same flat as the dashboard of the demo Home Assistant. Its plan lives in `scripts/demoflat.plan.ts`
+- `pnpm demoflat`: write `demoflat.yaml`, the small furnished flat the README screenshots show, to paste into a dashboard, and `ha-demo/config/diorama.yaml`, the same flat as the dashboard of the demo Home Assistant. Its plan lives in `scripts/demoflat.plan.ts`
 - `pnpm release --bump patch|minor|major` or `--version X.Y.Z`: move the Unreleased changelog notes under the new version and write it to `package.json`. The Release workflow on GitHub runs this, so it is rarely run by hand

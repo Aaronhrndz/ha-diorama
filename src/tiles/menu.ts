@@ -28,7 +28,7 @@ export function menuKeys(e: KeyboardEvent<HTMLElement>) {
   e.stopPropagation()
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
   e.preventDefault()
-  const items = [...e.currentTarget.querySelectorAll<HTMLElement>('.fp-option')]
+  const items = [...e.currentTarget.querySelectorAll<HTMLElement>('.dio-option')]
   const at = items.indexOf(e.target as HTMLElement)
   const step = e.key === 'ArrowDown' ? 1 : -1
   items[(at + step + items.length) % items.length]?.focus()

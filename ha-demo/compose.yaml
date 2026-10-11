@@ -2,13 +2,13 @@
 # with `docker compose up -d`. See README.md next to it.
 services:
   homeassistant:
-    container_name: floorplan-demo
+    container_name: diorama-demo
     image: ghcr.io/home-assistant/home-assistant:stable
     ports:
       - "8124:8123"
     volumes:
       - ./config:/config
-      - ../dist:/config/www/floorplan-3d
+      - ../dist:/config/www/diorama
       - ../themes:/config/themes
       - ./seed:/seed:ro
     # The backyard camera can only be set up from the UI, so on the first

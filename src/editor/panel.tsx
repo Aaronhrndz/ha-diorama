@@ -159,8 +159,8 @@ export function Slider({
       min={min}
       max={max}
       value={value}
-      className={cn('fp-slider', className)}
-      style={{ '--fp-share': share, ...style } as CSSProperties}
+      className={cn('dio-slider', className)}
+      style={{ '--dio-share': share, ...style } as CSSProperties}
       {...rest}
     />
   )

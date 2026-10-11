@@ -31,7 +31,7 @@ export function HvacModes({ env, entity }: FeatureProps) {
           label={optionWord(env.hass, entity, mode)}
           role="radio"
           checked={entity.state === mode}
-          className="fp-mode"
+          className="dio-mode"
           style={{ '--_mode-color': HVAC_MODES[mode]?.color } as CSSProperties}
           onPress={() =>
             entity.state !== mode &&
@@ -61,7 +61,7 @@ export function OperationModes({ env, entity }: FeatureProps) {
           label={optionWord(env.hass, entity, mode, 'operation_mode')}
           role="radio"
           checked={current === mode}
-          className="fp-mode"
+          className="dio-mode"
           style={{ '--_mode-color': mode === 'off' ? undefined : 'var(--_mode-heat)' } as CSSProperties}
           onPress={() =>
             current !== mode &&

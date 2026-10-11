@@ -930,7 +930,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       <Overlay>
         <div
           data-light={hass?.themes?.darkMode === false || undefined}
-          className="fp-editor font-system flex h-full flex-col gap-3 bg-(--card-background-color) px-4 pt-3 pb-4 text-(--primary-text-color) antialiased outline-none"
+          className="dio-editor font-system flex h-full flex-col gap-3 bg-(--card-background-color) px-4 pt-3 pb-4 text-(--primary-text-color) antialiased outline-none"
         >
           <div className="flex h-10 items-center justify-between">
             {toolbar}
@@ -1130,7 +1130,7 @@ function PreviewButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'fp-floating border-separator flex h-7 items-center gap-1.5 rounded-full border bg-(--card-background-color)/75 px-3 text-xs font-medium text-(--primary-text-color) shadow-[0_2px_10px_-2px_rgba(0,0,0,0.25)] backdrop-blur-xl backdrop-saturate-150 transition-[background-color,transform] hover:bg-(--card-background-color)/95 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-45',
+        'dio-floating border-separator flex h-7 items-center gap-1.5 rounded-full border bg-(--card-background-color)/75 px-3 text-xs font-medium text-(--primary-text-color) shadow-[0_2px_10px_-2px_rgba(0,0,0,0.25)] backdrop-blur-xl backdrop-saturate-150 transition-[background-color,transform] hover:bg-(--card-background-color)/95 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-45',
         done && 'text-success',
       )}
     >

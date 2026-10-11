@@ -160,7 +160,7 @@ export function Slider({
       aria-valuemax={max}
       aria-valuenow={shown}
       aria-valuetext={format(shown)}
-      className={cn('fp-slider', track && 'fp-slider-scale', dragging !== null && 'fp-slider-dragging')}
+      className={cn('dio-slider', track && 'dio-slider-scale', dragging !== null && 'dio-slider-dragging')}
       style={
         {
           '--_share': share,
@@ -191,14 +191,14 @@ export function Slider({
       onClick={e => e.stopPropagation()}
       onKeyDown={onKeyDown}
     >
-      {!track && <div className="fp-slider-fill" />}
-      {track && <div className="fp-slider-knob" />}
-      <div className="fp-slider-label">
+      {!track && <div className="dio-slider-fill" />}
+      {track && <div className="dio-slider-knob" />}
+      <div className="dio-slider-label">
         {icon && <Icon icon={icon} on />}
         <span>{format(shown)}</span>
       </div>
       {ink && (
-        <div className="fp-slider-label fp-slider-ink" style={{ color: ink }} aria-hidden>
+        <div className="dio-slider-label dio-slider-ink" style={{ color: ink }} aria-hidden>
           {icon && <Icon icon={icon} on />}
           <span>{format(shown)}</span>
         </div>
@@ -262,7 +262,7 @@ export function SlimSlider({ label, value, min, max, step = 1, track, format, on
       aria-valuemax={max}
       aria-valuenow={shown}
       aria-valuetext={format(shown)}
-      className={cn('fp-slim', dragging !== null && 'fp-slim-dragging', idle && dragging === null && 'fp-slim-idle')}
+      className={cn('dio-slim', dragging !== null && 'dio-slim-dragging', idle && dragging === null && 'dio-slim-idle')}
       style={{ '--_track': track, '--_share': share } as CSSProperties}
       onPointerDown={e => {
         e.stopPropagation()
@@ -297,7 +297,7 @@ export function SlimSlider({ label, value, min, max, step = 1, track, format, on
         keyTimer.current = setTimeout(() => send(next), SEND_MS)
       }}
     >
-      <span className="fp-slim-handle" />
+      <span className="dio-slim-handle" />
     </div>
   )
 }
@@ -335,13 +335,13 @@ export function MenuPill({ icon, label, options, current, word, onPick }: MenuPr
         type="button"
         aria-haspopup="menu"
         data-empty={current === null || undefined}
-        className="fp-pill fp-pill-menu"
+        className="dio-pill dio-pill-menu"
         {...press(() => openMenu(menu.current, anchor.current?.getBoundingClientRect()))}
       >
         {icon && <Icon icon={icon} on />}
-        <span className="fp-pill-label">{label}</span>
-        <span className="fp-pill-value">{current !== null ? word(current) : ''}</span>
-        <Icon icon="ph:caret-down" className="fp-pill-caret" on />
+        <span className="dio-pill-label">{label}</span>
+        <span className="dio-pill-value">{current !== null ? word(current) : ''}</span>
+        <Icon icon="ph:caret-down" className="dio-pill-caret" on />
       </button>
       <div
         {...popsOver}
@@ -349,24 +349,24 @@ export function MenuPill({ icon, label, options, current, word, onPick }: MenuPr
         popover="auto"
         role="menu"
         aria-label={label}
-        className="fp-menu"
+        className="dio-menu"
         onKeyDown={menuKeys}
       >
-        <div className="fp-menu-list">
+        <div className="dio-menu-list">
           {options.map(option => (
             <button
               key={option}
               type="button"
               role="menuitemradio"
               aria-checked={option === current}
-              className="fp-option"
+              className="dio-option"
               onClick={() => {
                 menu.current?.hidePopover()
                 if (option !== current) onPick(option)
               }}
             >
               <span className="min-w-0 flex-1 truncate">{word(option)}</span>
-              {option === current && <Icon icon="ph:check" className="fp-check" />}
+              {option === current && <Icon icon="ph:check" className="dio-check" />}
             </button>
           ))}
         </div>
@@ -385,14 +385,14 @@ export function TogglePill({ icon, label, on, onToggle }: TogglePillProps) {
       type="button"
       aria-pressed={on}
       aria-label={label}
-      className="fp-pill fp-pill-toggle"
+      className="dio-pill dio-pill-toggle"
       {...press(() => {
         haptic('selection')
         onToggle()
       })}
     >
       <Icon icon={icon} on />
-      <span className="fp-pill-label">{label}</span>
+      <span className="dio-pill-label">{label}</span>
     </button>
   )
 }
@@ -441,11 +441,11 @@ export function Pill({ icon, label, onPress, disabled, checked, ariaLabel, flash
       role={checked === undefined ? undefined : 'radio'}
       aria-checked={checked}
       data-flash={flash ?? undefined}
-      className="fp-pill fp-pill-action"
+      className="dio-pill dio-pill-action"
       {...press(onPress)}
     >
       {icon && <Icon icon={icon} on />}
-      <span className="fp-pill-label">{label}</span>
+      <span className="dio-pill-label">{label}</span>
     </button>
   )
 }
@@ -480,14 +480,14 @@ export function Stepper({ label, value, step, min = -Infinity, max = Infinity, f
     }, SEND_MS)
   }
   return (
-    <div className="fp-group fp-stepper" role="group" aria-label={label}>
-      <button type="button" className="fp-control" aria-label={`Lower ${label.toLowerCase()}`} {...press(nudge(-1))}>
+    <div className="dio-group dio-stepper" role="group" aria-label={label}>
+      <button type="button" className="dio-control" aria-label={`Lower ${label.toLowerCase()}`} {...press(nudge(-1))}>
         <Icon icon="ph:minus-bold" on />
       </button>
-      <span className="fp-stepper-value" aria-live="polite">
+      <span className="dio-stepper-value" aria-live="polite">
         {now === null ? '' : format(now)}
       </span>
-      <button type="button" className="fp-control" aria-label={`Raise ${label.toLowerCase()}`} {...press(nudge(1))}>
+      <button type="button" className="dio-control" aria-label={`Raise ${label.toLowerCase()}`} {...press(nudge(1))}>
         <Icon icon="ph:plus-bold" on />
       </button>
     </div>
@@ -531,9 +531,9 @@ export function BigDegrees({ hass, value }: { hass: HomeAssistant; value: number
     .map(part => part.value)
     .join('')
   return (
-    <span className="fp-degrees">
-      <span className="fp-degrees-whole">{whole}</span>
-      <span className="fp-degrees-side">
+    <span className="dio-degrees">
+      <span className="dio-degrees-whole">{whole}</span>
+      <span className="dio-degrees-side">
         <span>°</span>
         <span data-empty={!fraction || undefined}>
           {point}
@@ -548,7 +548,7 @@ export function BigDegrees({ hass, value }: { hass: HomeAssistant; value: number
 // thermostat or the buttons of a player.
 export function Group({ label, radio, children }: { label: string; radio?: boolean; children: ReactNode }) {
   return (
-    <div className="fp-group" role={radio ? 'radiogroup' : 'group'} aria-label={label}>
+    <div className="dio-group" role={radio ? 'radiogroup' : 'group'} aria-label={label}>
       {children}
     </div>
   )

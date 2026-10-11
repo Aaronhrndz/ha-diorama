@@ -62,9 +62,9 @@ export default function MapCard({ env, config }: { env: TileEnv; config: MapConf
       config={config}
       entity={entity}
       state={formatState(env.hass, entity)}
-      className={`fp-map fp-map-${config.layout ?? 'full'}`}
+      className={`dio-map dio-map-${config.layout ?? 'full'}`}
     >
-      <div {...insideTile} ref={box} className="fp-map-box" />
+      <div {...insideTile} ref={box} className="dio-map-box" />
     </Panel>
   )
 }

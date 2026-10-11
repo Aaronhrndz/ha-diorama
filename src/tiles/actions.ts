@@ -34,7 +34,7 @@ export function haptic(kind: 'light' | 'medium' | 'selection' = 'light') {
 
 export function callService(hass: HomeAssistant, action: string, data?: Record<string, unknown>) {
   const [domain, service] = action.split('.', 2)
-  return hass.callService(domain, service, data).catch(error => console.error(`Floorplan tiles: ${action}`, error))
+  return hass.callService(domain, service, data).catch(error => console.error(`Diorama tiles: ${action}`, error))
 }
 
 function navigate(path: string, replace = false) {
@@ -67,11 +67,11 @@ export function runAction(env: TileEnv, action: ActionConfig | undefined, fallba
     case 'perform-action':
     case 'call-service': {
       const name = action.perform_action ?? action.service
-      if (!name?.includes('.')) return console.warn('Floorplan tiles: an action needs perform_action as domain.service')
+      if (!name?.includes('.')) return console.warn('Diorama tiles: an action needs perform_action as domain.service')
       const [domain, service] = name.split('.', 2)
       env.hass
         .callService(domain, service, action.data ?? action.service_data, action.target)
-        .catch(error => console.error(`Floorplan tiles: ${name}`, error))
+        .catch(error => console.error(`Diorama tiles: ${name}`, error))
     }
   }
 }

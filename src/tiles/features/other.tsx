@@ -80,7 +80,7 @@ export function AlarmModes({ env, entity }: FeatureProps) {
             label={mode.label}
             role="radio"
             checked={entity.state === mode.state}
-            className="fp-mode"
+            className="dio-mode"
             style={{ '--_mode-color': mode.bit ? 'var(--_alarm-armed)' : 'var(--_alarm-disarmed)' } as CSSProperties}
             onPress={pick(mode)}
           />
@@ -90,14 +90,14 @@ export function AlarmModes({ env, entity }: FeatureProps) {
         {...popsOver}
         ref={sheet}
         popover="auto"
-        className="fp-sheet"
+        className="dio-sheet"
         role="dialog"
         aria-label="Alarm code"
         onToggle={e => e.newState === 'closed' && setAsked(null)}
       >
         {asked && (
           <>
-            <div className="fp-sheet-title">{asked.state === 'disarmed' ? 'Disarm' : `Arm ${asked.label}`}</div>
+            <div className="dio-sheet-title">{asked.state === 'disarmed' ? 'Disarm' : `Arm ${asked.label}`}</div>
             <Keypad
               format={codeFormat(entity)}
               action={asked.state === 'disarmed' ? 'Disarm' : 'Arm'}
@@ -301,7 +301,7 @@ export function DateSet({ env, entity }: FeatureProps) {
   const id = useId()
   const picker = datePicker(entity)
   return (
-    <div className="fp-feature-date">
+    <div className="dio-feature-date">
       <Pill
         icon="ph:calendar-dots"
         label={formatState(env.hass, entity)}
@@ -318,7 +318,7 @@ export function DateSet({ env, entity }: FeatureProps) {
       <input
         ref={input}
         id={id}
-        className="fp-hidden-input"
+        className="dio-hidden-input"
         type={picker.type}
         tabIndex={-1}
         aria-hidden
@@ -341,7 +341,7 @@ export function UpdateActions({ env, entity }: FeatureProps) {
   const installing = entity.attributes.in_progress === true || typeof entity.attributes.in_progress === 'number'
   if (!waiting) return <Pill icon="ph:check-circle" label="Up to date" disabled onPress={() => {}} />
   return (
-    <div className="fp-group">
+    <div className="dio-group">
       <Pill icon="ph:skip-forward" label="Skip" disabled={installing} onPress={run('skip')} />
       {supports(entity, 1) && (
         <Pill
@@ -386,11 +386,11 @@ const GRAPH_H = 44
 // a soft shade under it.
 export function TrendGraph({ env, entity }: FeatureProps) {
   const points = useHistory(env.hass, entity.entity_id, 24)
-  const id = `fp-graph-${useId().replace(/[^a-z0-9]/gi, '')}`
+  const id = `dio-graph-${useId().replace(/[^a-z0-9]/gi, '')}`
   const paths = points && points.length > 1 ? linePaths(points, GRAPH_W, GRAPH_H) : null
   return (
     <svg
-      className="fp-sparkline"
+      className="dio-sparkline"
       viewBox={`0 0 ${GRAPH_W} ${GRAPH_H}`}
       preserveAspectRatio="none"
       role="img"

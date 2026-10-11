@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- The card is now called Diorama: its type is `custom:diorama-card`, its tiles are `custom:dio-*` and its theme tokens `--dio-*`. Dashboards and themes written with the old names keep working as they are.
+
 ## [1.3.3] - 2026-10-11
 
 ### Added
@@ -338,17 +342,17 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.3...HEAD
-[1.3.3]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.2...v1.3.3
-[1.3.2]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.1...v1.3.2
-[1.3.1]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.3.0...v1.3.1
-[1.3.0]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.5...v1.3.0
-[1.2.5]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.4...v1.2.5
-[1.2.4]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.3...v1.2.4
-[1.2.3]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.2...v1.2.3
-[1.2.2]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.1...v1.2.2
-[1.2.1]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.2.0...v1.2.1
-[1.2.0]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.0.1...v1.1.0
-[1.0.1]: https://github.com/CarlesRojas/ha-floorplan/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/CarlesRojas/ha-floorplan/releases/tag/v1.0.0
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.3.3...HEAD
+[1.3.3]: https://github.com/CarlesRojas/ha-diorama/compare/v1.3.2...v1.3.3
+[1.3.2]: https://github.com/CarlesRojas/ha-diorama/compare/v1.3.1...v1.3.2
+[1.3.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.2.5...v1.3.0
+[1.2.5]: https://github.com/CarlesRojas/ha-diorama/compare/v1.2.4...v1.2.5
+[1.2.4]: https://github.com/CarlesRojas/ha-diorama/compare/v1.2.3...v1.2.4
+[1.2.3]: https://github.com/CarlesRojas/ha-diorama/compare/v1.2.2...v1.2.3
+[1.2.2]: https://github.com/CarlesRojas/ha-diorama/compare/v1.2.1...v1.2.2
+[1.2.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/CarlesRojas/ha-diorama/releases/tag/v1.0.0

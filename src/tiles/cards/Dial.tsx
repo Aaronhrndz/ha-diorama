@@ -321,7 +321,7 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
             entity_id: config.entity,
           })
       : undefined,
-    className: 'fp-big-dial',
+    className: 'dio-big-dial',
   }
 
   if (!entity || !m) return <Panel {...panel} />
@@ -438,7 +438,7 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   return (
     <Panel {...panel}>
       <div
-        className="fp-dial"
+        className="dio-dial"
         data-off={m.off || undefined}
         data-dragging={dragging || undefined}
         data-range={values.length === 2 || undefined}
@@ -450,15 +450,15 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
           } as CSSProperties
         }
       >
-        <div className="fp-dial-buttons">
+        <div className="dio-dial-buttons">
           <Control icon="ph:plus-bold" label="Raise" onPress={nudge(1)} />
           <Control icon="ph:minus-bold" label="Lower" onPress={nudge(-1)} />
         </div>
-        <div className="fp-dial-face">
+        <div className="dio-dial-face">
           <svg
             {...insideTile}
             viewBox="0 0 200 200"
-            className="fp-dial-ring"
+            className="dio-dial-ring"
             role="slider"
             tabIndex={0}
             aria-label={m.label}
@@ -479,14 +479,14 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
             }}
           >
             <g transform={`rotate(${START} 100 100)`}>
-              <circle className="fp-dial-track" cx="100" cy="100" r={RADIUS} strokeDasharray={`${LENGTH} 999`} />
+              <circle className="dio-dial-track" cx="100" cy="100" r={RADIUS} strokeDasharray={`${LENGTH} 999`} />
             </g>
             {segments.map((segment, i) => (
-              <g key={i} className="fp-dial-segment" style={{ '--_segment': segment.color } as CSSProperties}>
-                {segment.toward && <path className="fp-dial-toward" d={arc(segment.toward.from, segment.toward.to)} />}
+              <g key={i} className="dio-dial-segment" style={{ '--_segment': segment.color } as CSSProperties}>
+                {segment.toward && <path className="dio-dial-toward" d={arc(segment.toward.from, segment.toward.to)} />}
                 <g transform={`rotate(${START} 100 100)`}>
                   <circle
-                    className="fp-dial-fill"
+                    className="dio-dial-fill"
                     cx="100"
                     cy="100"
                     r={RADIUS}
@@ -498,7 +498,7 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
                   arrows(segment.toward.from, segment.toward.to).map((arrow, j) => (
                     <path
                       key={j}
-                      className="fp-dial-arrow"
+                      className="dio-dial-arrow"
                       d="M-2.5 -4L2 0L-2.5 4"
                       transform={`translate(${arrow.x} ${arrow.y}) rotate(${arrow.angle})`}
                       style={{ '--_i': j } as CSSProperties}
@@ -508,7 +508,7 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
             ))}
             {now !== null && (
               <circle
-                className="fp-dial-mark"
+                className="dio-dial-mark"
                 data-on-fill={segments.some(segment => segment.from <= now && now <= segment.to) || undefined}
                 cx={point(now).x}
                 cy={point(now).y}
@@ -520,7 +520,7 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
               return (
                 <circle
                   key={i}
-                  className="fp-dial-knob"
+                  className="dio-dial-knob"
                   data-active={i === active || undefined}
                   cx={at.x}
                   cy={at.y}
@@ -529,16 +529,16 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
               )
             })}
           </svg>
-          <div className="fp-dial-center">
-            <div className="fp-dial-label">{m.label}</div>
-            <div className="fp-dial-value">
+          <div className="dio-dial-center">
+            <div className="dio-dial-label">{m.label}</div>
+            <div className="dio-dial-value">
               {values.length === 2 ? (
                 values.map((value, i) => (
                   <button
                     {...insideTile}
                     key={i}
                     type="button"
-                    className="fp-dial-end"
+                    className="dio-dial-end"
                     aria-pressed={i === active}
                     onClick={e => {
                       e.stopPropagation()
@@ -552,7 +552,7 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
                 <span>{m.show?.(values[0]) ?? m.format(values[0])}</span>
               )}
             </div>
-            {m.now && <div className="fp-dial-now">{m.now}</div>}
+            {m.now && <div className="dio-dial-now">{m.now}</div>}
           </div>
         </div>
       </div>

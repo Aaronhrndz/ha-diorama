@@ -74,8 +74,8 @@ export async function persistCard(host: HTMLElement): Promise<SaveResult> {
   // the card to whatever is picking it, a stack or a section, and calling
   // that a second time could add it twice. HA's own Save does it once.
   if (dialog._params?.isNew) return 'unsupported'
-  // What the dialog holds, not this card's own config: when the floorplan
-  // sits inside a stack the dialog is the stack's, and saving the floorplan
+  // What the dialog holds, not this card's own config: when the diorama
+  // sits inside a stack the dialog is the stack's, and saving the diorama
   // alone in its place would replace the whole stack with it. Every edit has
   // already reached the dialog by now, since each one is sent as it is made.
   const config = dialog._cardConfig

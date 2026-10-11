@@ -64,12 +64,12 @@ export default function Camera({ env, config }: Props) {
       tabIndex={0}
       aria-label={entityName(config, entity)}
       data-pressed={pressed || undefined}
-      className="fp-tile fp-camera"
+      className="dio-tile dio-camera"
       style={fixed ? undefined : { aspectRatio: ratio, height: 'auto' }}
     >
       {ready && (
         <hui-image
-          className="fp-camera-image"
+          className="dio-camera-image"
           hass={env.hass}
           cameraImage={still ? undefined : config.entity}
           image={still ?? undefined}
@@ -77,9 +77,9 @@ export default function Camera({ env, config }: Props) {
           fitMode="cover"
         />
       )}
-      <div className="fp-camera-overlay">
-        <div className="fp-name">{entityName(config, entity)}</div>
-        {entity && <div className="fp-state">{formatState(env.hass, entity)}</div>}
+      <div className="dio-camera-overlay">
+        <div className="dio-name">{entityName(config, entity)}</div>
+        {entity && <div className="dio-state">{formatState(env.hass, entity)}</div>}
       </div>
     </div>
   )

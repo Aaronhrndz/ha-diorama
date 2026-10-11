@@ -29,7 +29,7 @@ const clock = (seconds: number) => {
 
 // What the progress leaves out: the boxes that hold the buttons and the
 // volume, so it passes behind them without showing through.
-const HOLES = '.fp-media-buttons, .fp-slider, .fp-media-small[aria-checked="true"]'
+const HOLES = '.dio-media-buttons, .dio-slider, .dio-media-small[aria-checked="true"]'
 
 // A mask the size of the card, clear where each box is, with its corners.
 const holes = (tile: HTMLElement) => {
@@ -138,7 +138,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   const [mask, setMask] = useState<string>()
   const measure = useRef(() => {})
   measure.current = () => {
-    const tile = box.current?.querySelector<HTMLElement>('.fp-tile')
+    const tile = box.current?.querySelector<HTMLElement>('.dio-tile')
     if (tile) setMask(holes(tile))
   }
   useLayoutEffect(() => measure.current())
@@ -151,15 +151,15 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   // A drag that starts on the volume or a button is theirs.
   const down = (e: ReactPointerEvent) => {
     if (e.button !== 0 || !seekable) return
-    if ((e.target as Element).closest('button, [role="slider"], .fp-feature, .fp-control')) return
+    if ((e.target as Element).closest('button, [role="slider"], .dio-feature, .dio-control')) return
     start.current = { x: e.clientX, y: e.clientY, from: share, dragging: false }
   }
-  const time = timed && <span className="fp-media-time">{clock(share * duration)}</span>
+  const time = timed && <span className="dio-media-time">{clock(share * duration)}</span>
   const shuffle = !off && has(MEDIA.shuffle) && (
     <Control
       icon="ph:shuffle"
       label="Shuffle"
-      className="fp-media-small"
+      className="dio-media-small"
       role="radio"
       checked={attributes.shuffle === true}
       onPress={() =>
@@ -174,7 +174,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
     <Control
       icon={attributes.repeat === 'one' ? 'ph:repeat-once' : 'ph:repeat'}
       label="Repeat"
-      className="fp-media-small"
+      className="dio-media-small"
       role="radio"
       checked={attributes.repeat === 'all' || attributes.repeat === 'one'}
       onPress={() =>
@@ -186,14 +186,14 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
     />
   )
   const volume = entity && !off && has(MEDIA.volumeSet) && (
-    <div className="fp-feature">
+    <div className="dio-feature">
       <VolumeSlider env={env} config={config} entity={entity} />
     </div>
   )
   return (
     <div
       ref={box}
-      className="fp-media-seek"
+      className="dio-media-seek"
       data-seekable={seekable || undefined}
       data-dragging={drag !== null || undefined}
       onPointerDownCapture={down}
@@ -205,7 +205,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
         state={off ? formatState(env.hass, entity) : (artist ?? (title ? name : formatState(env.hass, entity)))}
         accent="var(--_accent-media)"
         onTap={!off && has(playing ? MEDIA.pause : MEDIA.play) ? run('media_play_pause') : undefined}
-        className={cn('fp-media-control', cover && 'fp-media-cover')}
+        className={cn('dio-media-control', cover && 'dio-media-cover')}
         picture={cover ?? undefined}
         style={
           {
@@ -218,7 +218,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
           entity && (
             <>
               {time}
-              <div className="fp-media-buttons">
+              <div className="dio-media-buttons">
                 {!off && has(MEDIA.previous) && (
                   <Control icon="ph:skip-back" label="Previous" onPress={run('media_previous_track')} />
                 )}
@@ -245,7 +245,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
         }
       >
         {(shuffle || repeat || volume) && (
-          <div className="fp-media-row">
+          <div className="dio-media-row">
             {volume}
             {shuffle}
             {repeat}

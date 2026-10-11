@@ -1,6 +1,6 @@
-<img src="docs/images/icon.svg" width="128" alt="A lit opal globe table lamp in a wooden cradle, the Floorplan 3D icon">
+<img src="docs/images/icon.svg" width="128" alt="A lit opal globe table lamp in a wooden cradle, the Diorama icon">
 
-# Floorplan 3D
+# Diorama
 
 A Home Assistant card that turns your home into a small 3D model you can click.
 
@@ -30,24 +30,24 @@ Everything is built inside Home Assistant, in the card's own full-screen editor.
 
 ## Tiles to go with it
 
-The same file brings seven small tiles: a heading, and tiles for lights and switches, buttons and scenes, blinds, a robot vacuum, a list of options and a camera. When the 3D card flies to a room, the tiles of every other room step aside, so the dashboard shows only what is in that room. A matching theme is in [themes/floorplan-glass.yaml](themes/floorplan-glass.yaml). Every option is in [docs/TILES.md](docs/TILES.md).
+The same file brings seven small tiles: a heading, and tiles for lights and switches, buttons and scenes, blinds, a robot vacuum, a list of options and a camera. When the 3D card flies to a room, the tiles of every other room step aside, so the dashboard shows only what is in that room. A matching theme is in [themes/diorama-glass.yaml](themes/diorama-glass.yaml). Every option is in [docs/TILES.md](docs/TILES.md).
 
 ## Install
 
 1. In Home Assistant open **HACS**, open the three-dot menu in the top right and choose **Custom repositories**.
-2. Paste `https://github.com/CarlesRojas/ha-floorplan`, pick the **Dashboard** type and add it.
-3. Search for **Floorplan 3D** in HACS and download it. HACS registers the card's resource for you.
+2. Paste `https://github.com/CarlesRojas/ha-diorama`, pick the **Dashboard** type and add it.
+3. Search for **Diorama** in HACS and download it. HACS registers the card's resource for you.
 4. Reload the browser.
-5. Edit a dashboard, choose **Add card** and search for **Floorplan 3D**.
+5. Edit a dashboard, choose **Add card** and search for **Diorama**.
 
 Updates arrive through HACS like any other card. If a new version does not show up after updating, clear the browser cache. The card logs its version in the browser console on load, so a stale copy is easy to spot.
 
 <details>
 <summary>Install by hand, without HACS</summary>
 
-1. Download `card.js` from the [latest release](https://github.com/CarlesRojas/ha-floorplan/releases/latest) into `config/www/floorplan-3d/card.js`.
-2. In **Settings > Dashboards**, open the three-dot menu, choose **Resources** and add `/local/floorplan-3d/card.js` as a **JavaScript module**.
-3. Edit a dashboard, choose **Add card** and search for **Floorplan 3D**.
+1. Download `card.js` from the [latest release](https://github.com/CarlesRojas/ha-diorama/releases/latest) into `config/www/diorama/card.js`.
+2. In **Settings > Dashboards**, open the three-dot menu, choose **Resources** and add `/local/diorama/card.js` as a **JavaScript module**.
+3. Edit a dashboard, choose **Add card** and search for **Diorama**.
 
 When you update, bump a `?v=` query on the resource URL so browsers pick up the new file.
 

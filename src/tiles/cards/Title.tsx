@@ -9,7 +9,7 @@ type Props = { hass: HomeAssistant | null; config: TitleConfig; area: string | n
 export default function Title({ hass, config, area }: Props) {
   const text = config.title ?? (area ? hass?.areas[area]?.name : undefined) ?? ''
   return (
-    <div className="fp-title" role="heading" aria-level={2}>
+    <div className="dio-title" role="heading" aria-level={2}>
       <span className="truncate">{text}</span>
     </div>
   )

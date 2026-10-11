@@ -25,7 +25,9 @@ export type Trace = {
 // lines of one on a dark background.
 export type TraceMode = 'picture' | 'dark-lines' | 'light-lines'
 
-const KEY = 'floorplan-3d:trace'
+const KEY = 'diorama:trace'
+// Where the picture was kept before the card was renamed.
+const OLD_KEY = 'floorplan-3d:trace'
 // The longest side the picture is kept at. Enough to read a plan's lines
 // zoomed in, and small enough to fit in the browser's storage.
 const LONGEST_PX = 2400
@@ -47,6 +49,11 @@ export function traceCovers(trace: Trace, [x, y]: Point) {
 
 function read(): Trace | null {
   try {
+    const old = localStorage.getItem(OLD_KEY)
+    if (old !== null) {
+      if (localStorage.getItem(KEY) === null) localStorage.setItem(KEY, old)
+      localStorage.removeItem(OLD_KEY)
+    }
     const stored = localStorage.getItem(KEY)
     return stored ? (JSON.parse(stored) as Trace) : null
   } catch {

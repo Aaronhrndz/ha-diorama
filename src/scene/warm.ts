@@ -202,7 +202,7 @@ async function flush(w: Warmer, get: () => RootState) {
     gl.setRenderTarget(null)
     ready = Promise.all([shadows, drawn])
   } catch (error) {
-    console.warn('floorplan-3d: could not build shaders ahead', error)
+    console.warn('Diorama: could not build shaders ahead', error)
   } finally {
     for (let i = changes.length - 1; i >= 0; i--) changes[i].revert()
   }

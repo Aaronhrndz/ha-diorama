@@ -53,7 +53,7 @@ export function Keypad({ format, action, onSubmit, onCancel, ready = true, go, c
       type="button"
       aria-label={action}
       title={action}
-      className="fp-key fp-key-go"
+      className="dio-key dio-key-go"
       style={go && ({ '--_go-color': go.color } as CSSProperties)}
       disabled={!code || !ready}
       onClick={e => {
@@ -69,7 +69,7 @@ export function Keypad({ format, action, onSubmit, onCancel, ready = true, go, c
       {...insideTile}
       type="button"
       aria-label="Delete"
-      className="fp-key fp-key-plain"
+      className="dio-key dio-key-plain"
       disabled={!code}
       onClick={e => {
         e.stopPropagation()
@@ -92,21 +92,21 @@ export function Keypad({ format, action, onSubmit, onCancel, ready = true, go, c
   }
   return (
     <div
-      className={cn('fp-keypad', compact && 'fp-keypad-compact')}
+      className={cn('dio-keypad', compact && 'dio-keypad-compact')}
       onKeyDown={onKeyDown}
       onPointerDown={e => e.stopPropagation()}
     >
       {format === 'number' ? (
-        <div className="fp-keypad-dots" aria-live="polite" aria-label={`${code.length} digits entered`}>
+        <div className="dio-keypad-dots" aria-live="polite" aria-label={`${code.length} digits entered`}>
           {code.length === 0 ? (
-            <span className="fp-keypad-hint">{hint ?? 'Enter code'}</span>
+            <span className="dio-keypad-hint">{hint ?? 'Enter code'}</span>
           ) : (
-            [...code].map((_, i) => <span key={i} className="fp-keypad-dot" />)
+            [...code].map((_, i) => <span key={i} className="dio-keypad-dot" />)
           )}
         </div>
       ) : (
         <input
-          className="fp-keypad-field"
+          className="dio-keypad-field"
           type="password"
           autoComplete="off"
           placeholder={hint ?? 'Code'}
@@ -118,7 +118,7 @@ export function Keypad({ format, action, onSubmit, onCancel, ready = true, go, c
       )}
       {compact && format !== 'number' && tick}
       {format === 'number' && (
-        <div className="fp-keypad-keys">
+        <div className="dio-keypad-keys">
           {KEYS.map(key => (
             <Key key={key} label={key} disabled={!ready} onPress={() => type(key)} />
           ))}
@@ -138,32 +138,32 @@ export function Keypad({ format, action, onSubmit, onCancel, ready = true, go, c
         </div>
       )}
       {!compact && (
-        <div className="fp-keypad-actions">
+        <div className="dio-keypad-actions">
           {onCancel && (
             <button
               {...insideTile}
               type="button"
-              className="fp-pill fp-pill-action"
+              className="dio-pill dio-pill-action"
               onClick={e => {
                 e.stopPropagation()
                 setCode(() => '')
                 onCancel()
               }}
             >
-              <span className="fp-pill-label">Cancel</span>
+              <span className="dio-pill-label">Cancel</span>
             </button>
           )}
           <button
             {...insideTile}
             type="button"
-            className="fp-pill fp-pill-action fp-pill-primary"
+            className="dio-pill dio-pill-action dio-pill-primary"
             disabled={!code || !ready}
             onClick={e => {
               e.stopPropagation()
               submit()
             }}
           >
-            <span className="fp-pill-label">{action}</span>
+            <span className="dio-pill-label">{action}</span>
           </button>
         </div>
       )}
@@ -177,7 +177,7 @@ function Key({ label, disabled, onPress }: { label: string; disabled?: boolean; 
       {...insideTile}
       type="button"
       disabled={disabled}
-      className="fp-key"
+      className="dio-key"
       onClick={e => {
         e.stopPropagation()
         onPress()

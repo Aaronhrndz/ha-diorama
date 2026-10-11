@@ -1,20 +1,20 @@
 import { useEffect } from 'react'
 
-// The room the floorplan card is showing, told to the Floorplan tiles
+// The room the diorama card is showing, told to the Diorama tiles
 // so they can show only what is in it. Null shows everything. The filter
 // lives in the window, so it is per browser tab and starts empty on every
 // load, like the 3D view it follows. tiles says whether the tiles on the
 // dashboard follow it too, or only the card's own side panel.
 export type RoomFilter = { area_id: string | null; room_id: string | null; tiles: boolean } | null
 
-export const ROOM_FILTER_EVENT = 'fp-room-filter'
+export const ROOM_FILTER_EVENT = 'dio-room-filter'
 
 declare global {
   interface Window {
     __fpRoomFilter?: RoomFilter
   }
   interface WindowEventMap {
-    'fp-room-filter': CustomEvent<RoomFilter>
+    'dio-room-filter': CustomEvent<RoomFilter>
   }
 }
 
@@ -47,9 +47,7 @@ export function useRoomFilter(room: { id: string; area_id?: string } | undefined
   useEffect(() => {
     if (id && !area && tiles && !warned.has(id)) {
       warned.add(id)
-      console.warn(
-        `Floorplan 3D: room ${id} has no area_id, so it hides only the tiles set to room_filter room or home`,
-      )
+      console.warn(`Diorama: room ${id} has no area_id, so it hides only the tiles set to room_filter room or home`)
     }
     setRoomFilter(id ? { area_id: area, room_id: id, tiles } : null)
   }, [id, area, tiles])

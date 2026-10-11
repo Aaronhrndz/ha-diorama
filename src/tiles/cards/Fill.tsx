@@ -56,7 +56,7 @@ function StepTicks({ step }: { step: number }) {
   if (step < DOTS_FROM_STEP) return null
   const stops: number[] = []
   for (let at = step; at < 100 - step / 100; at += step) stops.push(at)
-  return stops.map(at => <span key={at} className="fp-fill-tick" style={{ '--_at': `${at}%` } as CSSProperties} />)
+  return stops.map(at => <span key={at} className="dio-fill-tick" style={{ '--_at': `${at}%` } as CSSProperties} />)
 }
 
 // A tile that is a value from 0 to 100 across its whole width, like a
@@ -174,7 +174,7 @@ export function FillTile({
   return (
     <div
       ref={box}
-      className="fp-fill"
+      className="dio-fill"
       data-dragging={drag !== null || undefined}
       data-vertical={from !== 'left' || undefined}
       data-from={from}
@@ -196,13 +196,13 @@ export function FillTile({
       {!readOnly && <StepTicks step={step} />}
       {!readOnly && (
         <span
-          className="fp-fill-grip"
+          className="dio-fill-grip"
           data-start
           style={{ opacity: GRIP_OPACITY * Math.max(0, (GRIP_TO - shown) / GRIP_TO) }}
         />
       )}
       <div
-        className="fp-fill-lit"
+        className="dio-fill-lit"
         inert
         style={{
           clipPath: {
@@ -216,7 +216,7 @@ export function FillTile({
         {!readOnly && <StepTicks step={step} />}
         {!readOnly && (
           <span
-            className="fp-fill-grip"
+            className="dio-fill-grip"
             style={
               {
                 '--_edge': `${shown}%`,

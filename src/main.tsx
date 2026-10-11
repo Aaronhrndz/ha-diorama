@@ -7,13 +7,15 @@ import { registerTiles } from '#/tiles/index.tsx'
 import { sameButBackground, ViewBackground } from '#/lib/background.ts'
 import { closest, closestClass, inPanelView } from '#/lib/panelView.ts'
 import WithSidePanel from '#/tiles/WithSidePanel.tsx'
-import type { BackgroundConfig, CardConfig } from '#/types.ts'
+import type { BackgroundConfig, CardConfig, TileChoices } from '#/types.ts'
 
 // Baked in by the build from package.json.
 declare const __CARD_VERSION__: string
 
-const CARD_TYPE = 'floorplan-3d'
+const CARD_TYPE = 'diorama-card'
 const EDITOR_TYPE = `${CARD_TYPE}-editor`
+// The name the card had before it was renamed.
+const OLD_TYPE = 'floorplan-3d'
 
 // Kinds that were renamed or folded into another one. A plan written
 // before the change still names the old one, and without this the piece
@@ -124,7 +126,20 @@ function migrate(config: CardConfig): CardConfig {
       })
   }
   if (Array.isArray(config.devices)) next.devices = config.devices.filter(d => known.has(d.room))
+  // The names the card and its tiles had before they were renamed.
+  if (config.type === `custom:${OLD_TYPE}`) next.type = `custom:${CARD_TYPE}`
+  if (rooms.some(r => r.tiles)) next.rooms = rooms.map(r => (r.tiles ? { ...r, tiles: renameTiles(r.tiles) } : r))
+  if (config.home?.tiles) next.home = { ...config.home, tiles: renameTiles(config.home.tiles) }
   return next
+}
+
+function renameTiles(tiles: TileChoices): TileChoices {
+  return Object.fromEntries(
+    Object.entries(tiles).map(([id, tile]) => [
+      id,
+      typeof tile.type === 'string' ? { ...tile, type: tile.type.replace(/^custom:fp-/, 'custom:dio-') } : tile,
+    ]),
+  )
 }
 
 function validate(config: CardConfig) {
@@ -150,7 +165,7 @@ function validate(config: CardConfig) {
   }
 }
 
-class Floorplan3DCard extends ReactHost<CardConfig> {
+class DioramaCard extends ReactHost<CardConfig> {
   private background = new ViewBackground(this)
 
   static getConfigElement() {
@@ -199,7 +214,7 @@ class Floorplan3DCard extends ReactHost<CardConfig> {
   protected render() {
     super.render()
     // The copy of the card in the side panel leaves it to the card around it.
-    if (this._config && !closest(this, 'fp-side-panel')) this.background.apply(this.backdrop, this._hass)
+    if (this._config && !closest(this, 'dio-side-panel')) this.background.apply(this.backdrop, this._hass)
   }
 
   // The preview in the card dialog throws its card away on every change of
@@ -231,7 +246,7 @@ class Floorplan3DCard extends ReactHost<CardConfig> {
   // handed the same one while the config does not change.
   private filled: { from: CardConfig; config: CardConfig } | null = null
 
-  // In a sections view with a set number of rows, the floorplan fills the
+  // In a sections view with a set number of rows, the diorama fills the
   // height the grid gives it rather than keeping its shape and spilling out.
   private shaped(config: CardConfig) {
     const fit = !inPanelView(this) && !!closestClass(this, 'fit-rows')
@@ -261,7 +276,7 @@ class Floorplan3DCard extends ReactHost<CardConfig> {
 // the flat twice over on every step.
 const SETTLE_MS = 250
 
-class Floorplan3DEditor extends ReactHost<CardConfig> {
+class DioramaEditor extends ReactHost<CardConfig> {
   private pending: CardConfig | null = null
   private timer: ReturnType<typeof setTimeout> | undefined
 
@@ -322,13 +337,18 @@ class Floorplan3DEditor extends ReactHost<CardConfig> {
 // Says which version is loaded, the way most custom cards do, so a stale
 // card.js in the browser's cache is easy to spot.
 console.info(
-  `%c FLOORPLAN-3D %c v${__CARD_VERSION__} `,
+  `%c DIORAMA %c v${__CARD_VERSION__} `,
   'color: white; background: #3f5f7a; font-weight: bold; border-radius: 4px 0 0 4px',
   'color: #3f5f7a; background: #e6eef5; font-weight: bold; border-radius: 0 4px 4px 0',
 )
 
-if (!customElements.get(CARD_TYPE)) customElements.define(CARD_TYPE, Floorplan3DCard)
-if (!customElements.get(EDITOR_TYPE)) customElements.define(EDITOR_TYPE, Floorplan3DEditor)
+if (!customElements.get(CARD_TYPE)) customElements.define(CARD_TYPE, DioramaCard)
+if (!customElements.get(EDITOR_TYPE)) customElements.define(EDITOR_TYPE, DioramaEditor)
+// The names the card had before it was renamed, so a dashboard written then
+// still finds it. They are left out of the card picker.
+if (!customElements.get(OLD_TYPE)) customElements.define(OLD_TYPE, class extends DioramaCard {})
+if (!customElements.get(`${OLD_TYPE}-editor`))
+  customElements.define(`${OLD_TYPE}-editor`, class extends DioramaEditor {})
 
 // Makes the card show up in the "add card" picker.
 // Loaded twice, once as a module and once by a resource of an older
@@ -337,7 +357,7 @@ window.customCards = window.customCards ?? []
 if (!window.customCards.some(card => card.type === CARD_TYPE))
   window.customCards.push({
     type: CARD_TYPE,
-    name: 'Floorplan 3D',
+    name: 'Diorama',
     description: 'Interactive 3D model of the flat',
   })
 
