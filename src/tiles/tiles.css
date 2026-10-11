@@ -2148,26 +2148,26 @@
 .fp-dial-arrow {
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.2;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.45;
+  opacity: 0.25;
   animation: fp-dial-run 1.4s ease-in-out infinite;
   animation-delay: calc(var(--_i) * 0.12s);
 }
 
 @keyframes fp-dial-run {
   30% {
-    opacity: 1;
+    opacity: 0.7;
   }
   60% {
-    opacity: 0.45;
+    opacity: 0.25;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .fp-dial-arrow {
-    opacity: 0.85;
+    opacity: 0.55;
     animation: none;
   }
 }
@@ -2176,13 +2176,6 @@
 .fp-dial[data-dragging] .fp-dial-arrow {
   opacity: 0.6;
   animation: none;
-}
-
-/* Where the room is now. */
-.fp-dial-mark {
-  fill: #fff;
-  stroke: currentColor;
-  stroke-width: 2;
 }
 
 .fp-dial-knob {

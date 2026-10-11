@@ -33,7 +33,7 @@ type Model = {
   label: string
   // Under it, like what the room is at now.
   now?: string
-  // What the room is at now, marked on the ring.
+  // What the room is at now, where the paler stretch starts.
   current?: number
   format: (value: number) => string
   send: (values: number[]) => void
@@ -150,8 +150,8 @@ function arc(from: number, to: number) {
   return `M${a.x} ${a.y}A${RADIUS} ${RADIUS} 0 ${large} ${to > from ? 1 : 0} ${b.x} ${b.y}`
 }
 
-// How far apart the arrows along that stretch are, and how far from the
-// mark and from the knob they stay, along the ring.
+// How far apart the arrows along that stretch are, and how far from its
+// start and from the knob they stay, along the ring.
 const ARROW_GAP = 13
 const ARROW_CLEAR = 10
 
@@ -199,9 +199,9 @@ function useHeldValues(reported: number[]) {
 
 // A thermostat, a water heater, a humidifier or a light on a big ring: drag the ring's knob, or press minus and plus, to set the
 // temperature, the humidity or the brightness it holds. The ring fills in
-// the color of what it is doing, like orange to heat. A dot on the ring
-// marks where the room is now, and while it is on its way to the knob the
-// stretch between them is paler, with arrows along it that point at the
+// the color of what it is doing, like orange to heat. While the room is
+// on its way to the knob, the stretch from where it is now to the knob is
+// paler, with arrows along it that point at the
 // knob and light up one after another toward it. The ring sits in the
 // bottom right corner across from the name with minus and plus stacked on
 // its left, and the modes in the top right.
@@ -317,7 +317,6 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
   // room is past it, and the rest of the way is the stretch it is heading
   // along.
   const last = values.length === 1 && toward ? Math.min(toward.from, toward.to) : shareOf(m, values[values.length - 1])
-  const now = m.current !== undefined && !m.off ? point(shareOf(m, m.current)) : null
   return (
     <Panel {...panel}>
       <div
@@ -379,7 +378,6 @@ export default function Dial({ env, config }: { env: TileEnv; config: TileConfig
                   style={{ '--_i': i } as CSSProperties}
                 />
               ))}
-            {now && <circle className="fp-dial-mark" cx={now.x} cy={now.y} r="4.5" />}
             {values.map((value, i) => {
               const at = point(shareOf(m, value))
               return (
