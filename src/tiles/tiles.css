@@ -1543,6 +1543,11 @@
   color: #fff;
 }
 
+/* White on its fill, even on a lit tile whose icons take its color. */
+.fp-tile .fp-key-go:not(:disabled) > .fp-icon {
+  color: inherit;
+}
+
 /* A link like button, for Clear. */
 .fp-link {
   padding: 4px 8px;
