@@ -247,7 +247,12 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
       >
         <div className={cn(group, 'gap-0 py-0')}>
           <label className="flex cursor-pointer items-center justify-between gap-4 py-2.5">
-            <span className="text-[13px]">Rooms first</span>
+            <span className="flex min-w-0 flex-col">
+              <span className="text-[13px]">Rooms first</span>
+              <span className="text-label-2 text-xs">
+                On, tap a room before its devices. Off, tap any device straight away
+              </span>
+            </span>
             <Switch checked={roomsFirst} accent={EDITOR_TINT_COLOR} label="Rooms first" onChange={setRoomsFirst} />
           </label>
           <label className="border-separator flex cursor-pointer items-center justify-between gap-4 border-t py-2.5">

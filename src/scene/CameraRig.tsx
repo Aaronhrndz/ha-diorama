@@ -1,12 +1,4 @@
-import {
-  CAMERA_FIT_MARGIN,
-  CAMERA_FIT_MARGIN_NARROW,
-  CAMERA_SPILL_NARROW,
-  CAMERA_FLIGHT_S,
-  CAMERA_ROOM_FIT_MARGIN,
-  CAMERA_TURN_S,
-  NARROW_CARD_PX,
-} from '#/constants.ts'
+import { CAMERA_FIT_MARGIN, CAMERA_FLIGHT_S, CAMERA_ROOM_FIT_MARGIN, CAMERA_SPILL, CAMERA_TURN_S } from '#/constants.ts'
 import { passageFootprint, passagesOf } from '#/geometry/passages.ts'
 import { flights } from '#/scene/flights.ts'
 import { fitView, frameRooms, sceneHeight } from '#/scene/framing.ts'
@@ -105,11 +97,6 @@ const MAX_STEP_S = 0.1
 // The shortest way round from one heading to another, in radians.
 const turn = (from: number, to: number) => MathUtils.euclideanModulo(to - from + Math.PI, 2 * Math.PI) - Math.PI
 
-// A card as narrow as a phone frames the home closer to its edges.
-const fitMargin = (width: number) => (width < NARROW_CARD_PX ? CAMERA_FIT_MARGIN_NARROW : CAMERA_FIT_MARGIN)
-// And lets the home run a little past its sides, so it fills the picture.
-const sideSpill = (width: number) => (width < NARROW_CARD_PX ? CAMERA_SPILL_NARROW : 1)
-
 const round = (v: number) => Math.round(v * 100) / 100
 const triple = (v: Vector3): [number, number, number] => [round(v.x), round(v.y), round(v.z)]
 
@@ -169,21 +156,20 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
 
   // A saved view, or none, fitted to the card's shape around these rooms:
   // kept when they all show in it, and otherwise backed off along its angle
-  // until they do. On a card as narrow as a phone the angle frames them
-  // closely. With no view they are framed from the standard side.
+  // until they do. Either way the angle then frames them closely, so they
+  // fill the card. With no view they are framed from the standard side.
   const fit = (
     saved: CameraView | undefined,
     shown: RoomConfig[],
     items: DecorationConfig[],
-    margin = fitMargin(size.width),
-    spill = sideSpill(size.width),
+    margin = CAMERA_FIT_MARGIN,
+    spill = CAMERA_SPILL,
   ): CameraView => {
     const aspect = size.width / size.height
     const height = sceneHeight(items)
-    const narrow = size.width < NARROW_CARD_PX
     const { position, target } = saved
-      ? fitView(saved, shown, aspect, height, margin, narrow, spill)
-      : frameRooms(shown, aspect, height, undefined, margin, narrow, spill)
+      ? fitView(saved, shown, aspect, height, margin, true, spill)
+      : frameRooms(shown, aspect, height, undefined, margin, true, spill)
     return { position: triple(position), target: triple(target) }
   }
 
@@ -201,9 +187,9 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
         size.width / size.height,
         sceneHeight(decorations),
         undefined,
-        fitMargin(size.width),
-        size.width < NARROW_CARD_PX,
-        sideSpill(size.width),
+        CAMERA_FIT_MARGIN,
+        true,
+        CAMERA_SPILL,
       )
       return { position: triple(whole.position), target: triple(whole.target) }
     }
@@ -217,7 +203,7 @@ export default function CameraRig({ rooms, decorations, view, focus, handle, onA
       [from.x, from.y, from.z],
       CAMERA_ROOM_FIT_MARGIN,
       true,
-      sideSpill(size.width),
+      CAMERA_SPILL,
     )
     return { position: triple(position), target: triple(target) }
   }

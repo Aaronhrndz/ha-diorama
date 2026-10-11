@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- The home and a room flown to fill the card with only a thin margin on any screen, not only on a phone.
+
 ## [1.3.0] - 2026-10-11
 
 ### Added
