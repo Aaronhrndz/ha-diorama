@@ -2443,16 +2443,18 @@
   opacity: 1;
 }
 
-/* The map: Home Assistant's own, filling the right of the tile from top
-   to bottom, inset as far as the padding, with rounded corners. */
+/* The map: Home Assistant's own, over the whole card edge to edge, with
+   no icon, and the name and the state in the bottom left in white over a
+   dark shade that rises from the bottom, so they read on a light map and
+   a dark one. */
+.fp-map .fp-top {
+  display: none;
+}
+
 .fp-map-box {
   position: absolute;
-  top: var(--_padding);
-  right: var(--_padding);
-  bottom: var(--_padding);
-  width: 62%;
+  inset: 0;
   overflow: hidden;
-  border-radius: calc(var(--_radius) - var(--_padding) / 2);
   cursor: default;
   --ha-card-border-radius: 0;
   --ha-card-border-width: 0;
@@ -2465,12 +2467,32 @@
   height: 100%;
 }
 
-/* Laid out otherwise, the map has no icon over it. Across the top, it
-   takes all the card above the name and the state, inside the padding. */
-.fp-map:not(.fp-map-beside) .fp-top {
-  display: none;
+.fp-map-full .fp-bottom {
+  margin-top: auto;
 }
 
+.fp-map-full .fp-text {
+  position: relative;
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.fp-map-full .fp-bottom::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  height: 96px;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0.35) 55%, transparent);
+  pointer-events: none;
+}
+
+/* Across the top, the map takes all the card above the name and the
+   state, inside the padding, with rounded corners. */
 .fp-map-top .fp-bottom {
   flex: 1;
   flex-direction: column-reverse;
@@ -2490,46 +2512,7 @@
 }
 
 .fp-map-top .fp-map-box {
-  inset: 0;
-  width: auto;
-}
-
-/* Over the whole card, edge to edge, with the name and the state on it
-   in white over a dark shade that rises from the bottom, so they read on
-   a light map and a dark one, or with nothing. */
-.fp-map:is(.fp-map-caption, .fp-map-full) .fp-map-box {
-  inset: 0;
-  width: auto;
-  border-radius: 0;
-}
-
-/* With no icon above it, the name still sits at the bottom. */
-.fp-map-caption .fp-bottom {
-  margin-top: auto;
-}
-
-.fp-map-full .fp-text {
-  display: none;
-}
-
-.fp-map-caption .fp-text {
-  position: relative;
-  color: #fff;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
-  z-index: 2;
-  pointer-events: none;
-}
-
-.fp-map-caption .fp-bottom::before {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-  height: 96px;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0.35) 55%, transparent);
-  pointer-events: none;
+  border-radius: calc(var(--_radius) - var(--_padding) / 2);
 }
 
 @media (prefers-reduced-motion: reduce) {

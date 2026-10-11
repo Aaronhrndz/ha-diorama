@@ -11,7 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
-- A map tile can lay its map across the top over its name and place, over the whole card with the name and place on it, or over the whole card alone, without the icon.
+- The map card spreads its map over the whole card with the name and place on it in the bottom left, or across the top over a bar with them, with no icon either way.
 - A water heater tile can show its modes as round buttons with icons beside its icon, and a wide water heater tile shows them across from its name, like a thermostat's.
 - A thermostat or water heater tile can be a slider for the temperature it holds, filled as far along its range as that temperature.
 - A humidifier tile can be a slider for the humidity it aims for, filled as far as that humidity, with how humid the room is now beside it.

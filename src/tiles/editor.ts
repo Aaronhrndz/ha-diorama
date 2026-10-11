@@ -131,10 +131,8 @@ const EXTRAS: Record<Extra, Field[]> = {
         select: {
           mode: 'dropdown',
           options: [
-            { value: 'beside', label: 'Beside the name, with the icon' },
+            { value: 'full', label: 'Over the whole card, with the name on it' },
             { value: 'top', label: 'Across the top, over the name' },
-            { value: 'caption', label: 'Over the whole card, with the name on it' },
-            { value: 'full', label: 'Over the whole card, alone' },
           ],
         },
       },

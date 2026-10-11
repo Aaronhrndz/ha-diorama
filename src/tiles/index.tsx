@@ -418,16 +418,14 @@ const CARDS: Card[] = [
     description: 'Where a person, a tracker or a zone is',
     suggest: (_, entityId) =>
       [
-        ['beside', 'The map beside its name, its place and its icon'],
+        ['full', 'The map over the whole card, its name and place on it'],
         ['top', 'The map across the top, its name and place under it'],
-        ['caption', 'The map over the whole card, its name and place on it'],
-        ['full', 'The map alone over the whole card'],
       ].map(([layout, label]) => ({
         label,
         config: {
           type: 'custom:fp-map',
           entity: entityId,
-          ...(layout === 'beside' ? {} : { layout }),
+          ...(layout === 'full' ? {} : { layout }),
         },
       })),
   },
