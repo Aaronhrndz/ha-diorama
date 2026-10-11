@@ -100,6 +100,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Ti
       config={{ ...config, name: off ? name : (title ?? name) }}
       entity={entity}
       state={off ? formatState(env.hass, entity) : (artist ?? (title ? name : formatState(env.hass, entity)))}
+      accent="var(--_accent-media)"
       className="fp-media-control"
       style={picture ? ({ '--_art': `url("${picture}")` } as CSSProperties) : undefined}
       controls={

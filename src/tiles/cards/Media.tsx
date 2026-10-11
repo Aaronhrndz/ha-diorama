@@ -49,7 +49,7 @@ export default function Media({ env, config }: Props) {
         entity={entity}
         value={Math.round((level ?? 0) * 100)}
         on={playing}
-        accent="var(--_accent)"
+        accent="var(--_accent-media)"
         format={v => [loudness(v), ...(loaded ? title : [])].join(' · ')}
         onTap={onTap}
         onSend={v =>
@@ -64,6 +64,7 @@ export default function Media({ env, config }: Props) {
       config={config}
       entity={entity}
       active={playing}
+      accent="var(--_accent-media)"
       toggles
       state={state}
       onTap={onTap}
