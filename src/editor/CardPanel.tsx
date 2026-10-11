@@ -208,9 +208,9 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
           hass={hass}
           auto={auto}
           chosen={tiles?.[id]}
-          onChoose={choice => {
+          onChoose={(choice, stay) => {
             save(choice ? { ...tiles, [id]: choice } : without(tiles, id))
-            close()
+            if (!stay) close()
           }}
         />
       </div>
@@ -327,7 +327,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
               className="w-full"
               min={40}
               max={150}
-              step={5}
+              step={1}
               value={tall}
               onChange={e => setTall(Number(e.target.value))}
             />

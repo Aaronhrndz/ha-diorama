@@ -1,5 +1,6 @@
 import { DEFAULT_ASPECT_RATIO_MOBILE } from '#/constants.ts'
 import { aspectRatioCss } from '#/lib/aspect.ts'
+import { useBackToHome } from '#/lib/backButton.ts'
 import { cn } from '#/lib/utils.ts'
 import { EDGE_FADE_MASK } from '#/theme.ts'
 import { useEditorOpen } from '#/lib/editorOpen.ts'
@@ -59,6 +60,9 @@ export default function Card({ hass, config, panel = false, preview = false }: P
     setFocus(null)
     camera.current?.reset()
   }
+  // The back button, a phone's own too, takes a room in view back to the
+  // whole home. Not in the edit dialog, whose back closes it.
+  useBackToHome(focused !== null, goHome, !preview)
   const showRoom = (asked: string, through?: string[]) => {
     // A press on a door or a window in the wall of the focused room goes
     // through it, to the room on its other side, when that one has a view.

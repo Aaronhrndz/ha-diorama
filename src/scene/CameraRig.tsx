@@ -1,4 +1,11 @@
-import { CAMERA_FIT_MARGIN, CAMERA_FLIGHT_S, CAMERA_ROOM_FIT_MARGIN, CAMERA_SPILL, CAMERA_TURN_S } from '#/constants.ts'
+import {
+  CAMERA_FIT_MARGIN,
+  CAMERA_FLIGHT_S,
+  CAMERA_NARROW_PX,
+  CAMERA_ROOM_FIT_MARGIN,
+  CAMERA_SPILL,
+  CAMERA_TURN_S,
+} from '#/constants.ts'
 import { passageFootprint, passagesOf } from '#/geometry/passages.ts'
 import { flights } from '#/scene/flights.ts'
 import { fitView, frameRooms, sceneHeight } from '#/scene/framing.ts'
@@ -170,18 +177,25 @@ export default function CameraRig({
   // kept when they all show in it, and otherwise backed off along its angle
   // until they do. Either way the angle then frames them closely, so they
   // fill the card. With no view they are framed from the standard side.
+  // A narrow card, as on a phone, has the home and a room spill a little
+  // past its sides so they fill it. A wider one frames them right to its
+  // edges, whole.
+  const narrow = size.width < CAMERA_NARROW_PX
+  const spill = narrow ? CAMERA_SPILL : 1
+  const homeMargin = narrow ? CAMERA_FIT_MARGIN : 1
+
   const fit = (
     saved: CameraView | undefined,
     shown: RoomConfig[],
     items: DecorationConfig[],
-    margin = CAMERA_FIT_MARGIN,
+    margin = homeMargin,
     whole: RoomConfig[] = [],
   ): CameraView => {
     const aspect = size.width / size.height
     const height = sceneHeight(items)
     const { position, target } = saved
-      ? fitView(saved, shown, aspect, height, margin, true, CAMERA_SPILL, whole)
-      : frameRooms(shown, aspect, height, undefined, margin, true, CAMERA_SPILL, whole)
+      ? fitView(saved, shown, aspect, height, margin, true, spill, whole)
+      : frameRooms(shown, aspect, height, undefined, margin, true, spill, whole)
     return { position: triple(position), target: triple(target) }
   }
 
@@ -206,9 +220,9 @@ export default function CameraRig({
         size.width / size.height,
         sceneHeight(homeItems),
         undefined,
-        CAMERA_FIT_MARGIN,
+        homeMargin,
         true,
-        CAMERA_SPILL,
+        spill,
       )
       return { position: triple(whole.position), target: triple(whole.target) }
     }
@@ -222,7 +236,7 @@ export default function CameraRig({
       [from.x, from.y, from.z],
       CAMERA_ROOM_FIT_MARGIN,
       true,
-      CAMERA_SPILL,
+      spill,
       signs,
     )
     return { position: triple(position), target: triple(target) }

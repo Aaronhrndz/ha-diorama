@@ -16,6 +16,7 @@ import { entityGone } from '#/devices/catalog.ts'
 import { initialTry, toggleTry, type TryState, type TryStates } from '#/editor/tryState.ts'
 import { deviceTry } from '#/scene/Devices.tsx'
 import { DEFAULT_FLOOR_MATERIAL, SCENE_BACKGROUND_CSS } from '#/theme.ts'
+import { useBackButton } from '#/lib/backButton.ts'
 import { useFlash } from '#/lib/flash.ts'
 import { cn } from '#/lib/utils.ts'
 import {
@@ -669,13 +670,18 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
   }
 
   // Closing asks first only when there is something it would throw away.
+  // False when it asked rather than closed.
   const close = () => {
     const changed =
       draft.length > 0 ||
       serialize(rooms, devices, decorations) !== serialize(opened.rooms, opened.devices, opened.decorations)
     if (changed) setConfirmDiscard(true)
     else discard()
+    return !changed
   }
+  // The back button, a phone's own too, closes the editor the same way,
+  // and stays in it while there is something to save or throw away.
+  useBackButton(fullscreen, close)
 
   const closeDraft = () => {
     if (
@@ -1070,12 +1076,21 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
           {/* Inside the editor, so it wears the editor's colors. */}
           <AlertDialog open={confirmDiscard} onOpenChange={setConfirmDiscard}>
             <AlertDialogHeader>
-              <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+              <AlertDialogTitle>Save changes?</AlertDialogTitle>
               <AlertDialogDescription>
-                The rooms go back to how they were when you opened the editor. This cannot be undone.
+                Discarding them takes the rooms back to how they were when you opened the editor. This cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
+              <AlertDialogAction
+                className="col-span-2"
+                onClick={() => {
+                  setConfirmDiscard(false)
+                  void saveAndClose()
+                }}
+              >
+                Save & Close
+              </AlertDialogAction>
               <AlertDialogCancel onClick={() => setConfirmDiscard(false)}>Keep editing</AlertDialogCancel>
               <AlertDialogAction variant="destructive" onClick={discard}>
                 Discard
