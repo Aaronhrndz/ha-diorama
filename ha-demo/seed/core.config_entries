@@ -10,7 +10,7 @@
         "disabled_by": null,
         "discovery_keys": {},
         "domain": "local_file",
-        "entry_id": "01FLOORPLANDEMOBACKYARDCAM",
+        "entry_id": "01DIORAMADEMOBACKYARDCAM00",
         "minor_version": 1,
         "modified_at": "2026-10-10T00:00:00+00:00",
         "options": { "file_path": "/config/cameras/backyard.gif", "name": "Backyard camera" },
