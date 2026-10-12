@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A projector screen shows the picture of a projector aimed at it from further away, where it used to stay white.
+
 ## [1.5.0] - 2026-10-12
 
 ### Added

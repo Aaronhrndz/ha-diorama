@@ -143,6 +143,10 @@ export function ScreenGlow({
 // to land on it, as the cosine of the angle between the two.
 const FACING = Math.cos((35 * Math.PI) / 180)
 
+// How far past its drawn beam a projector's picture still lands, since the
+// beam is only the haze in the air, as a share of its throw.
+const REACH = 2
+
 const top = (object: Object3D) => {
   while (object.parent) object = object.parent
   return object
@@ -202,7 +206,7 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
       const facing = v.d.dot(v.n)
       if (Math.abs(facing) < FACING) continue
       const along = v.p.subVectors(v.c, v.o).dot(v.n) / facing
-      if (along <= 0 || along > t.length * 1.25) continue
+      if (along <= 0 || along > t.length * REACH) continue
       v.p.copy(v.o).addScaledVector(v.d, along).sub(v.c)
       if (Math.abs(v.p.dot(v.x)) > w * 0.6 || Math.abs(v.p.dot(v.y)) > (h * open) / 2 + h * 0.1) continue
       if (t.strength > target) {
