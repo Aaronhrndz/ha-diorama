@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-12
+
 ### Added
 
 - The eye on a device's widget hides it from the side panel, and a row under the room's widgets brings it back.
@@ -364,7 +366,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.3.3...v1.4.0
 [1.3.3]: https://github.com/CarlesRojas/ha-diorama/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/CarlesRojas/ha-diorama/compare/v1.3.1...v1.3.2
