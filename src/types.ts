@@ -85,8 +85,11 @@ export type RoomConfig = {
   // part of the side panel, such as a scene, a sensor or a thermostat.
   entities?: string[]
   // The order of the room's tiles in the side panel, as entity ids, both
-  // the devices on the plan and the entities above.
+  // the devices on the plan and the entities above. An entity with several
+  // widgets is named once for each.
   order?: string[]
+  // Devices on the plan whose tile the side panel leaves out, as entity ids.
+  hidden?: string[]
   // The card each entity's tile is, by entity id, in place of the one the
   // side panel picks for its domain.
   tiles?: TileChoices
@@ -98,14 +101,21 @@ export type RoomConfig = {
 // The side panel's section for the whole home.
 export type HomeConfig = {
   name?: string
+  // The home's entities, in the order their tiles show, an entity with
+  // several widgets named once for each.
   entities?: string[]
   tiles?: TileChoices
+  // Keeps every room's tiles under the home's own with the whole home in
+  // view, instead of the home's alone. A room in view still shows only its
+  // own.
+  show_rooms?: boolean
 }
 
 // A card of the side panel chosen for an entity: its type and its options,
-// with the entity left out since it is the key.
+// with the entity left out since it is the key. A list gives the entity a
+// widget for each card in it.
 export type TileChoice = { type: string; [key: string]: unknown }
-export type TileChoices = Record<string, TileChoice>
+export type TileChoices = Record<string, TileChoice | TileChoice[]>
 
 // The background laid behind the view the card is in, for a light and for
 // a dark dashboard: one of the card's own by its id, or `theme` to leave
@@ -192,9 +202,13 @@ export type CardConfig = {
   filter_tiles?: boolean
   // The side panel's own section for the whole home, under its `name`,
   // Home by default: the tiles of its `entities`, in this order. With any
-  // set, it is all the panel shows with the whole home in view, and each
-  // room's tiles show only while that room is in view.
+  // set, it is all the panel shows with the whole home in view, unless
+  // `show_rooms` is on, and each room's tiles show only while that room is
+  // in view.
   home?: HomeConfig
+  // The order of the rooms in the side panel, by id. A room it does not name
+  // follows the ones it does, in the plan's order.
+  room_order?: string[]
   background?: BackgroundConfig
 }
 

@@ -9,6 +9,17 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- The eye on a device's widget hides it from the side panel, and a row under the room's widgets brings it back.
+- A switch keeps every room's widgets in the side panel on the whole home, under the Home widgets.
+- A device can have more than one widget in the side panel, like a TV's on and off and its volume buttons, checked together in the widget picker.
+
+### Changed
+
+- The widgets have a page of their own in the card's settings, opened with Edit widgets: each room under its name, which can be renamed and moved up or down there, with its widgets as they look in the side panel, to drag into order, resize from their bottom right corner, even across the whole width, remove, or pick other widgets for with the pen.
+- The card's settings are shorter, with most of the explanations taken out.
+
 ### Fixed
 
 - Pressing Escape in a dropdown of the editor no longer closes the whole editor.

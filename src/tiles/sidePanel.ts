@@ -381,10 +381,10 @@ export class SidePanel extends HTMLElement {
   }
 
   // A card is away while another room is in view. With the home's own
-  // tiles set, they are all the whole home shows, and they go away once a
-  // room is in view.
+  // tiles set, they are all the whole home shows, unless it keeps the
+  // rooms' too, and they go away once a room is in view.
   private showRoom(room: string | null) {
-    const home = this.side.some(card => card.dataset.home !== undefined)
+    const home = this._config?.home?.show_rooms !== true && this.side.some(card => card.dataset.home !== undefined)
     for (const card of this.side) {
       const away =
         card.dataset.home !== undefined ? !!room : room ? !!card.dataset.room && card.dataset.room !== room : home

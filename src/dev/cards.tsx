@@ -778,10 +778,10 @@ if (params.get('showcase')) {
       const cell = document.createElement('div')
       cell.style.gridColumn = `span ${columns === 'full' ? 12 : columns}`
       // A dashboard gives a card the height of its rows and no more.
-    if (rows !== 'auto') {
-      cell.style.gridRow = `span ${rows}`
-      cell.style.height = `${rows * (ROW + GAP) - GAP}px`
-    }
+      if (rows !== 'auto') {
+        cell.style.gridRow = `span ${rows}`
+        cell.style.height = `${Number(rows) * (ROW + GAP) - GAP}px`
+      }
       cell.appendChild(card)
       section.appendChild(cell)
     }
