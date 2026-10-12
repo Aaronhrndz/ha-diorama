@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-12
+
 ### Added
 
 - Home Assistant's list of every card now has each way of setting up a Diorama card as a card of its own, like Diorama Double Tap Toggle or Diorama Toggle with Color.
@@ -392,7 +394,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.4.0...v1.5.0
