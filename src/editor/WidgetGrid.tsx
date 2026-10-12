@@ -303,7 +303,7 @@ function Cell({
       aria-roledescription="Widget, moved with the arrow keys"
       onKeyDown={onKey}
       className={cn(
-        'focus-visible:ring-tint relative min-w-0 cursor-grab rounded-[12px] outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        'focus-visible:ring-tint relative min-w-0 cursor-grab rounded-(--dio-tile-radius,var(--fp-tile-radius,30px)) outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         held && 'z-20 cursor-grabbing',
       )}
       style={{ gridColumn: `span ${columns}` }}
@@ -322,7 +322,7 @@ function Cell({
         title="Change the widget"
         onClick={onEdit}
         {...still}
-        className={cn(corner, '-top-2 -left-1')}
+        className={cn(corner, '-top-1 -left-1')}
       >
         <FontAwesomeIcon icon={faPen} className="size-3" />
       </button>
@@ -333,7 +333,7 @@ function Cell({
           title="Remove"
           onClick={widget.onRemove}
           {...still}
-          className={cn(corner, 'hover:text-danger -top-2 -right-1')}
+          className={cn(corner, 'hover:text-danger -top-1 -right-1')}
         >
           <FontAwesomeIcon icon={faXmark} className="size-3.5" />
         </button>
@@ -345,7 +345,7 @@ function Cell({
             title="Hide from the side panel"
             onClick={widget.onHide}
             {...still}
-            className={cn(corner, '-top-2 -right-1')}
+            className={cn(corner, '-top-1 -right-1')}
           >
             <FontAwesomeIcon icon={faEye} className="size-3" />
           </button>
@@ -361,7 +361,7 @@ function Cell({
           onPointerMove={moveResize}
           onPointerUp={endResize}
           onPointerCancel={endResize}
-          className={cn(corner, '-right-1 -bottom-1 cursor-nwse-resize touch-none hover:cursor-nwse-resize')}
+          className={cn(corner, '-right-1 -bottom-0.5 cursor-nwse-resize touch-none hover:cursor-nwse-resize')}
         >
           <svg viewBox="0 0 12 12" className="size-3" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M10 4v6H4" strokeLinecap="round" strokeLinejoin="round" />
