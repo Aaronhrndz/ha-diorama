@@ -49,7 +49,7 @@ When you update, bump a `?v=` query on the resource URL so browsers pick up the 
 
 New to the card? This five minute tutorial builds a small home from an empty card: two rooms, a lamp and a fan bound to real devices, a camera view for each room and the side panel.
 
-[![The tutorial in four steps: trace a room, furnish it, bind your devices and use it on a dashboard](docs/images/tutorial.jpg)](docs/tutorial/tutorial.mp4)
+[![The tutorial in four steps: trace a room, furnish it, bind your devices and use it on a dashboard](docs/images/tutorial-steps.jpg)](docs/tutorial/tutorial.mp4)
 
 [Watch the tutorial video](docs/tutorial/tutorial.mp4)
 
