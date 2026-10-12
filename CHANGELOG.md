@@ -11,7 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Fixed
 
-- A projector screen shows the picture of a projector aimed at it from either side of the room, and from further away, where it could stay white.
+- A projector screen shows the picture of a projector aimed at it from further away, where it used to stay white.
 
 ## [1.5.0] - 2026-10-12
 
