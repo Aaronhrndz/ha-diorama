@@ -16,6 +16,8 @@ import {
 } from 'react'
 
 const OFF = ['off', 'standby', 'unavailable', 'unknown']
+// What a player puts in the title when it has none.
+const PLACEHOLDER = /^not provided$/i
 // How far a finger goes sideways before the press is a drag along the song.
 const SLOP_PX = 8
 
@@ -80,7 +82,11 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   const narrow = typeof columns === 'number' && columns <= 6
   const compact = narrow || (typeof rows === 'number' && rows <= 2)
   const cover = square && !off ? picture : null
-  const title = typeof attributes.media_title === 'string' ? attributes.media_title : null
+  const said = typeof attributes.media_title === 'string' ? attributes.media_title : null
+  // A player with nothing to tell, like a speaker playing from a phone over
+  // the air, says so in the title, which then goes under the player's name.
+  const blank = said !== null && PLACEHOLDER.test(said.trim())
+  const title = blank ? null : said
   const artist = [attributes.media_artist, attributes.media_album_name, attributes.app_name].find(
     part => typeof part === 'string' && part,
   ) as string | undefined
@@ -208,7 +214,13 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
         env={env}
         config={{ ...config, name: off ? name : (title ?? name) }}
         entity={entity}
-        state={off ? formatState(env.hass, entity) : (artist ?? (title ? name : formatState(env.hass, entity)))}
+        state={
+          off
+            ? formatState(env.hass, entity)
+            : blank
+              ? said
+              : (artist ?? (title ? name : formatState(env.hass, entity)))
+        }
         accent="var(--_accent-media)"
         onTap={!off && has(playing ? MEDIA.pause : MEDIA.play) ? run('media_play_pause') : undefined}
         className={cn('dio-media-control', cover && 'dio-media-cover', compact && 'dio-media-compact')}

@@ -12,6 +12,7 @@ moves that section under the new version and uses it as the release notes.
 ### Fixed
 
 - A Now Playing widget half as wide is now as tall as the other widgets beside it, even while nothing plays.
+- A Now Playing widget whose player has no title to give, like a speaker playing from a phone, now shows the player's name with Not Provided under it.
 
 ## [1.7.0] - 2026-10-12
 
