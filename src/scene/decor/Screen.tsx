@@ -143,6 +143,14 @@ export function ScreenGlow({
 // to land on it, as the cosine of the angle between the two.
 const FACING = Math.cos((35 * Math.PI) / 180)
 
+// How far past its drawn beam a projector's picture still lands, since the
+// beam is only the haze in the air, as a share of its throw.
+const REACH = 2
+
+// How much of the picture shows through the sheet on the face away from
+// the projector.
+const THROUGH = 0.7
+
 const top = (object: Object3D) => {
   while (object.parent) object = object.parent
   return object
@@ -154,7 +162,8 @@ const top = (object: Object3D) => {
  * projector that is on throws its picture at it. The projector has to face
  * the screen, from either side, near enough square on, and the middle of
  * its throw has to land on the sheet within its reach. Placed in the middle
- * of the sheet as it hangs.
+ * of the sheet as it hangs. The picture shows through the sheet too,
+ * dimmer, so it is seen from the room on either side of it.
  */
 export function Projection({ w, h, open }: { w: number; h: number; open: number }) {
   // Nothing to look for, and no frames to keep coming, while no projector
@@ -167,7 +176,9 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
   // all round.
   const edge = Math.min(w, h) * 0.05
   const mesh = useRef<Mesh>(null)
+  const back = useRef<Mesh>(null)
   const level = useRef(0)
+  const through = useRef(0)
   const v = useMemo(
     () => ({
       c: new Vector3(),
@@ -182,8 +193,9 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
   )
   useFrame((_, delta) => {
     const m = mesh.current
+    const b = back.current
     const sheet = m?.parent
-    if (!m || !sheet) return
+    if (!m || !b || !sheet) return
     sheet.updateWorldMatrix(true, false)
     sheet.matrixWorld.extractBasis(v.x, v.y, v.n)
     v.x.normalize()
@@ -202,7 +214,7 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
       const facing = v.d.dot(v.n)
       if (Math.abs(facing) < FACING) continue
       const along = v.p.subVectors(v.c, v.o).dot(v.n) / facing
-      if (along <= 0 || along > t.length * 1.25) continue
+      if (along <= 0 || along > t.length * REACH) continue
       v.p.copy(v.o).addScaledVector(v.d, along).sub(v.c)
       if (Math.abs(v.p.dot(v.x)) > w * 0.6 || Math.abs(v.p.dot(v.y)) > (h * open) / 2 + h * 0.1) continue
       if (t.strength > target) {
@@ -212,13 +224,22 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
       }
     }
     level.current += (target - level.current) * Math.min(1, delta * 4)
-    m.visible = level.current > 0.01
+    through.current = level.current * THROUGH
+    m.visible = b.visible = level.current > 0.01
     m.position.z = side * 0.003
+    b.position.z = -side * 0.003
   })
+  const scale: [number, number, number] = [(w - 2 * edge) / w, Math.max(0, h * open - 2 * edge) / h, 1]
   return (
-    <mesh ref={mesh} scale={[(w - 2 * edge) / w, Math.max(0, h * open - 2 * edge) / h, 1]}>
-      <planeGeometry args={[w, h]} />
-      <ScreenMaterial level={level} />
-    </mesh>
+    <>
+      <mesh ref={mesh} scale={scale}>
+        <planeGeometry args={[w, h]} />
+        <ScreenMaterial level={level} />
+      </mesh>
+      <mesh ref={back} scale={scale}>
+        <planeGeometry args={[w, h]} />
+        <ScreenMaterial level={through} />
+      </mesh>
+    </>
   )
 }
