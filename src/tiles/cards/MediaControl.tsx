@@ -16,6 +16,8 @@ import {
 } from 'react'
 
 const OFF = ['off', 'standby', 'unavailable', 'unknown']
+// An app's package id, words joined by dots with no spaces.
+const PACKAGE = /^[\w-]+(\.[\w-]+)+$/
 // What a player puts in the title when it has none.
 const PLACEHOLDER = /^not provided$/i
 // How far a finger goes sideways before the press is a drag along the song.
@@ -87,7 +89,11 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   // the air, says so in the title, which then goes under the player's name.
   const blank = said !== null && PLACEHOLDER.test(said.trim())
   const title = blank ? null : said
-  const artist = [attributes.media_artist, attributes.media_album_name, attributes.app_name].find(
+  // An app is named only by a name of its own, never by a package id like
+  // com.example.app, which is all some players know of an app they have no
+  // name for.
+  const app = typeof attributes.app_name === 'string' && !PACKAGE.test(attributes.app_name) ? attributes.app_name : null
+  const artist = [attributes.media_artist, attributes.media_album_name, app].find(
     part => typeof part === 'string' && part,
   ) as string | undefined
   const duration = numberOf(entity, 'media_duration')
