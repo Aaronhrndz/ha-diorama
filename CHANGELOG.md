@@ -19,6 +19,7 @@ moves that section under the new version and uses it as the release notes.
 
 - The widgets have a page of their own in the card's settings, opened with Edit widgets: each room under its name, which can be renamed and moved up or down there, with its widgets as they look in the side panel, to drag into order, resize from their bottom right corner, even across the whole width, remove, or pick other widgets for with the pen.
 - The card's settings are shorter, with most of the explanations taken out.
+- A small cover, vacuum, thermostat or media player tile shows its buttons in the top right corner when they fit beside the icon.
 
 ### Fixed
 

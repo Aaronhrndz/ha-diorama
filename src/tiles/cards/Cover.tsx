@@ -13,8 +13,9 @@ const STATES: Record<string, string> = { open: 'Open', closed: 'Closed', opening
 type Props = { env: TileEnv; config: CoverConfig }
 
 // A blind, a shutter or a screen. A tap opens it or closes it, or stops it
-// while it moves. A wide tile adds up, stop and down buttons, stop only
-// for a cover that can stop. With the position or tilt position feature
+// while it moves. Up, stop and down buttons sit in the top right corner,
+// on a small tile only when they fit, stop only for a cover that can stop.
+// With the position or tilt position feature
 // the whole tile is how far it is open or tilted. The tile is
 // lit while the cover is open or opening, so it shows where it is heading.
 export default function Cover({ env, config }: Props) {

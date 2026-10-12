@@ -6,7 +6,7 @@ import type { TileConfig } from '#/tiles/host.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { defaultIcon } from '#/tiles/icons.ts'
 import type { EntityState } from '#/types.ts'
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 
 type Props = {
   env: TileEnv
@@ -38,7 +38,8 @@ type Props = {
   // only when it stays pressed, like a cover that is open.
   role?: 'button' | 'switch'
   toggles?: boolean
-  // Buttons shown in the top right corner of a wide tile.
+  // Buttons shown in the top right corner, on a small tile only when they
+  // fit beside the icon.
   controls?: ReactNode
   // Buttons across from the name along the bottom of a wide tile, so the
   // name and the state stay in the bottom left corner. A feature beside
@@ -51,6 +52,26 @@ type Props = {
 
 // How long a sent preview waits for Home Assistant before it gives up.
 const PREVIEW_MS = 5000
+
+// Whether the buttons in a small tile's top right corner fit in the room
+// the icon leaves them, checked whenever the tile or the buttons change
+// size. The buttons give way to the icon rather than squeeze, so the room
+// is too small when they run past their own box.
+function useFits(enabled: boolean) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [fits, setFits] = useState(true)
+  useLayoutEffect(() => {
+    const box = ref.current
+    const check = () => setFits(!enabled || !box || box.scrollWidth <= box.clientWidth)
+    check()
+    if (!enabled || !box) return
+    const observer = new ResizeObserver(check)
+    observer.observe(box)
+    for (const button of box.children) observer.observe(button)
+    return () => observer.disconnect()
+  })
+  return [ref, fits] as const
+}
 
 // The icon set for the entity in Home Assistant, in its settings or its
 // YAML, picked as `ph:` to match the other tiles or as any other icon.
@@ -98,6 +119,7 @@ export function Tile({
   }, [preview])
   const beside = besideIcon(config.feature) && !unavailable
   const wide = isWide(config, entity)
+  const [corner, fits] = useFits(!wide && !beside && !!controls && !unavailable)
   const said = (active && !unavailable && featureState(config.feature, entity!)) || state
   const shown = unavailable ? 'Unavailable' : preview ? preview.state : (config.state_text ?? said)
   const name = entityName(config, entity)
@@ -153,7 +175,12 @@ export function Tile({
             <Feature env={env} config={config} entity={entity!} onPreview={setPreview} />
           </div>
         ) : (
-          wide && controls && !unavailable && <div className="dio-controls">{controls}</div>
+          controls &&
+          !unavailable && (
+            <div ref={corner} className="dio-controls" data-crowded={!fits || undefined}>
+              {controls}
+            </div>
+          )
         )}
       </div>
       {wide && aside && !unavailable && !config.feature ? (
