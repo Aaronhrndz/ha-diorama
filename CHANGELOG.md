@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-12
+
 ### Added
 
 - A piece can stand in for a button, like a litter box's scoop, and a click on the piece presses it and plays the piece's press.
@@ -376,7 +378,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.3.3...v1.4.0
