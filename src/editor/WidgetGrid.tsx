@@ -287,7 +287,7 @@ function Cell({
   }
 
   const corner =
-    'absolute z-10 flex size-[26px] cursor-pointer items-center justify-center rounded-full bg-(--dio-float) text-(--dio-surface,var(--card-background-color)) shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-[filter,transform] hover:brightness-110 active:scale-90'
+    'absolute z-10 flex size-[26px] cursor-pointer items-center justify-center rounded-full bg-(--dio-float) text-(--dio-float-icon) shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-[filter,transform] hover:brightness-110 active:scale-90'
   const still = { onPointerDown: (event: PointerEvent) => event.stopPropagation() }
   // Dragged only from the card itself, never from a button in its corners.
   const controls = useDragControls()
