@@ -344,8 +344,9 @@ const SERVICES: Record<string, (id: string, service: string, data: Record<string
   },
   lock: (id, service) => {
     update(id, service === 'lock' ? 'locked' : service === 'open' ? 'open' : 'unlocked')
-    // A door that was opened latches again a moment later.
-    if (service === 'open') setTimeout(() => update(id, 'locked'), 3000)
+    // A door that was opened latches again a moment later, but stays open
+    // in the showcase so the recording ends on it.
+    if (service === 'open' && !params.has('showcase')) setTimeout(() => update(id, 'locked'), 3000)
   },
   alarm_control_panel: (id, service, data) => {
     if (states[id].attributes.code_format && data.code !== '1234' && service !== 'alarm_disarm' && !data.code) return
@@ -733,6 +734,60 @@ const dedupe = () =>
       section.querySelector('h2')!.after(note)
     }
   }, 400)
+
+// showcase=1 shows a few cards that look nothing alike instead, laid out in
+// two sections the way a dashboard does, for the README.
+const SHOWCASE: Record<string, unknown>[][] = [
+  [
+    { type: 'dio-title', title: 'Living Room' },
+    { type: 'custom:dio-dial', entity: 'climate.living', grid_options: { rows: 5 } },
+    { type: 'custom:dio-toggle', entity: 'light.living_room', feature: 'brightness', size: 'wide' },
+  ],
+  [
+    { type: 'dio-title', title: 'Home' },
+    { type: 'custom:dio-weather', entity: 'weather.home', forecast_type: 'hourly', grid_options: { rows: 3 } },
+    { type: 'custom:dio-lock', entity: 'lock.front', feature: 'open-door' },
+    { type: 'custom:dio-toggle', entity: 'light.all' },
+    { type: 'custom:dio-vacuum', entity: 'vacuum.robot', size: 'wide' },
+  ],
+]
+if (params.get('showcase')) {
+  styles.clear()
+  // Cooling, so the dial shows its blue side.
+  const thermostat = states['climate.living']
+  thermostat.state = 'cool'
+  Object.assign(thermostat.attributes, { hvac_action: 'cooling', current_temperature: 25.5, temperature: 23 })
+  // A light group with most of the flat's lights on.
+  for (const [id, name] of [['light.kitchen', 'Kitchen'], ['light.hall', 'Hall'], ['light.bedroom', 'Bedroom']])
+    states[id] = state(id, 'on', { friendly_name: name, brightness: 200, supported_color_modes: ['brightness'] })
+  states['light.all'] = state('light.all', 'on', {
+    friendly_name: 'All Lights',
+    entity_id: ['light.living_room', 'light.kitchen', 'light.hall', 'light.bedroom', 'light.desk'],
+    supported_color_modes: ['brightness'],
+    brightness: 200,
+  })
+  bar.style.display = 'none'
+  main.style.cssText = 'display:flex;gap:32px;align-items:flex-start;padding:24px;width:max-content'
+  for (const configs of SHOWCASE) {
+    const section = document.createElement('div')
+    section.style.cssText = `display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:minmax(${ROW}px,auto);gap:${GAP}px;width:${SECTION}px`
+    for (const config of configs) {
+      const card = make(config)
+      cards.push(card)
+      const { columns = 12, rows = 'auto' } = gridOf(card, config)
+      const cell = document.createElement('div')
+      cell.style.gridColumn = `span ${columns === 'full' ? 12 : columns}`
+      // A dashboard gives a card the height of its rows and no more.
+    if (rows !== 'auto') {
+      cell.style.gridRow = `span ${rows}`
+      cell.style.height = `${rows * (ROW + GAP) - GAP}px`
+    }
+      cell.appendChild(card)
+      section.appendChild(cell)
+    }
+    main.appendChild(section)
+  }
+}
 
 for (const [style, uses] of styles) {
   const section = document.createElement('section')

@@ -219,7 +219,7 @@ const CARDS: Card[] = [
     repeats: ['button'],
     does: 'Tap to run it',
     twice: 'Tap twice to run it',
-    description: 'Button, script or scene tile',
+    description: 'Button, script or scene widget',
   },
   {
     type: 'dio-cover',
@@ -230,7 +230,7 @@ const CARDS: Card[] = [
     repeats: ['open-close'],
     does: 'Tap to open or close',
     controls: 'up, stop and down buttons',
-    description: 'Blind or screen tile with up, stop and down',
+    description: 'Blind or screen widget with up, stop and down',
   },
   {
     type: 'dio-vacuum',
@@ -241,7 +241,7 @@ const CARDS: Card[] = [
     repeats: ['commands'],
     does: 'Tap to start or pause',
     controls: 'start, stop and dock buttons',
-    description: 'Robot vacuum tile',
+    description: 'Robot vacuum widget',
   },
   {
     type: 'dio-select',
@@ -250,7 +250,7 @@ const CARDS: Card[] = [
     name: 'Diorama Option List',
     repeats: ['select-options'],
     does: 'Tap for a menu of its options',
-    description: 'Option tile with a menu',
+    description: 'Option widget with a menu',
   },
   {
     type: 'dio-climate',
@@ -260,7 +260,7 @@ const CARDS: Card[] = [
     name: 'Diorama Thermostat',
     does: 'Tap for details',
     controls: 'temperature and mode buttons',
-    description: 'Thermostat or water heater tile with its temperature and modes',
+    description: 'Thermostat or water heater widget with its temperature and modes',
   },
   {
     type: 'dio-media',
@@ -271,14 +271,14 @@ const CARDS: Card[] = [
     repeats: ['playback'],
     does: 'Tap to play or pause',
     controls: 'play and skip buttons',
-    description: 'Speaker or TV tile with play, pause and tracks',
+    description: 'Speaker or TV widget with play, pause and tracks',
   },
   {
     type: 'dio-lock',
     element: entityCard(LOCK_DOMAINS, Lock),
     name: 'Diorama Lock',
     does: 'Tap to lock or unlock',
-    description: 'Lock tile',
+    description: 'Lock widget',
     domains: LOCK_DOMAINS,
   },
   {
@@ -328,7 +328,7 @@ const CARDS: Card[] = [
     element: CameraCard,
     name: 'Diorama Camera',
     does: 'Its picture, tap to see it bigger',
-    description: 'Camera or image picture tile',
+    description: 'Camera or image picture widget',
     domains: CAMERA_DOMAINS,
   },
   {

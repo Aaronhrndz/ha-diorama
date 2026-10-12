@@ -4,33 +4,36 @@
 
 A Home Assistant card that turns your home into a small 3D model you can click.
 
-Draw your rooms, furnish them from a catalog of sofas, lamps, doors, blinds, appliances and sensors, then bind the pieces to your real Home Assistant devices. The model shows what your home is doing right now: a lamp glows when the light is on, a blind sits where the cover is, a door swings open when the sensor says so. Click a piece and the device behind it toggles.
+Draw your rooms, furnish them and bind the pieces to your Home Assistant devices. The model shows what your home is doing right now: a lamp glows when its light is on, and a click on it turns it off. Widgets for every device come along, built for you from the plan.
 
-![Turning lights on in the card, then placing a ceiling fan in the editor and binding it to a device](docs/images/demo.gif)
+![Flying into the kitchen to turn on a lamp, walking to the living room to switch on the TV from the side panel, then adding a ceiling fan to the bedroom in the editor, binding it to a device, then turning it on from the card and lowering the projector screen](docs/images/demo.gif)
 
 A sharper version of the clip is in [docs/video/demo.mp4](docs/video/demo.mp4).
 
 ## What you get
 
-- **Your own layout.** Trace each room on a grid in the visual editor. Walls, floor materials and openings follow.
-- **A furnished home, not a floor plan.** Around a hundred pieces in several styles each: sofas, beds, kitchens, plants, rugs, mirrors, radiators, TVs, speakers, vacuum robots and more, each with its own size and color options.
-- **Pieces that are devices.** Most pieces can stand for a Home Assistant entity. Lights, switches, covers, media players, fans, locks, climate, vacuums and binary sensors are all understood. The piece shows the entity's state, and a click calls the matching service: toggle, open or close, lock or unlock, start or dock.
-- **Camera views.** Save the view the card opens with and one per room. Clicking a room's floor flies there and fades the rest of the home away. Click it again, click any empty space on the dashboard, like around the home or between the tiles, or press back to come back.
-- **Light that matters.** Lights cast real light and shadows in their room, with brightness and color temperature taken from the entity.
+- **Your own layout.** Trace each room on a grid. Walls, floors and openings follow.
+- **A furnished home.** Around a hundred pieces, from sofas and beds to TVs and plants, each in several styles and colors.
+- **Pieces that are devices.** Lights, covers, locks, fans, media players and more show their state, and a click controls them.
+- **Camera views.** Click a room to fly there, and come back with another click.
+- **Real light.** Lamps light their room and cast shadows, and the sun moves through the day.
+- **Widgets.** A side panel with a widget for each device, following the room in view.
 
 | Lights off                                                                | Lights on                                                                 |
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | ![The demo flat at dusk with every light off](docs/images/lights-off.png) | ![The same view with one lamp on in each room](docs/images/lights-on.png) |
+
+## Widgets
+
+Diorama comes with its own widgets in the same look as the model. Turn on **Show the side panel** and they appear next to it, one for each device you placed, grouped by room. You can also use them on their own, anywhere on a dashboard.
+
+![A thermostat dial dragged down, a brightness slider, a front door opened with two taps, an all lights group and a robot vacuum started from its own button](docs/images/widgets.gif)
 
 ## The editor
 
 Everything is built inside Home Assistant, in the card's own full-screen editor. The plan sits on top, a live 3D preview below and the catalog on the right. Draw rooms, drop pieces in, drag them, snap them to walls, tweak their style and colors, and pick the entity each one stands for.
 
 ![The editor with the sofa selected](docs/images/editor.png)
-
-## Tiles to go with it
-
-The same file brings seven small tiles: a heading, and tiles for lights and switches, buttons and scenes, blinds, a robot vacuum, a list of options and a camera. When the 3D card flies to a room, the tiles of every other room step aside, so the dashboard shows only what is in that room. A matching theme is in [themes/diorama-glass.yaml](themes/diorama-glass.yaml). Every option is in [docs/TILES.md](docs/TILES.md).
 
 ## Install
 
@@ -60,6 +63,8 @@ When you update, bump a `?v=` query on the resource URL so browsers pick up the 
 3. Open the catalog and drop in a ceiling light and a sofa.
 4. Select the light and pick the Home Assistant entity it stands for.
 5. Save, then click the light in the card. It lights up, and so does the real one.
+
+For a five minute walkthrough that builds a small home from an empty card, watch the [tutorial](docs/tutorial/tutorial.mp4).
 
 For a furnished starting point, paste [demoflat.yaml](demoflat.yaml) into a card's YAML editor. It is the flat in the screenshots above, with entity ids you can swap for your own.
 

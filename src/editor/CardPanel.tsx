@@ -200,7 +200,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
           <div className="flex min-w-0 flex-1 flex-col">
             <h2 className="truncate text-[17px] font-semibold tracking-tight">{entityName(hass, id)}</h2>
             <p className="text-label-2 truncate text-xs">
-              The card it shows in the side panel, {room ? roomName(hass, room) : home.name || 'Home'}
+              The widget it shows in the side panel, {room ? roomName(hass, room) : home.name || 'Home'}
             </p>
           </div>
         </header>
@@ -268,15 +268,15 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
           </label>
           <label className="border-separator flex cursor-pointer items-center justify-between gap-4 border-t py-2.5">
             <span className="flex min-w-0 flex-col">
-              <span className="text-[13px]">Hide other rooms' tiles</span>
+              <span className="text-[13px]">Hide other rooms' widgets</span>
               <span className="text-label-2 text-xs">
-                With a room in view, the Diorama tiles on the dashboard from other areas hide
+                With a room in view, the Diorama widgets on the dashboard from other areas hide
               </span>
             </span>
             <Switch
               checked={filterTiles}
               accent={EDITOR_TINT_COLOR}
-              label="Hide other rooms' tiles"
+              label="Hide other rooms' widgets"
               onChange={setFilterTiles}
             />
           </label>
@@ -337,7 +337,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
 
       <Section
         title="Side panel"
-        description="Tiles beside the diorama, a heading for each room and a tile for each of its devices. With a room in view only its tiles show. On a narrow card the panel goes under the diorama."
+        description="Widgets beside the diorama, a heading for each room and a widget for each of its devices. With a room in view only its widgets show. On a narrow card the panel goes under the diorama."
       >
         <label className={cn(group, 'cursor-pointer flex-row items-center justify-between gap-4 py-2.5')}>
           <span className="text-[13px]">Show the side panel</span>
@@ -348,7 +348,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
       {sidePanel && (
         <Section
           title="Home"
-          description="Tiles for the whole home rather than a room, such as a scene, a script, the weather or a group of lights, under a heading of their own. With any here, they are all the panel shows until a room is in view, and each room's tiles show only inside it. Leave it empty to show every room."
+          description="Widgets for the whole home rather than a room, such as a scene, a script, the weather or a group of lights, under a heading of their own. With any here, they are all the panel shows until a room is in view, and each room's widgets show only inside it. Leave it empty to show every room."
         >
           <div className={group} {...showsInPreview(null)}>
             <label className="grid grid-cols-[auto_1fr] items-center gap-3 text-[13px]">
@@ -386,8 +386,8 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
 
       {sidePanel && (
         <Section
-          title="Tiles by room"
-          description="Every device on the plan already has a tile in its room. Add the entities that have no piece on the plan, such as a scene, a sensor or a thermostat, and drag the handles to put the tiles in the order the panel shows them. Each tile is the card made for its kind of entity until you pick another under its name."
+          title="Widgets by room"
+          description="Every device on the plan already has a widget in its room. Add other entities, such as a sensor or a thermostat, and drag the handles to put the widgets in the order the panel shows them. Each widget is the one made for its kind of entity until you pick another under its name."
         >
           {rooms.length === 0 ? (
             <p className={cn(group, 'text-label-2 text-[13px]')}>Draw a room in the editor first.</p>
@@ -713,7 +713,7 @@ function SortableList({ items, onReorder }: { items: Item[]; onReorder: (ids: st
                   <button
                     type="button"
                     data-choose={id}
-                    aria-label={`Card for ${item.title}: ${item.card.name}`}
+                    aria-label={`Widget for ${item.title}: ${item.card.name}`}
                     onClick={item.card.onOpen}
                     className="text-tint -mx-1 flex max-w-full cursor-pointer items-center gap-1 rounded px-1 text-[11px] font-medium transition-opacity hover:opacity-70"
                   >

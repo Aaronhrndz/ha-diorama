@@ -42,6 +42,7 @@ export function ContextMenu({ position, onClose, children, className }: ContextM
     }
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        e.preventDefault()
         e.stopPropagation()
         onClose()
       }
