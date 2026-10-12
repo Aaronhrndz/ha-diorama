@@ -40,8 +40,9 @@ function batterySensor(hass: TileEnv['hass'], entityId: string | undefined) {
   )?.entity_id
 }
 
-// A robot vacuum. A tap starts it, or pauses it while it cleans. A wide
-// tile adds start or pause, stop and dock buttons, only those it supports.
+// A robot vacuum. A tap starts it, or pauses it while it cleans. Start or
+// pause, stop and dock buttons sit in the top right corner, only those it
+// supports, on a small tile only when they fit.
 // The tile is lit only while it cleans: returning is on its way to resting.
 export default function Vacuum({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]

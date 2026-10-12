@@ -16,9 +16,9 @@ const PLAY = 16384
 type Props = { env: TileEnv; config: TileConfig }
 
 // A speaker or a TV. A tap plays or pauses it, or turns it on while it is
-// off. The line under the name says what is playing. A wide tile adds
+// off. The line under the name says what is playing. The top right corner has
 // previous, play or pause, and next buttons, and a power button for one
-// that is on and can be turned off. Lit while it plays. With the volume
+// that is on and can be turned off, on a small tile only when they fit. Lit while it plays. With the volume
 // feature the whole tile is its volume, filled from the left, and a tap
 // still plays or pauses it.
 export default function Media({ env, config }: Props) {

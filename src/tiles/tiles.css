@@ -620,7 +620,7 @@
   opacity: 0.4;
 }
 
-/* Round buttons inside a tile, for the wide cover and vacuum tiles. */
+/* Round buttons inside a tile, like a cover's or a vacuum's. */
 .dio-controls {
   display: flex;
   flex: none;
@@ -629,6 +629,24 @@
   padding: 3px;
   border-radius: 999px;
   background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* On a small tile the buttons are a little smaller, keep some room from
+   the icon, and hide when they do not fit beside it. */
+.dio-tile:not([data-wide]) .dio-controls {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: 8px;
+}
+.dio-tile:not([data-wide]) .dio-controls > * {
+  flex: none;
+}
+.dio-tile:not([data-wide]) .dio-controls > .dio-control {
+  width: 40px;
+  height: 40px;
+}
+.dio-controls[data-crowded] {
+  visibility: hidden;
 }
 
 .dio-control {

@@ -14,7 +14,8 @@ const ON_OFF: Record<string, number> = { water_heater: 8, climate: 128 | 256 }
 
 // A thermostat or a water heater. The line under the name says what it is
 // doing, how warm it is and how warm it aims to be, and a tap opens its
-// dialog. A wide tile has minus and plus around the temperature it aims
+// dialog. Its top right corner has minus and plus, on a small tile only
+// when they fit, around the temperature it aims
 // for, or around the two ends of the range it keeps to, where a tap on one
 // picks which the buttons move. A wide thermostat or water heater adds a
 // button for each mode it runs in across from the name, unless a feature sits beside the

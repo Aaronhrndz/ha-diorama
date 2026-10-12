@@ -487,7 +487,8 @@ function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggest
   const domain = entityId.split('.')[0]
   const tap = typeof card.does === 'function' ? card.does(domain) : card.does
   const twice = typeof card.twice === 'function' ? card.twice(domain) : card.twice
-  // A tile with controls comes small, the tap alone, and wide with them.
+  // A tile with controls comes small, with them only when they fit, and
+  // wide with them.
   // One that can act only on a second tap comes that way too.
   const base = [
     { label: tap, config },
