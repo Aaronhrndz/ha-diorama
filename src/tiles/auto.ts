@@ -162,6 +162,16 @@ export function autoTiles(plan: CardConfig, room: RoomConfig | null): Map<string
   )
 }
 
+// The rooms in the order the side panel shows them.
+export function panelRooms(plan: CardConfig): RoomConfig[] {
+  const rooms = plan.rooms ?? []
+  const rank = new Map((plan.room_order ?? []).map((id, index) => [id, index]))
+  return rooms
+    .map((room, index) => ({ room, index }))
+    .sort((a, b) => (rank.get(a.room.id) ?? rank.size + a.index) - (rank.get(b.room.id) ?? rank.size + b.index))
+    .map(entry => entry.room)
+}
+
 export function autoGroups(plan: CardConfig): AutoGroup[] {
   const groups: AutoGroup[] = []
   const home = [...autoTiles(plan, null).values()].map(card => chosen(card, plan.home?.tiles))
@@ -169,7 +179,7 @@ export function autoGroups(plan: CardConfig): AutoGroup[] {
     const title: AutoCard = { type: 'custom:dio-title', title: plan.home?.name || 'Home', never_hide: true }
     groups.push({ room: null, cards: [title, ...home] })
   }
-  for (const room of plan.rooms ?? []) {
+  for (const room of panelRooms(plan)) {
     const tiles = [...autoTiles(plan, room)]
       .filter(([id]) => !room.hidden?.includes(id))
       .map(([, card]) => chosen(card, room.tiles))

@@ -9,13 +9,15 @@ import { SUN_DIRECTION_DEG } from '#/constants.ts'
 import { EDITOR_TINT_COLOR } from '#/theme.ts'
 import { entityName } from '#/devices/catalog.ts'
 import type { BackgroundConfig, CardConfig, HomeAssistant, HomeConfig, RoomConfig, TileChoices } from '#/types.ts'
-import { autoTiles } from '#/tiles/auto.ts'
+import { autoTiles, panelRooms } from '#/tiles/auto.ts'
 import { TilePicker } from '#/editor/TilePicker.tsx'
 import { WidgetGrid } from '#/editor/WidgetGrid.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { defaultIcon } from '#/tiles/icons.ts'
 import {
   faArrowLeft,
+  faChevronDown,
+  faChevronUp,
   faCirclePlus,
   faEyeSlash,
   faLocationArrow,
@@ -157,6 +159,16 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     onChange({ ...config, rooms: next })
   }
 
+  // Moves a room up or down the side panel, by one place.
+  const ordered = panelRooms(config)
+  const moveRoom = (roomId: string, by: number) => {
+    const ids = ordered.map(room => room.id)
+    const from = ids.indexOf(roomId)
+    ids.splice(from, 1)
+    ids.splice(from + by, 0, roomId)
+    onChange({ ...config, room_order: ids })
+  }
+
   // Writes the home section, leaving out what is empty so the YAML stays
   // as short as it was.
   const home = config.home ?? {}
@@ -248,7 +260,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
               />
             )}
           </div>
-          {rooms.map(room => (
+          {ordered.map((room, i) => (
             <RoomEntities
               key={room.id}
               hass={hass}
@@ -257,6 +269,8 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
               taken={taken}
               onChange={lists => setRoom(room.id, lists)}
               onRename={name => renameRoom(room.id, name)}
+              onUp={i > 0 ? () => moveRoom(room.id, -1) : undefined}
+              onDown={i < ordered.length - 1 ? () => moveRoom(room.id, 1) : undefined}
               onChoose={id => choose(room.id, id)}
             />
           ))}
@@ -386,13 +400,15 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
           {sidePanel && (
             <label className="border-separator flex cursor-pointer items-center justify-between gap-4 border-t py-2.5">
               <span className="flex min-w-0 flex-col">
-                <span className="text-[13px]">Every room's widgets on the whole home</span>
-                <span className="text-label-2 text-xs">Off, the whole home shows only the Home widgets when it has any</span>
+                <span className="text-[13px]">Show all widgets on the home view</span>
+                <span className="text-label-2 text-xs">
+                  With the whole home in view, every room's widgets follow the Home ones. Off, only the Home ones show.
+                </span>
               </span>
               <Switch
                 checked={home.show_rooms === true}
                 accent={EDITOR_TINT_COLOR}
-                label="Every room's widgets on the whole home"
+                label="Show all widgets on the home view"
                 onChange={on => setHome({ show_rooms: on })}
               />
             </label>
@@ -611,6 +627,8 @@ function RoomEntities({
   taken,
   onChange,
   onRename,
+  onUp,
+  onDown,
   onChoose,
 }: {
   hass: HomeAssistant | null
@@ -619,6 +637,9 @@ function RoomEntities({
   taken: string[]
   onChange: (lists: RoomLists) => void
   onRename: (name: string) => void
+  // Moves the room a place up or down the panel, none at either end.
+  onUp?: () => void
+  onDown?: () => void
   onChoose: (id: string) => void
 }) {
   const extra = room.entities ?? []
@@ -636,12 +657,27 @@ function RoomEntities({
 
   return (
     <div className="flex flex-col gap-3" {...showsInPreview(room.id)}>
-      <HeadingInput
-        value={room.name ?? ''}
-        placeholder={roomName(hass, { ...room, name: undefined })}
-        label={`${roomName(hass, room)} name`}
-        onChange={onRename}
-      />
+      <div className="flex items-center gap-2">
+        <HeadingInput
+          value={room.name ?? ''}
+          placeholder={roomName(hass, { ...room, name: undefined })}
+          label={`${roomName(hass, room)} name`}
+          onChange={onRename}
+        />
+        <button type="button" aria-label={`Move ${roomName(hass, room)} up`} title="Move up" disabled={!onUp} onClick={onUp} className={arrow}>
+          <FontAwesomeIcon icon={faChevronUp} className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          aria-label={`Move ${roomName(hass, room)} down`}
+          title="Move down"
+          disabled={!onDown}
+          onClick={onDown}
+          className={arrow}
+        >
+          <FontAwesomeIcon icon={faChevronDown} className="size-3.5" />
+        </button>
+      </div>
       {hass && shown.length > 0 && (
         <WidgetGrid
           hass={hass}
@@ -714,7 +750,7 @@ function HeadingInput({
       onChange={event => onChange(event.target.value)}
       className={cn(
         heading,
-        'hover:bg-fill focus:bg-fill placeholder:text-(--primary-text-color) -mx-1.5 rounded-lg px-1.5 outline-none',
+        'hover:bg-fill focus:bg-fill placeholder:text-(--primary-text-color) -mx-1.5 min-w-0 rounded-lg px-1.5 outline-none',
       )}
     />
   )
@@ -729,6 +765,9 @@ function entityIcon(hass: HomeAssistant, id: string) {
 }
 
 // A room's or the home's heading over its widgets, large as in the panel.
+const arrow =
+  'bg-fill text-label-2 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-[color,transform] hover:text-(--primary-text-color) active:scale-90 disabled:cursor-default disabled:opacity-35 disabled:hover:text-label-2 disabled:active:scale-100'
+
 const heading = 'h-10 w-full truncate text-[26px] leading-10 font-bold tracking-[-0.02em] font-title'
 
 type RoomLists = { entities?: string[]; order?: string[]; hidden?: string[]; tiles?: TileChoices }

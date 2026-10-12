@@ -202,6 +202,9 @@ export type CardConfig = {
   // `show_rooms` is on, and each room's tiles show only while that room is
   // in view.
   home?: HomeConfig
+  // The order of the rooms in the side panel, by id. A room it does not name
+  // follows the ones it does, in the plan's order.
+  room_order?: string[]
   background?: BackgroundConfig
 }
 

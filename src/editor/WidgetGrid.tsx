@@ -6,7 +6,7 @@ import { GAP_PX, ROW_PX, span } from '#/tiles/sidePanel.ts'
 import type { HomeAssistant, TileChoice, TileChoices } from '#/types.ts'
 import { faEye, faPen, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { motion } from 'motion/react'
+import { motion, useDragControls } from 'motion/react'
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react'
 
 // The most rows a card across the whole panel can be made, as in the picker.
@@ -43,8 +43,9 @@ type Fit = { columns: number; config: Record<string, unknown>; own: number | 'au
 // the page to pick its card. The cross in the other takes away an entity
 // added by hand, and the eye hides a device on the plan from the panel or
 // shows it again. The grip in its bottom right corner makes it wider or
-// narrower, between the setups of its card that differ only in width, and
-// taller or shorter while it takes the whole width.
+// narrower, between the setups of its card that differ only in width or
+// stretched across the whole width, and taller or shorter while it takes
+// the whole width.
 export function WidgetGrid({ hass, widgets, tiles, onReorder, onSize, onEdit }: Props) {
   const ids = widgets.map(widget => widget.id)
   const byId = new Map(widgets.map(widget => [widget.id, widget]))
@@ -195,14 +196,25 @@ function Cell({
   // The setups of the card it is now that differ only in width, one for
   // each width, the one it is now kept for its own width.
   const { options, auto: autoKey } = choices(hass, auto, saved)
-  const savedKey = setupKey(saved ?? auto)
+  const current = unstretched(saved ?? auto)
+  const savedKey = setupKey(current)
   const { type: _, size: __, ...kept } = auto
+  const fitOf = (config: Record<string, unknown>): Fit => {
+    const plain = { ...kept, ...config, type: String(config.type), entity: auto.entity }
+    const { columns, rows } = span(plain, hass)
+    return { columns, config, own: rows }
+  }
   const fits = new Map<number, Fit>()
   for (const option of options) {
-    if (option.config.type !== (saved ?? auto).type) continue
-    const plain = { ...kept, ...option.config, type: String(option.config.type), entity: auto.entity }
-    const fit = { columns: span(plain, hass).columns, config: option.config, own: span(plain, hass).rows }
+    if (option.config.type !== current.type) continue
+    const fit = fitOf(option.config)
     if (!fits.has(fit.columns) || setupKey(option.config) === savedKey) fits.set(fit.columns, fit)
+  }
+  // A card with no setup across the whole width can be stretched across it.
+  const narrow = [...fits.values()].find(fit => setupKey(fit.config) === savedKey)
+  if (narrow && !fits.has(12)) {
+    const grid = (narrow.config.grid_options ?? {}) as Record<string, unknown>
+    fits.set(12, fitOf({ ...narrow.config, grid_options: { ...grid, columns: 12 } }))
   }
 
   // The rows the card takes by itself, measured from a copy of it at its
@@ -263,12 +275,20 @@ function Cell({
   const corner =
     'absolute z-10 flex size-[26px] cursor-pointer items-center justify-center rounded-full bg-(--dio-surface,var(--card-background-color)) text-label-2 shadow-[0_1px_4px_rgba(0,0,0,0.25),0_0_0_0.5px_rgba(0,0,0,0.12)] transition-[color,transform] hover:text-(--primary-text-color) active:scale-90'
   const still = { onPointerDown: (event: PointerEvent) => event.stopPropagation() }
+  // Dragged only from the card itself, never from a button in its corners.
+  const controls = useDragControls()
 
   return (
     <motion.div
       ref={cell}
       layout="position"
       drag
+      dragControls={controls}
+      dragListener={false}
+      onPointerDown={event => {
+        if (event.button !== 0 || (event.target as Element).closest('button')) return
+        controls.start(event)
+      }}
       dragSnapToOrigin
       dragMomentum={false}
       onDragStart={onGrab}
@@ -350,4 +370,11 @@ function Cell({
       )}
     </motion.div>
   )
+}
+
+// A card's setup without the width it was stretched to.
+function unstretched(config: Record<string, unknown>): Record<string, unknown> {
+  const { columns: _, ...grid } = (config.grid_options ?? {}) as Record<string, unknown>
+  const { grid_options: __, ...rest } = config
+  return Object.keys(grid).length > 0 ? { ...rest, grid_options: grid } : rest
 }
