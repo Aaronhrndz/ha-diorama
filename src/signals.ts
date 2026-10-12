@@ -190,17 +190,16 @@ const MEDIA_PAUSE = 1
 const MEDIA_TURN_ON = 128
 const MEDIA_PLAY = 16384
 
-// What a click on a speaker or a TV does: it pauses what plays and plays
-// what is paused or waiting, and turns on one that is off. It never turns
-// one off, which a speaker that stops between songs would read as a pause
-// gone wrong: that is for its power button or its dialog. Null when the
-// click has nothing to do, like on a TV that is on and cannot pause.
+// What a click on a speaker or a TV does. One that can play and pause is
+// never turned off by it, which a speaker that stops between songs would
+// read as a pause gone wrong: that is for its power button or its dialog.
+// The click pauses what plays, plays what is paused or waiting, and turns
+// on one that is off. One that cannot play or pause is switched on and off
+// like anything else. Null when the click has nothing to do.
 export function mediaClick(state: string | undefined, features: number): string | null {
+  if (state === undefined || state === 'unavailable' || state === 'unknown') return null
+  if (!(features & (MEDIA_PAUSE | MEDIA_PLAY))) return 'toggle'
   switch (state) {
-    case undefined:
-    case 'unavailable':
-    case 'unknown':
-      return null
     case 'playing':
     case 'buffering':
       return features & MEDIA_PAUSE ? 'media_pause' : null
@@ -263,9 +262,9 @@ export function clickOutcome(hass: HomeAssistant, entityId: string, on?: boolean
   const entity = hass.states[entityId]
   const action = clickAction(entityId, entity?.state, entity?.attributes)
   if (!action) return undefined
-  // A speaker or a TV that pauses or plays stays on, and only one turned
-  // on changes.
-  if (domain === 'media_player') return action.service === 'turn_on' ? true : undefined
+  // A speaker or a TV that pauses or plays stays on.
+  if (domain === 'media_player' && action.service !== 'toggle')
+    return action.service === 'turn_on' ? true : undefined
   const now = on ?? signalValues(hass, entityId).on
   return now === undefined ? undefined : !now
 }

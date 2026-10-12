@@ -17,8 +17,8 @@ const PLAY = 16384
 type Props = { env: TileEnv; config: TileConfig }
 
 // A speaker or a TV. A tap plays or pauses it, or turns it on while it is
-// off, but never turns it off, which is what the power button is for. One
-// that is on and can do neither opens its dialog instead. The line under the name says what is playing. The top right corner has
+// off, but never turns off one that can play and pause, which is what the
+// power button is for. One that cannot is switched on and off. The line under the name says what is playing. The top right corner has
 // previous, play or pause, and next buttons, and a power button for one
 // that is on and can be turned off, on a small tile only when they fit. Lit while it plays. With the volume
 // feature the whole tile is its volume, filled from the left, and a tap
