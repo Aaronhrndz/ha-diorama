@@ -60,9 +60,8 @@
   /* The chosen segment of a segmented control, lifted off its track. */
   --dio-raised: color-mix(in srgb, var(--primary-text-color, #e1e1e1) 24%, var(--card-background-color, #1c1c1c));
   /* A button floating on a widget's corner: a grey between the text and
-     the page, which stands at least 3 to 1 against the page, with the
-     icon in the page's own color. */
-  --dio-float: color-mix(in srgb, var(--primary-text-color, #e1e1e1) 42%, var(--dio-surface, #1c1c1c));
+     the page, with the icon in the page's own color. */
+  --dio-float: color-mix(in srgb, var(--primary-text-color, #e1e1e1) 32%, var(--dio-surface, #1c1c1c));
 }
 .dio-editor[data-light] {
   --dio-tint: #0066cc;
@@ -71,7 +70,7 @@
   --dio-tint-fill: #0066cc;
   --dio-danger-fill: #d70015;
   --dio-raised: var(--card-background-color, #fff);
-  --dio-float: color-mix(in srgb, var(--primary-text-color, #212121) 48%, var(--dio-surface, #fff));
+  --dio-float: color-mix(in srgb, var(--primary-text-color, #212121) 44%, var(--dio-surface, #fff));
 }
 
 /* With more contrast asked for, the fills and lines are drawn firmer. */
