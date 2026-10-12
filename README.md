@@ -6,7 +6,7 @@ A Home Assistant card that turns your home into a small 3D model you can click.
 
 Draw your rooms, furnish them from a catalog of sofas, lamps, doors, blinds, appliances and sensors, then bind the pieces to your real Home Assistant devices. The model shows what your home is doing right now: a lamp glows when the light is on, a blind sits where the cover is, a door swings open when the sensor says so. Click a piece and the device behind it toggles.
 
-![Turning lights on in the card, then placing a ceiling fan in the editor and binding it to a device, then the side panel following the camera from room to room](docs/images/demo.gif)
+![Flying into the kitchen to turn on a lamp, walking to the living room to switch on the TV from the side panel, then adding a ceiling fan to the bedroom in the editor, binding it to a device and turning it on from the card](docs/images/demo.gif)
 
 A sharper version of the clip is in [docs/video/demo.mp4](docs/video/demo.mp4).
 
