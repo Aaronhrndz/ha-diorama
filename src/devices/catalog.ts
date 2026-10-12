@@ -15,6 +15,8 @@ const PLACEABLE_DOMAINS = [
   'vacuum',
   'sensor',
   'binary_sensor',
+  'button',
+  'input_button',
 ]
 
 // Sensors are noisy. Only these device classes are offered.
