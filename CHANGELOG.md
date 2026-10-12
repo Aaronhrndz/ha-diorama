@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- In the widget picker a tap on a card now swaps the widget for it and the plus in a card's corner adds it beside the others, and every card there and in Home Assistant's card picker has a short name, like Toggle with Color, in place of a description.
+
 ## [1.6.0] - 2026-10-12
 
 ### Added

@@ -55,11 +55,12 @@ export function choiceFor(autoKey: string, config: Record<string, unknown>): Til
 }
 
 // Every card of ours the entity can be, each shown as it would be in the
-// panel, at the size it takes there, with its name and what it does under
-// it. Several can be picked, each a widget of its own in the panel, and
-// the ones picked have a tick in their corner. A click picks a card or
-// takes it away again, but for the last one left. Picking the one the
-// panel would pick anyway leaves the choice out of the YAML.
+// panel, at the size it takes there, with its name under it. A click on a
+// card makes it the only one shown. Several can be shown, each a widget of
+// its own in the panel: the plus in the corner of a card not shown adds it
+// to the others, and the tick in the corner of one shown takes it away
+// again, but for the last one left. Picking the one the panel would pick
+// anyway leaves the choice out of the YAML.
 export function TilePicker({
   hass,
   auto,
@@ -76,11 +77,14 @@ export function TilePicker({
   const keys = picked.map(choice => setupKey(unstretched(choice ?? auto)))
   const shown = showing(hass, String(auto.entity))
   return (
-    <div role="group" aria-label="Widgets" className="grid grid-cols-12 items-start" style={{ gap: `18px ${GAP_PX}px` }}>
+    <div role="group" aria-label="Widgets" className="grid grid-cols-12 items-start px-1.5 pt-1.5" style={{ gap: `18px ${GAP_PX}px` }}>
       {options.map(option => {
         const key = setupKey(option.config)
         const at = keys.indexOf(key)
         const on = at >= 0
+        const only = () => {
+          if (!on || picked.length > 1) onChange([choiceFor(autoKey, option.config)])
+        }
         const toggle = () => {
           if (!on) onChange([...picked, choiceFor(autoKey, option.config)])
           else if (picked.length > 1) onChange(picked.filter((_, i) => i !== at))
@@ -93,19 +97,13 @@ export function TilePicker({
           <div key={key} className="relative flex min-w-0 flex-col" style={{ gridColumn: `span ${columns}` }}>
             <button
               type="button"
-              role="checkbox"
-              aria-checked={on}
-              aria-label={option.label ? `${option.name}, ${option.label}` : option.name}
-              onClick={toggle}
+              aria-pressed={on}
+              aria-label={option.name}
+              onClick={only}
               className="group flex min-w-0 cursor-pointer flex-col gap-1.5 text-left outline-none"
             >
-              <span className="relative block transition-[transform,opacity] group-hover:opacity-85 group-focus-visible:opacity-85 group-active:scale-[0.98]">
+              <span className="block transition-[transform,opacity] group-hover:opacity-85 group-focus-visible:opacity-85 group-active:scale-[0.98]">
                 <TilePreview hass={shown} config={plain} height={rows === 'auto' ? undefined : rows} />
-                {on && (
-                  <span className="bg-tint-fill absolute -top-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full text-white shadow-[0_0_0_3px_var(--dio-surface,var(--card-background-color))]">
-                    <Icon icon="ph:check-bold" className="size-3.5 [--mdc-icon-size:14px] [&>svg]:size-full" />
-                  </span>
-                )}
               </span>
               <span className="flex min-w-0 flex-col px-1">
                 <span className={cn('flex items-center gap-1.5 text-xs font-semibold', on && 'text-tint')}>
@@ -114,10 +112,27 @@ export function TilePicker({
                     <span className="bg-fill-strong text-label-2 rounded px-1 py-px text-[10px] font-medium">Auto</span>
                   )}
                 </span>
-                {option.label && (
-                  <span className="text-label-2 line-clamp-2 text-[11px] leading-snug">{option.label}</span>
-                )}
               </span>
+            </button>
+            {/* Shown or not, beside the others: a tick on one shown, a plus on
+              one that is not. */}
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={on}
+              aria-label={on ? `Remove ${option.name}` : `Add ${option.name}`}
+              aria-disabled={on && picked.length === 1}
+              onClick={toggle}
+              className={cn(
+                'absolute -top-1.5 -right-1.5 z-10 flex size-6 cursor-pointer items-center justify-center rounded-full shadow-[0_0_0_3px_var(--dio-surface,var(--card-background-color))] transition-[transform,opacity] outline-none hover:opacity-85 focus-visible:opacity-85 active:scale-90',
+                on ? 'bg-tint-fill text-white' : 'bg-(--dio-float) text-(--dio-float-icon)',
+                on && picked.length === 1 && 'cursor-default',
+              )}
+            >
+              <Icon
+                icon={on ? 'ph:check-bold' : 'ph:plus-bold'}
+                className="size-3.5 [--mdc-icon-size:14px] [&>svg]:size-full"
+              />
             </button>
           </div>
         )
