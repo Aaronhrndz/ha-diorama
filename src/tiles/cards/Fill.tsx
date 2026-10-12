@@ -51,12 +51,19 @@ const SEND_MS = 700
 const DOTS_FROM_STEP = 5
 
 // A short tick at each stop past the start and short of the end, along
-// the edge of the tile, in the color of the words on the side it is on.
+// the edge of the tile, in the color of the words on the side it is on,
+// cut off by its rounded corners like the rest of it.
 function StepTicks({ step }: { step: number }) {
   if (step < DOTS_FROM_STEP) return null
   const stops: number[] = []
   for (let at = step; at < 100 - step / 100; at += step) stops.push(at)
-  return stops.map(at => <span key={at} className="dio-fill-tick" style={{ '--_at': `${at}%` } as CSSProperties} />)
+  return (
+    <span className="dio-fill-ticks">
+      {stops.map(at => (
+        <span key={at} className="dio-fill-tick" style={{ '--_at': `${at}%` } as CSSProperties} />
+      ))}
+    </span>
+  )
 }
 
 // A tile that is a value from 0 to 100 across its whole width, like a

@@ -332,6 +332,14 @@
    from the very top edge with its free end rounded, faint over the empty
    part and over the filled one alike. One that fills up or down has them
    on its left edge instead, pointing in. */
+.dio-fill-ticks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--_radius);
+  pointer-events: none;
+}
+
 .dio-fill-tick {
   position: absolute;
   top: 0;
