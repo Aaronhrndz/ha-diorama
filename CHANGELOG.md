@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- A piece can stand in for a button, like a litter box's scoop, and a click on the piece presses it and plays the piece's press.
+
 ## [1.5.1] - 2026-10-12
 
 ### Fixed
