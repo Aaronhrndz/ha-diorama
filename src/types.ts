@@ -102,6 +102,10 @@ export type HomeConfig = {
   name?: string
   entities?: string[]
   tiles?: TileChoices
+  // Keeps every room's tiles under the home's own with the whole home in
+  // view, instead of the home's alone. A room in view still shows only its
+  // own.
+  show_rooms?: boolean
 }
 
 // A card of the side panel chosen for an entity: its type and its options,
@@ -194,8 +198,9 @@ export type CardConfig = {
   filter_tiles?: boolean
   // The side panel's own section for the whole home, under its `name`,
   // Home by default: the tiles of its `entities`, in this order. With any
-  // set, it is all the panel shows with the whole home in view, and each
-  // room's tiles show only while that room is in view.
+  // set, it is all the panel shows with the whole home in view, unless
+  // `show_rooms` is on, and each room's tiles show only while that room is
+  // in view.
   home?: HomeConfig
   background?: BackgroundConfig
 }

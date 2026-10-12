@@ -25,7 +25,7 @@ A sharper version of the clip is in [docs/video/demo.mp4](docs/video/demo.mp4).
 
 ## Widgets
 
-Diorama comes with its own widgets in the same look as the model. Turn on **Show the side panel** and they appear next to it, one for each device you placed, grouped by room. You can also use them on their own, anywhere on a dashboard.
+Diorama comes with its own widgets in the same look as the model. Turn on **Show widgets beside the 3D view** and they appear next to it, one for each device you placed, grouped by room. You can also use them on their own, anywhere on a dashboard.
 
 ![A thermostat dial dragged down, a brightness slider, a front door opened with two taps, an all lights group and a robot vacuum started from its own button](docs/images/widgets.gif)
 

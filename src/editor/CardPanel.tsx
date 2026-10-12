@@ -17,10 +17,12 @@ import { defaultIcon } from '#/tiles/icons.ts'
 import {
   faArrowLeft,
   faCirclePlus,
+  faEyeSlash,
   faLocationArrow,
   faMagnifyingGlass,
   faPenRuler,
   faSpinner,
+  faTableCellsLarge,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -31,6 +33,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
+  type RefObject,
 } from 'react'
 
 type Props = {
@@ -50,8 +53,10 @@ const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a)
 export default function CardPanel({ hass, config, onChange, opening, onOpen }: Props) {
   const rooms = config.rooms ?? []
   const sidePanel = config.side_panel === true
-  // The tile whose card is being picked, on a page of its own in place of
-  // the settings, and the row it was opened from, to go back to.
+  // The page of widgets, in place of the settings, and on top of it the
+  // tile whose card is being picked. Going back from either scrolls to what
+  // opened it.
+  const [widgets, setWidgets] = useState(false)
   const [choosing, setChoosing] = useState<Choosing | null>(null)
   const root = useRef<HTMLDivElement>(null)
   const back = useRef<string | null>(null)
@@ -61,14 +66,18 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     setChoosing({ room, id })
   }
   const close = () => {
-    if (choosing) back.current = choosing.id
+    if (choosing) back.current = `[data-choose="${CSS.escape(choosing.id)}"]`
     setChoosing(null)
   }
+  const openWidgets = (on: boolean) => {
+    back.current = on ? null : '[data-open="widgets"]'
+    setPreviewRoom(null)
+    setWidgets(on)
+  }
   useLayoutEffect(() => {
-    if (choosing) root.current?.scrollIntoView({ block: 'start' })
-    else if (back.current)
-      root.current?.querySelector(`[data-choose="${CSS.escape(back.current)}"]`)?.scrollIntoView({ block: 'center' })
-  }, [choosing])
+    if (back.current) root.current?.querySelector(back.current)?.scrollIntoView({ block: 'center' })
+    else root.current?.scrollIntoView({ block: 'start' })
+  }, [choosing, widgets])
   // The preview starts on the whole home each time the settings open.
   useEffect(() => () => setPreviewRoom(null), [])
 
@@ -117,6 +126,17 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     )
   }
 
+  // A room's name, or the area's when it is left empty.
+  const renameRoom = (roomId: string, name: string) =>
+    onChange({
+      ...config,
+      rooms: rooms.map(room => {
+        if (room.id !== roomId) return room
+        const { name: _, ...rest } = room
+        return name ? { ...rest, name } : rest
+      }),
+    })
+
   const setSidePanel = (on: boolean) => {
     const { side_panel: _, ...rest } = config
     onChange(on ? { ...rest, side_panel: true } : rest)
@@ -144,6 +164,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
   const setHome = (changes: HomeConfig) => {
     const next: HomeConfig = { ...home, ...changes }
     if (!next.name) delete next.name
+    if (!next.show_rooms) delete next.show_rooms
     if (!next.entities?.length) delete next.entities
     if (!Object.keys(next.tiles ?? {}).length) delete next.tiles
     const { home: _, ...rest } = config
@@ -172,36 +193,13 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
     const id = choosing!.id
     const save = (next: TileChoices) => (room ? setRoom(room.id, { tiles: next }) : setHome({ tiles: next }))
     return (
-      <div
-        ref={root}
-        data-light={light}
-        // The dialog's own color, so the page has no background of its own
-        // and the header still hides the cards scrolled under it.
-        style={
-          {
-            '--dio-surface':
-              'var(--ha-dialog-surface-background, var(--mdc-theme-surface, var(--card-background-color)))',
-          } as CSSProperties
-        }
-        className="dio-editor font-system flex min-h-full flex-col gap-3 px-4 pb-6 text-(--primary-text-color) antialiased"
+      <Page
+        root={root}
+        light={light}
+        title={entityName(hass, id)}
+        subtitle={`The widget it shows in the side panel, ${room ? roomName(hass, room) : home.name || 'Home'}`}
+        onBack={close}
       >
-        <header className="sticky top-0 z-10 -mx-4 flex items-center gap-3 bg-(--dio-surface) px-4 pt-3 pb-2">
-          {/* Said in words and filled, so the way back is plain to see. */}
-          <button
-            type="button"
-            onClick={close}
-            className="bg-tint-fill flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full pr-4 pl-3.5 text-[13px] font-semibold text-white transition-[filter,transform] hover:brightness-110 active:scale-[0.97]"
-          >
-            <FontAwesomeIcon icon={faArrowLeft} className="size-3.5" />
-            Back
-          </button>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <h2 className="truncate text-[17px] font-semibold tracking-tight">{entityName(hass, id)}</h2>
-            <p className="text-label-2 truncate text-xs">
-              The widget it shows in the side panel, {room ? roomName(hass, room) : home.name || 'Home'}
-            </p>
-          </div>
-        </header>
         <TilePicker
           hass={hass}
           auto={auto}
@@ -211,9 +209,60 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
             if (!stay) close()
           }}
         />
-      </div>
+      </Page>
     )
   }
+
+  if (widgets && sidePanel)
+    return (
+      <Page
+        root={root}
+        light={light}
+        title="Widgets"
+        subtitle="The side panel as it will look"
+        onBack={() => openWidgets(false)}
+      >
+        <div className="flex flex-col gap-8 pt-2">
+          <div className="flex flex-col gap-3" {...showsInPreview(null)}>
+            <HeadingInput value={home.name ?? ''} placeholder="Home" label="Home" onChange={name => setHome({ name })} />
+            {hass && homeEntities.length > 0 && (
+              <WidgetGrid
+                hass={hass}
+                widgets={[...autoTiles(config, null)].map(([id, auto]) => ({
+                  id,
+                  auto,
+                  onRemove: () =>
+                    setHome({ entities: homeEntities.filter(other => other !== id), tiles: without(home.tiles, id) }),
+                }))}
+                tiles={home.tiles}
+                onReorder={entities => setHome({ entities })}
+                onSize={(id, choice) => setHome({ tiles: choice ? { ...home.tiles, [id]: choice } : without(home.tiles, id) })}
+                onEdit={id => choose(null, id)}
+              />
+            )}
+            {hass && (
+              <EntityPicker
+                hass={hass}
+                exclude={homeEntities}
+                onPick={id => !homeEntities.includes(id) && setHome({ entities: [...homeEntities, id] })}
+              />
+            )}
+          </div>
+          {rooms.map(room => (
+            <RoomEntities
+              key={room.id}
+              hass={hass}
+              config={config}
+              room={room}
+              taken={taken}
+              onChange={lists => setRoom(room.id, lists)}
+              onRename={name => renameRoom(room.id, name)}
+              onChoose={id => choose(room.id, id)}
+            />
+          ))}
+        </div>
+      </Page>
+    )
 
   return (
     <div
@@ -221,10 +270,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
       data-light={light}
       className="dio-editor font-system flex flex-col gap-6 px-5 py-6 text-(--primary-text-color) antialiased"
     >
-      <Section
-        title="Diorama"
-        description="Draw the rooms of your home, furnish them, and link each piece to the Home Assistant device it stands for."
-      >
+      <Section title="Diorama">
         <div className={cn(group, 'flex-row items-center gap-3')}>
           <span className="bg-tint-fill flex size-9 shrink-0 items-center justify-center rounded-[10px] text-white">
             <FontAwesomeIcon icon={faPenRuler} className="size-4" />
@@ -246,14 +292,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
         </div>
       </Section>
 
-      <Section
-        title="In the card"
-        description={
-          roomsFirst
-            ? 'The first click on a device goes to its room, and the device answers once the camera is there. The sun lights the rooms from the side you pick.'
-            : 'A click on a device acts on it from anywhere. The sun lights the rooms from the side you pick.'
-        }
-      >
+      <Section title="In the card">
         <div className={cn(group, 'gap-0 py-0')}>
           <label className="flex cursor-pointer items-center justify-between gap-4 py-2.5">
             <span className="flex min-w-0 flex-col">
@@ -333,85 +372,57 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
         </div>
       </Section>
 
-      <Section
-        title="Side panel"
-        description="Widgets beside the diorama, a heading for each room and a widget for each of its devices. With a room in view only its widgets show. On a narrow card the panel goes under the diorama."
-      >
-        <label className={cn(group, 'cursor-pointer flex-row items-center justify-between gap-4 py-2.5')}>
-          <span className="text-[13px]">Show the side panel</span>
-          <Switch checked={sidePanel} accent={EDITOR_TINT_COLOR} label="Show the side panel" onChange={setSidePanel} />
-        </label>
-      </Section>
-
-      {sidePanel && (
-        <Section
-          title="Home"
-          description="Widgets for the whole home rather than a room, such as a scene, a script, the weather or a group of lights, under a heading of their own. With any here, they are all the panel shows until a room is in view, and each room's widgets show only inside it. Leave it empty to show every room."
-        >
-          <div className="flex flex-col gap-3 px-1" {...showsInPreview(null)}>
-            <input
-              type="text"
-              value={home.name ?? ''}
-              placeholder="Home"
-              aria-label="Home heading"
-              onChange={event => setHome({ name: event.target.value })}
-              className={cn(heading, 'hover:bg-fill focus:bg-fill -mx-1.5 rounded-lg px-1.5 outline-none')}
+      <Section title="Side panel">
+        <div className={cn(group, 'gap-0 py-0')}>
+          <label className="flex cursor-pointer items-center justify-between gap-4 py-2.5">
+            <span className="text-[13px]">Show widgets beside the 3D view</span>
+            <Switch
+              checked={sidePanel}
+              accent={EDITOR_TINT_COLOR}
+              label="Show widgets beside the 3D view"
+              onChange={setSidePanel}
             />
-            {hass && homeEntities.length > 0 && (
-              <WidgetGrid
-                hass={hass}
-                widgets={[...autoTiles(config, null)].map(([id, auto]) => ({
-                  id,
-                  auto,
-                  onRemove: () =>
-                    setHome({ entities: homeEntities.filter(other => other !== id), tiles: without(home.tiles, id) }),
-                }))}
-                tiles={home.tiles}
-                onReorder={entities => setHome({ entities })}
-                onSize={(id, choice) => setHome({ tiles: choice ? { ...home.tiles, [id]: choice } : without(home.tiles, id) })}
-                onEdit={id => choose(null, id)}
+          </label>
+          {sidePanel && (
+            <label className="border-separator flex cursor-pointer items-center justify-between gap-4 border-t py-2.5">
+              <span className="flex min-w-0 flex-col">
+                <span className="text-[13px]">Every room's widgets on the whole home</span>
+                <span className="text-label-2 text-xs">Off, the whole home shows only the Home widgets when it has any</span>
+              </span>
+              <Switch
+                checked={home.show_rooms === true}
+                accent={EDITOR_TINT_COLOR}
+                label="Every room's widgets on the whole home"
+                onChange={on => setHome({ show_rooms: on })}
               />
-            )}
-            {hass && (
-              <EntityPicker
-                hass={hass}
-                exclude={homeEntities}
-                onPick={id => !homeEntities.includes(id) && setHome({ entities: [...homeEntities, id] })}
-              />
-            )}
-          </div>
-        </Section>
-      )}
-
-      {sidePanel && (
-        <Section
-          title="Widgets by room"
-          description="Every device on the plan already has a widget in its room, and the eye on it hides it from the panel. Add other entities, such as a sensor or a thermostat. Drag the widgets to put them in order, drag a corner to resize one, and the pen picks another widget for it."
-        >
-          {rooms.length === 0 ? (
-            <p className={cn(group, 'text-label-2 text-[13px]')}>Draw a room in the editor first.</p>
-          ) : (
-            <div className="flex flex-col gap-8">
-              {rooms.map(room => (
-                <RoomEntities
-                  key={room.id}
-                  hass={hass}
-                  config={config}
-                  room={room}
-                  taken={taken}
-                  onChange={lists => setRoom(room.id, lists)}
-                  onChoose={id => choose(room.id, id)}
-                />
-              ))}
+            </label>
+          )}
+          {sidePanel && (
+            <div className="border-separator flex items-center gap-3 border-t py-3">
+              <span className="bg-tint-fill flex size-9 shrink-0 items-center justify-center rounded-[10px] text-white">
+                <FontAwesomeIcon icon={faTableCellsLarge} className="size-4" />
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-[13px] font-semibold">Widgets</span>
+                <span className="text-label-2 truncate text-xs">Rooms and what each one shows</span>
+              </span>
+              <button
+                type="button"
+                data-open="widgets"
+                onClick={() => openWidgets(true)}
+                className="bg-tint-fill flex h-8 shrink-0 cursor-pointer items-center rounded-full px-3.5 text-[13px] font-semibold text-white transition-[filter,transform] hover:brightness-[1.06] active:scale-[0.97]"
+              >
+                Edit widgets
+              </button>
             </div>
           )}
-        </Section>
-      )}
+        </div>
+      </Section>
 
       {rooms.length > 0 && (
         <Section
           title="Framed rooms"
-          description="The rooms the view of the whole home zooms in on. The others still show around them and can still be clicked. With none on, the whole home is framed."
+          subtitle="What the whole home's view zooms in on. None on frames them all."
         >
           <div className={cn(group, 'gap-0 py-0')}>
             {rooms.map((room, i) => {
@@ -438,10 +449,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
         </Section>
       )}
 
-      <Section
-        title="Background"
-        description="The colors laid behind the view the card is in, one for a light dashboard and one for a dark one. Plain leaves the dashboard's own background."
-      >
+      <Section title="Background">
         <div className={cn(group, 'gap-4')}>
           <BackgroundPicker
             title="Light"
@@ -475,13 +483,64 @@ function compass(degrees: number) {
   return POINTS[Math.round(turns / 45) % POINTS.length]
 }
 
-function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-label-2 px-3 text-[13px] font-semibold">{title}</h3>
+      <div className="flex flex-col gap-0.5 px-3">
+        <h3 className="text-label-2 text-[13px] font-semibold">{title}</h3>
+        {subtitle && <p className="text-label-2 text-xs leading-snug">{subtitle}</p>}
+      </div>
       {children}
-      {description && <p className="text-label-2 px-3 text-xs leading-snug">{description}</p>}
     </section>
+  )
+}
+
+// A page in place of the settings, with a way back to them at the top.
+function Page({
+  root,
+  light,
+  title,
+  subtitle,
+  onBack,
+  children,
+}: {
+  root: RefObject<HTMLDivElement | null>
+  light: true | undefined
+  title: string
+  subtitle: string
+  onBack: () => void
+  children: ReactNode
+}) {
+  return (
+    <div
+      ref={root}
+      data-light={light}
+      // The dialog's own color, so the page has no background of its own
+      // and the header still hides the cards scrolled under it.
+      style={
+        {
+          '--dio-surface': 'var(--ha-dialog-surface-background, var(--mdc-theme-surface, var(--card-background-color)))',
+        } as CSSProperties
+      }
+      className="dio-editor font-system flex min-h-full flex-col gap-3 px-4 pb-6 text-(--primary-text-color) antialiased"
+    >
+      <header className="sticky top-0 z-10 -mx-4 flex items-center gap-3 bg-(--dio-surface) px-4 pt-3 pb-2">
+        {/* Said in words and filled, so the way back is plain to see. */}
+        <button
+          type="button"
+          onClick={onBack}
+          className="bg-tint-fill flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full pr-4 pl-3.5 text-[13px] font-semibold text-white transition-[filter,transform] hover:brightness-110 active:scale-[0.97]"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} className="size-3.5" />
+          Back
+        </button>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <h2 className="truncate text-[17px] font-semibold tracking-tight">{title}</h2>
+          <p className="text-label-2 truncate text-xs">{subtitle}</p>
+        </div>
+      </header>
+      {children}
+    </div>
   )
 }
 
@@ -551,6 +610,7 @@ function RoomEntities({
   room,
   taken,
   onChange,
+  onRename,
   onChoose,
 }: {
   hass: HomeAssistant | null
@@ -558,11 +618,13 @@ function RoomEntities({
   room: RoomConfig
   taken: string[]
   onChange: (lists: RoomLists) => void
+  onRename: (name: string) => void
   onChoose: (id: string) => void
 }) {
   const extra = room.entities ?? []
   const hidden = room.hidden ?? []
-  const tiles = autoTiles(config, room)
+  const tiles = [...autoTiles(config, room)]
+  const shown = tiles.filter(([id]) => !hidden.includes(id))
   const remove = (id: string) =>
     onChange({
       entities: extra.filter(other => other !== id),
@@ -573,25 +635,97 @@ function RoomEntities({
     onChange({ hidden: on ? [...hidden, id] : hidden.filter(other => other !== id) })
 
   return (
-    <div className="flex flex-col gap-3 px-1" {...showsInPreview(room.id)}>
-      <h3 className={heading}>{roomName(hass, room)}</h3>
-      {hass && tiles.size > 0 && (
+    <div className="flex flex-col gap-3" {...showsInPreview(room.id)}>
+      <HeadingInput
+        value={room.name ?? ''}
+        placeholder={roomName(hass, { ...room, name: undefined })}
+        label={`${roomName(hass, room)} name`}
+        onChange={onRename}
+      />
+      {hass && shown.length > 0 && (
         <WidgetGrid
           hass={hass}
-          widgets={[...tiles].map(([id, auto]) =>
-            extra.includes(id)
-              ? { id, auto, onRemove: () => remove(id) }
-              : { id, auto, hidden: hidden.includes(id), onHide: (on: boolean) => hide(id, on) },
+          widgets={shown.map(([id, auto]) =>
+            extra.includes(id) ? { id, auto, onRemove: () => remove(id) } : { id, auto, onHide: () => hide(id, true) },
           )}
           tiles={room.tiles}
-          onReorder={order => onChange({ order })}
+          // The hidden ones keep their place after the rest.
+          onReorder={order => onChange({ order: [...order, ...hidden] })}
           onSize={(id, choice) => onChange({ tiles: choice ? { ...room.tiles, [id]: choice } : without(room.tiles, id) })}
           onEdit={onChoose}
         />
       )}
+      {hass && hidden.length > 0 && (
+        <ul className={cn(group, 'gap-0 py-0')} aria-label="Hidden from the side panel">
+          {tiles
+            .filter(([id]) => hidden.includes(id))
+            .map(([id, auto], i) => {
+              const name = entityName(hass, id)
+              return (
+                <li
+                  key={id}
+                  className={cn('flex items-center gap-2.5 py-2', i > 0 && 'border-separator border-t')}
+                >
+                  <span className="bg-fill-strong text-label-2 flex size-7 flex-none items-center justify-center rounded-md">
+                    <Icon
+                      icon={typeof auto.piece_icon === 'string' ? auto.piece_icon : entityIcon(hass, id)}
+                      className="size-4 [--mdc-icon-size:16px] [&>svg]:size-full"
+                    />
+                  </span>
+                  <span className="text-label-2 min-w-0 flex-1 truncate text-[13px]">{name}</span>
+                  <button
+                    type="button"
+                    aria-label={`Show ${name} in the side panel`}
+                    title="Show in the side panel"
+                    onClick={() => hide(id, false)}
+                    className="text-label-2 hover:bg-fill-strong flex size-8 cursor-pointer items-center justify-center rounded-full transition-colors hover:text-(--primary-text-color)"
+                  >
+                    <FontAwesomeIcon icon={faEyeSlash} className="size-3.5" />
+                  </button>
+                </li>
+              )
+            })}
+        </ul>
+      )}
       {hass && <EntityPicker hass={hass} exclude={taken} onPick={id => onChange({ entities: [...extra, id] })} />}
     </div>
   )
+}
+
+// A room's or the home's name over its widgets, large as in the panel, and
+// edited in place.
+function HeadingInput({
+  value,
+  placeholder,
+  label,
+  onChange,
+}: {
+  value: string
+  placeholder: string
+  label: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <input
+      type="text"
+      value={value}
+      placeholder={placeholder}
+      aria-label={label}
+      onChange={event => onChange(event.target.value)}
+      className={cn(
+        heading,
+        'hover:bg-fill focus:bg-fill placeholder:text-(--primary-text-color) -mx-1.5 rounded-lg px-1.5 outline-none',
+      )}
+    />
+  )
+}
+
+// The icon Home Assistant gives an entity.
+function entityIcon(hass: HomeAssistant, id: string) {
+  const state = hass.states[id]
+  return typeof state?.attributes.icon === 'string'
+    ? state.attributes.icon
+    : defaultIcon(id, state?.attributes.device_class, state?.state)
 }
 
 // A room's or the home's heading over its widgets, large as in the panel.
@@ -749,11 +883,7 @@ function EntityPicker({
           className="bg-raised max-h-64 overflow-y-auto overscroll-contain rounded-lg py-1"
         >
           {matches.map(({ id, name }, index) => {
-            const state = hass.states[id]
-            const icon =
-              typeof state?.attributes.icon === 'string'
-                ? state.attributes.icon
-                : defaultIcon(id, state?.attributes.device_class, state?.state)
+            const icon = entityIcon(hass, id)
             return (
               <li
                 key={id}

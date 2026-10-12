@@ -4,7 +4,7 @@ import { cn } from '#/lib/utils.ts'
 import { chosen, type AutoCard } from '#/tiles/auto.ts'
 import { GAP_PX, ROW_PX, span } from '#/tiles/sidePanel.ts'
 import type { HomeAssistant, TileChoice, TileChoices } from '#/types.ts'
-import { faEye, faEyeSlash, faPen, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faPen, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { motion } from 'motion/react'
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react'
@@ -18,9 +18,8 @@ export type Widget = {
   auto: AutoCard
   // Takes the entity out of the list, for one added by hand.
   onRemove?: () => void
-  // Whether the panel leaves out a device on the plan, and the way to say so.
-  hidden?: boolean
-  onHide?: (hidden: boolean) => void
+  // Leaves a device on the plan out of the panel.
+  onHide?: () => void
 }
 
 type Props = {
@@ -290,9 +289,7 @@ function Cell({
       style={{ gridColumn: `span ${columns}` }}
       animate={{ scale: held ? 1.03 : 1, boxShadow: held ? '0 14px 34px -10px rgba(0,0,0,0.5)' : '0 0 0 rgba(0,0,0,0)' }}
     >
-      <div className={cn('transition-opacity', widget.hidden && 'opacity-35')}>
-        <TilePreview hass={hass} config={config} height={rows === 'auto' ? undefined : rows} />
-      </div>
+      <TilePreview hass={hass} config={config} height={rows === 'auto' ? undefined : rows} />
       {measuring && (
         <span ref={measure} aria-hidden className="invisible absolute inset-x-0 top-0 -z-10">
           <TilePreview hass={hass} config={{ ...kept, ...wide.config, entity: auto.entity }} />
@@ -324,14 +321,13 @@ function Cell({
         widget.onHide && (
           <button
             type="button"
-            aria-label={widget.hidden ? `Show ${name} in the side panel` : `Hide ${name} from the side panel`}
-            aria-pressed={widget.hidden}
-            title={widget.hidden ? 'Show in the side panel' : 'Hide from the side panel'}
-            onClick={() => widget.onHide!(!widget.hidden)}
+            aria-label={`Hide ${name} from the side panel`}
+            title="Hide from the side panel"
+            onClick={widget.onHide}
             {...still}
-            className={cn(corner, '-top-2 -right-1', widget.hidden && 'text-tint hover:text-tint')}
+            className={cn(corner, '-top-2 -right-1')}
           >
-            <FontAwesomeIcon icon={widget.hidden ? faEyeSlash : faEye} className="size-3" />
+            <FontAwesomeIcon icon={faEye} className="size-3" />
           </button>
         )
       )}
