@@ -18,6 +18,10 @@ moves that section under the new version and uses it as the release notes.
 - In the widget picker a tap on a card now swaps the widget for it and the plus in a card's corner adds it beside the others, and every card there has a short name, like Toggle with Color, in place of a description.
 - From the whole home, a click on a door or a window between two rooms now takes you through it into the room behind, where it used to take you to the room on your side of it.
 
+### Fixed
+
+- A click on a speaker or a TV, in the 3D view or on its widget, now pauses or plays it and never turns it off, which is left to its power button and its dialog.
+
 ## [1.6.0] - 2026-10-12
 
 ### Added

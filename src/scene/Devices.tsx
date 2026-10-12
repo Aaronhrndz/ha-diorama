@@ -204,7 +204,8 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
   // thermostat, opens its dialog instead.
   const act = (entityId: string) => {
     if (!hass) return
-    const action = clickAction(entityId, hass.states[entityId]?.state)
+    const entity = hass.states[entityId]
+    const action = clickAction(entityId, entity?.state, entity?.attributes)
     if (!action) return openMoreInfo(entityId)
     // A press plays on the piece at once.
     if (deviceSignals(hass, entityId).includes('press') && clickPress(presses, entityId)) redraw(n => n + 1)
