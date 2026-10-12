@@ -16,6 +16,7 @@ moves that section under the new version and uses it as the release notes.
 ### Changed
 
 - In the widget picker a tap on a card now swaps the widget for it and the plus in a card's corner adds it beside the others, and every card there has a short name, like Toggle with Color, in place of a description.
+- From the whole home, a click on a door or a window between two rooms now takes you through it into the room behind, where it used to take you to the room on your side of it.
 
 ## [1.6.0] - 2026-10-12
 

@@ -291,8 +291,9 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
         // A press does what the device says, and in the editor also picks
         // the piece. A piece with nothing behind it is still pickable.
         // In the card, a piece in a wall with no device still takes the
-        // press, for the room it is looked at from. Left to pass through, it
-        // would go to whatever stands behind the piece, in the far room.
+        // press, for the room beyond it, as walking through a door from the
+        // room it is looked at from would. Left to pass through, the press
+        // would go to whatever stands behind the piece, in that far room.
         // From a focused room the same press goes through to the other one.
         // A window or a door with no device and a blind or a curtain over
         // it takes that cover's presses, so a press on the glass works the
@@ -321,7 +322,7 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
                   if (over && !roomFirst?.(roomOf())) act(over.entity_id)
                 }
               : between && onRoom
-                ? () => onRoom(roomOf(), between.rooms)
+                ? () => onRoom(roomOf() === between.front ? between.back : between.front, between.rooms)
                 : undefined
         // Home Assistant's dialog would let the editor change the real
         // device, so the editor has none.
