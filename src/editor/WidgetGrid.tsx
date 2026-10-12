@@ -7,7 +7,7 @@ import type { HomeAssistant, TileChoice, TileChoices } from '#/types.ts'
 import { faEye, faPen, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { motion, useDragControls } from 'motion/react'
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react'
 
 // The most rows a card across the whole panel can be made, as in the picker.
 const MAX_ROWS = 12
@@ -42,7 +42,8 @@ type Fit = { columns: number; config: Record<string, unknown>; own: number | 'au
 // arrow keys move the one in focus. The pen in its top left corner opens
 // the page to pick its card. The cross in the other takes away an entity
 // added by hand, and the eye hides a device on the plan from the panel or
-// shows it again. The grip in its bottom right corner makes it wider or
+// shows it again. The grip in its bottom right corner, or bottom left for
+// one against the right side that can only grow leftwards, makes it wider or
 // narrower, between the setups of its card that differ only in width or
 // stretched across the whole width, and taller or shorter while it takes
 // the whole width.
@@ -66,6 +67,8 @@ export function WidgetGrid({ hass, widgets, tiles, onReorder, onSize, onEdit }: 
   // keep trading places under it.
   const swapped = useRef<string | null>(null)
   const shown = order ?? ids
+  // Changes whenever any widget may have moved across the grid.
+  const arranged = `${shown.join()}|${tilesKey}|${JSON.stringify(sizing)}`
   // The order during a drag, for its handlers, which keep the ones from
   // when it started.
   const now = useRef<string[]>([])
@@ -126,6 +129,7 @@ export function WidgetGrid({ hass, widgets, tiles, onReorder, onSize, onEdit }: 
             saved={tiles?.[id]}
             name={name}
             label={`${name}, ${index + 1} of ${shown.length}`}
+            arranged={arranged}
             held={held === id}
             grid={grid}
             cell={element => {
@@ -160,6 +164,7 @@ function Cell({
   saved,
   name,
   label,
+  arranged,
   held,
   grid,
   cell,
@@ -178,6 +183,7 @@ function Cell({
   saved: TileChoice | undefined
   name: string
   label: string
+  arranged: string
   held: boolean
   grid: RefObject<HTMLDivElement | null>
   cell: (element: HTMLDivElement | null) => void
@@ -236,28 +242,45 @@ function Cell({
   const base = wide ? (wide.own === 'auto' ? natural : wide.own) : null
   const resizable = fits.size > 1 || base !== null
 
-  // Where the resize started, and the card it would be let go now.
-  const resize = useRef<{ left: number; top: number; choice: TileChoice | undefined } | null>(null)
+  // A narrow card against the right side of the panel has its grip in the
+  // bottom left corner instead, as it can only grow to the left, and keeps
+  // it there until the resize ends.
+  const self = useRef<HTMLDivElement>(null)
+  const [atEnd, setAtEnd] = useState(false)
+  useLayoutEffect(() => {
+    const box = self.current
+    const width = box?.parentElement?.clientWidth
+    if (box && width) setAtEnd(columns < 12 && box.offsetLeft + box.offsetWidth >= width - 1)
+  }, [columns, arranged])
+  const [pulling, setPulling] = useState<'left' | 'right' | null>(null)
+  const side = pulling ?? (atEnd ? 'left' : 'right')
+
+  // The edge of the card that stays put, and the card it would be let go now.
+  const resize = useRef<{ edge: number; side: 'left' | 'right'; choice: TileChoice | undefined } | null>(null)
   const startResize = (event: PointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) return
     event.preventDefault()
     event.stopPropagation()
     event.currentTarget.setPointerCapture(event.pointerId)
     const box = event.currentTarget.parentElement!.getBoundingClientRect()
-    resize.current = { left: box.left, top: box.top, choice }
+    resize.current = { edge: side === 'left' ? box.right : box.left, side, choice }
+    setPulling(side)
   }
   const moveResize = (event: PointerEvent<HTMLButtonElement>) => {
     const current = resize.current
-    const width = grid.current?.getBoundingClientRect().width
-    if (!current || !width) return
-    const column = (width - 11 * GAP_PX) / 12
-    const wanted = (event.clientX - current.left + GAP_PX) / (column + GAP_PX)
+    const area = grid.current?.getBoundingClientRect()
+    if (!current || !area || !self.current) return
+    const column = (area.width - 11 * GAP_PX) / 12
+    const across = current.side === 'left' ? current.edge - event.clientX : event.clientX - current.edge
+    const wanted = (across + GAP_PX) / (column + GAP_PX)
     const fit = [...fits.values()].reduce((best, next) =>
       Math.abs(next.columns - wanted) < Math.abs(best.columns - wanted) ? next : best,
     )
     let rows: number | undefined
     if (fit.columns === 12 && base !== null) {
-      const tall = Math.round((event.clientY - current.top + GAP_PX) / (ROW_PX + GAP_PX))
+      // From where the card is laid out now, as it may have moved down a row.
+      const top = area.top + self.current.offsetTop
+      const tall = Math.round((event.clientY - top + GAP_PX) / (ROW_PX + GAP_PX))
       rows = Math.min(MAX_ROWS, Math.max(base, tall))
     }
     const next = choiceFor(autoKey, withRows(fit.config, rows, base ?? undefined))
@@ -269,6 +292,7 @@ function Cell({
     const current = resize.current
     if (!current) return
     resize.current = null
+    setPulling(null)
     onSized(current.choice)
   }
 
@@ -280,7 +304,10 @@ function Cell({
 
   return (
     <motion.div
-      ref={cell}
+      ref={element => {
+        self.current = element
+        cell(element)
+      }}
       layout="position"
       drag
       dragControls={controls}
@@ -361,10 +388,24 @@ function Cell({
           onPointerMove={moveResize}
           onPointerUp={endResize}
           onPointerCancel={endResize}
-          className={cn(corner, '-right-1 -bottom-0.5 cursor-nwse-resize touch-none hover:cursor-nwse-resize')}
+          className={cn(
+            corner,
+            '-bottom-0.5 touch-none',
+            side === 'left'
+              ? '-left-1 cursor-nesw-resize hover:cursor-nesw-resize'
+              : '-right-1 cursor-nwse-resize hover:cursor-nwse-resize',
+          )}
         >
-          <svg viewBox="0 0 12 12" className="size-3" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M10 4v6H4" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            viewBox="0 0 12 12"
+            className={cn('size-3', side === 'left' && '-scale-x-100')}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M2.5 2.5l7 7M2.5 6.5v-4h4M9.5 5.5v4h-4" />
           </svg>
         </button>
       )}

@@ -540,7 +540,7 @@ function Page({
       }
       className="dio-editor font-system flex min-h-full flex-col gap-3 px-4 pb-6 text-(--primary-text-color) antialiased"
     >
-      <header className="sticky top-0 z-10 -mx-4 flex items-center gap-3 bg-(--dio-surface) px-4 pt-3 pb-2">
+      <header className="sticky top-0 z-30 -mx-4 flex items-center gap-3 bg-(--dio-surface) px-4 pt-3 pb-2">
         {/* Said in words and filled, so the way back is plain to see. */}
         <button
           type="button"
