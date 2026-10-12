@@ -332,6 +332,14 @@
    from the very top edge with its free end rounded, faint over the empty
    part and over the filled one alike. One that fills up or down has them
    on its left edge instead, pointing in. */
+.dio-fill-ticks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--_radius);
+  pointer-events: none;
+}
+
 .dio-fill-tick {
   position: absolute;
   top: 0;
@@ -2555,6 +2563,17 @@
 
 .dio-media-control[style*='--_art'] > .dio-tile {
   color: #fff;
+}
+
+/* Two rows tall, or half as wide, with no volume under the buttons, and
+   the cover art in place of the icon only as wide as it is tall, so the
+   buttons have the rest. */
+.dio-media-compact > .dio-tile {
+  min-height: 0;
+}
+
+.dio-media-compact.dio-media-cover > .dio-tile {
+  grid-template-columns: auto minmax(0, 1fr);
 }
 
 /* The cover art in place of the icon takes all the height the title

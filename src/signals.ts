@@ -185,18 +185,42 @@ export function signalValues(hass: HomeAssistant, entityId: string): SignalValue
   }
 }
 
+// The media player features a click needs, as Home Assistant numbers them.
+const MEDIA_PAUSE = 1
+const MEDIA_PLAY = 16384
+
+// What a click on a speaker or a TV does. One that can play and pause and
+// has something on pauses it or plays it again, and is never turned off by
+// the click: that is for its power button or its dialog. One with nothing
+// on, or one that cannot play or pause, is switched on and off like
+// anything else. Null when the click has nothing to do.
+export function mediaClick(state: string | undefined, features: number): string | null {
+  if (state === undefined || state === 'unavailable' || state === 'unknown') return null
+  if (features & MEDIA_PAUSE && (state === 'playing' || state === 'buffering')) return 'media_pause'
+  if (features & MEDIA_PLAY && state === 'paused') return 'media_play'
+  return 'toggle'
+}
+
 // The service call a click on a device performs. Null when there is none.
 // Most domains toggle, which needs nothing but the entity. A vacuum has no
 // toggle to call, so it is sent out or sent home by what it is doing now.
-export function clickAction(entityId: string, state?: string): { domain: string; service: string } | null {
+export function clickAction(
+  entityId: string,
+  state?: string,
+  attributes: Record<string, unknown> = {},
+): { domain: string; service: string } | null {
   const domain = domainOf(entityId)
   switch (domain) {
+    case 'media_player': {
+      const features = typeof attributes.supported_features === 'number' ? attributes.supported_features : 0
+      const service = mediaClick(state, features)
+      return service ? { domain, service } : null
+    }
     case 'light':
     case 'switch':
     case 'input_boolean':
     case 'fan':
     case 'cover':
-    case 'media_player':
     case 'humidifier':
       return { domain, service: 'toggle' }
     case 'vacuum':
@@ -225,7 +249,11 @@ export function clickAction(entityId: string, state?: string): { domain: string;
 export function clickOutcome(hass: HomeAssistant, entityId: string, on?: boolean): boolean | undefined {
   const domain = domainOf(entityId)
   if (domain === 'button' || domain === 'input_button' || domain === 'scene' || domain === 'script') return undefined
-  if (!clickAction(entityId, hass.states[entityId]?.state)) return undefined
+  const entity = hass.states[entityId]
+  const action = clickAction(entityId, entity?.state, entity?.attributes)
+  if (!action) return undefined
+  // A speaker or a TV that pauses or plays stays on.
+  if (domain === 'media_player' && action.service !== 'toggle') return undefined
   const now = on ?? signalValues(hass, entityId).on
   return now === undefined ? undefined : !now
 }

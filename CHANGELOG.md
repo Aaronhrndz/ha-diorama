@@ -9,6 +9,20 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- Home Assistant's list of every card now has each way of setting up a Diorama card as a card of its own, like Diorama Double Tap Toggle or Diorama Toggle with Color.
+- The Now Playing widget can be made two rows tall or half as wide, leaving out the volume and keeping its buttons and how far in it is.
+
+### Changed
+
+- In the widget picker a tap on a card now swaps the widget for it and the plus in a card's corner adds it beside the others, and every card there has a short name, like Toggle with Color, in place of a description.
+- From the whole home, a click on a door or a window between two rooms now takes you through it into the room behind, where it used to take you to the room on your side of it.
+
+### Fixed
+
+- A click on a speaker or a TV that is playing or paused, in the 3D view or on its widget, now pauses or plays it rather than turning it off, while one with nothing on is still switched on and off.
+
 ## [1.6.0] - 2026-10-12
 
 ### Added

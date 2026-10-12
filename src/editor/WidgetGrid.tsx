@@ -38,7 +38,13 @@ type Props = {
 }
 
 // A setup of the card the tile is now, at its own size in the panel.
-type Fit = { columns: number; config: Record<string, unknown>; own: number | 'auto' }
+type Fit = {
+  columns: number
+  config: Record<string, unknown>
+  own: number | 'auto'
+  minColumns?: number
+  minRows?: number
+}
 
 // The widgets of a room or of the home, live, as the side panel lays them
 // out. Each is dragged into place, the others making room for it, and the
@@ -205,8 +211,8 @@ function Cell({
   const { type: _, size: __, ...kept } = auto
   const fitOf = (config: Record<string, unknown>): Fit => {
     const plain = { ...kept, ...config, type: String(config.type), entity: auto.entity }
-    const { columns, rows } = span(plain, hass)
-    return { columns, config, own: rows }
+    const { columns, rows, minColumns, minRows } = span(plain, hass)
+    return { columns, config, own: rows, minColumns, minRows }
   }
   const fits = new Map<number, Fit>()
   for (const option of options) {
@@ -219,6 +225,12 @@ function Cell({
   if (narrow && !fits.has(12)) {
     const grid = (narrow.config.grid_options ?? {}) as Record<string, unknown>
     fits.set(12, fitOf({ ...narrow.config, grid_options: { ...grid, columns: 12 } }))
+  }
+  // And one that says how narrow it can be made can be narrowed down to it.
+  const least = narrow?.minColumns
+  if (narrow && least && !fits.has(least)) {
+    const grid = (narrow.config.grid_options ?? {}) as Record<string, unknown>
+    fits.set(least, fitOf({ ...narrow.config, grid_options: { ...grid, columns: least } }))
   }
 
   // The rows the card takes by itself, measured from a copy of it at its
@@ -272,7 +284,7 @@ function Cell({
       // From where the card is laid out now, as it may have moved down a row.
       const top = area.top + self.current.offsetTop
       const tall = Math.round((event.clientY - top + GAP_PX) / (ROW_PX + GAP_PX))
-      rows = Math.min(MAX_ROWS, Math.max(base, tall))
+      rows = Math.min(MAX_ROWS, Math.max(fit.minRows ?? base, tall))
     }
     const next = choiceFor(autoKey, withRows(fit.config, rows, base ?? undefined))
     if (JSON.stringify(next) === JSON.stringify(current.choice)) return

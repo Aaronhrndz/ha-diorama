@@ -223,7 +223,7 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
       <ScreenGlow
         on={on}
         position={[0, h / 2, z + 0.25]}
-        intensity={Math.min(1.8, 0.6 + w * 0.9)}
+        intensity={0.7 * Math.min(1.8, 0.6 + w * 0.9)}
         distance={2.5 + w * 2}
       />
     </group>

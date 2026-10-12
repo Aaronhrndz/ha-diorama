@@ -1,4 +1,5 @@
-import { callService, formatState, type TileEnv } from '#/tiles/actions.ts'
+import { mediaClick } from '#/signals.ts'
+import { callService, formatState, moreInfo, type TileEnv } from '#/tiles/actions.ts'
 import { FillTile } from '#/tiles/cards/Fill.tsx'
 import { Control } from '#/tiles/Control.tsx'
 import { MEDIA } from '#/tiles/features/media.tsx'
@@ -15,8 +16,8 @@ const PLAY = 16384
 
 type Props = { env: TileEnv; config: TileConfig }
 
-// A speaker or a TV. A tap plays or pauses it, or turns it on while it is
-// off. The line under the name says what is playing. The top right corner has
+// A speaker or a TV. A tap pauses or plays what it has on, and switches it
+// on and off while it has nothing on or cannot play and pause. The line under the name says what is playing. The top right corner has
 // previous, play or pause, and next buttons, and a power button for one
 // that is on and can be turned off, on a small tile only when they fit. Lit while it plays. With the volume
 // feature the whole tile is its volume, filled from the left, and a tap
@@ -39,7 +40,8 @@ export default function Media({ env, config }: Props) {
       ? `${loudness(Math.round(level * 100))} · ${shown}`
       : shown
   const run = (service: string) => () => callService(env.hass, `media_player.${service}`, { entity_id: config.entity })
-  const onTap = loaded ? run('media_play_pause') : run('toggle')
+  const tap = mediaClick(entity?.state, features)
+  const onTap = tap ? run(tap) : () => moreInfo(env.host, config.entity)
   if (config.feature === 'volume-slider' && on && supports(entity, MEDIA.volumeSet)) {
     const { feature: _, ...plain } = config
     return (
