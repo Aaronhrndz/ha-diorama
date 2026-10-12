@@ -20,7 +20,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Fixed
 
-- A click on a speaker or a TV that can play and pause, in the 3D view or on its widget, now pauses or plays it and never turns it off, which is left to its power button and its dialog.
+- A click on a speaker or a TV that is playing or paused, in the 3D view or on its widget, now pauses or plays it rather than turning it off, while one with nothing on is still switched on and off.
 
 ## [1.6.0] - 2026-10-12
 

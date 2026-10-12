@@ -187,28 +187,18 @@ export function signalValues(hass: HomeAssistant, entityId: string): SignalValue
 
 // The media player features a click needs, as Home Assistant numbers them.
 const MEDIA_PAUSE = 1
-const MEDIA_TURN_ON = 128
 const MEDIA_PLAY = 16384
 
-// What a click on a speaker or a TV does. One that can play and pause is
-// never turned off by it, which a speaker that stops between songs would
-// read as a pause gone wrong: that is for its power button or its dialog.
-// The click pauses what plays, plays what is paused or waiting, and turns
-// on one that is off. One that cannot play or pause is switched on and off
-// like anything else. Null when the click has nothing to do.
+// What a click on a speaker or a TV does. One that can play and pause and
+// has something on pauses it or plays it again, and is never turned off by
+// the click: that is for its power button or its dialog. One with nothing
+// on, or one that cannot play or pause, is switched on and off like
+// anything else. Null when the click has nothing to do.
 export function mediaClick(state: string | undefined, features: number): string | null {
   if (state === undefined || state === 'unavailable' || state === 'unknown') return null
-  if (!(features & (MEDIA_PAUSE | MEDIA_PLAY))) return 'toggle'
-  switch (state) {
-    case 'playing':
-    case 'buffering':
-      return features & MEDIA_PAUSE ? 'media_pause' : null
-    case 'off':
-    case 'standby':
-      return features & MEDIA_TURN_ON ? 'turn_on' : features & MEDIA_PLAY ? 'media_play' : null
-    default:
-      return features & MEDIA_PLAY ? 'media_play' : null
-  }
+  if (features & MEDIA_PAUSE && (state === 'playing' || state === 'buffering')) return 'media_pause'
+  if (features & MEDIA_PLAY && state === 'paused') return 'media_play'
+  return 'toggle'
 }
 
 // The service call a click on a device performs. Null when there is none.
@@ -263,8 +253,7 @@ export function clickOutcome(hass: HomeAssistant, entityId: string, on?: boolean
   const action = clickAction(entityId, entity?.state, entity?.attributes)
   if (!action) return undefined
   // A speaker or a TV that pauses or plays stays on.
-  if (domain === 'media_player' && action.service !== 'toggle')
-    return action.service === 'turn_on' ? true : undefined
+  if (domain === 'media_player' && action.service !== 'toggle') return undefined
   const now = on ?? signalValues(hass, entityId).on
   return now === undefined ? undefined : !now
 }
