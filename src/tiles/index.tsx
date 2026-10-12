@@ -135,11 +135,11 @@ class WeatherCard extends entityCard<WeatherConfig>(WEATHER_DOMAINS, Weather, ['
 }
 
 // A card bigger than a tile, like the calendar, as wide and as tall as the
-// grid says, whatever size its config names.
+// grid says, whatever size its config names, or as its config makes it.
 function panelCard<C extends TileConfig>(
   domains: string[],
   View: EntityView<C>,
-  grid: GridOptions,
+  grid: GridOptions | ((config: C | null) => GridOptions),
   size: number,
   extras: Extra[] = [],
 ) {
@@ -149,7 +149,7 @@ function panelCard<C extends TileConfig>(
     }
 
     getGridOptions(): GridOptions {
-      return grid
+      return typeof grid === 'function' ? grid(this._config) : grid
     }
   }
 }
@@ -335,7 +335,12 @@ const CARDS: Card[] = [
     element: panelCard<MediaControlConfig>(
       MEDIA_DOMAINS,
       MediaControl,
-      { columns: 'full', rows: 'auto', min_columns: 6, min_rows: 2 },
+      // Half as wide it is as tall as a tile, whatever it shows.
+      config => {
+        const columns = config?.grid_options?.columns
+        const half = typeof columns === 'number' && columns <= 6
+        return { columns: 'full', rows: half ? 2 : 'auto', min_columns: 6, min_rows: 2 }
+      },
       4,
       ['art'],
     ),

@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A Now Playing widget half as wide is now as tall as the other widgets beside it, even while nothing plays.
+
 ## [1.7.0] - 2026-10-12
 
 ### Added
