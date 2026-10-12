@@ -16,7 +16,7 @@ const MAX_ROWS = 12
 // entity, what the panel adds to every tile, and the rows it was made taller
 // or shorter by, which leave it the same card.
 const PANEL_KEYS = new Set(['entity', 'room_filter', 'never_hide', 'piece_icon', 'invert'])
-function setupKey(config: Record<string, unknown>) {
+export function setupKey(config: Record<string, unknown>) {
   const { rows: _, ...grid } = (config.grid_options ?? {}) as Record<string, unknown>
   const entries = Object.entries({ ...config, grid_options: Object.keys(grid).length > 0 ? grid : undefined }).filter(
     ([key, value]) => !PANEL_KEYS.has(key) && value !== undefined,
@@ -25,14 +25,14 @@ function setupKey(config: Record<string, unknown>) {
 }
 
 // The rows a card was set to, apart from the ones it takes by itself.
-const setRows = (config: Record<string, unknown> | undefined) => {
+export const setRows = (config: Record<string, unknown> | undefined) => {
   const rows = (config?.grid_options as { rows?: unknown } | undefined)?.rows
   return typeof rows === 'number' ? rows : undefined
 }
 
 // A card's setup with its rows set, or left to the card when they are what
 // it takes anyway.
-function withRows(config: Record<string, unknown>, rows: number | undefined, own?: number) {
+export function withRows(config: Record<string, unknown>, rows: number | undefined, own?: number) {
   const { rows: _, ...grid } = (config.grid_options ?? {}) as Record<string, unknown>
   const next = rows === undefined || rows === own ? grid : { ...grid, rows }
   const { grid_options: __, ...rest } = config
@@ -43,13 +43,21 @@ type Choices = { options: TileOption[]; auto: string; current: string }
 
 // The ways an entity's tile can be shown, with the one the panel picks for
 // its domain among them, and which of them it shows now.
-function choices(hass: HomeAssistant, auto: AutoCard, chosen: TileChoice | undefined): Choices {
+export function choices(hass: HomeAssistant, auto: AutoCard, chosen: TileChoice | undefined): Choices {
   const entityId = String(auto.entity)
   const options = tileOptions(hass, entityId)
   const autoKey = setupKey(auto)
   if (!options.some(option => setupKey(option.config) === autoKey))
     options.unshift({ name: auto.type.replace(/^custom:dio-/, ''), config: auto })
   return { options, auto: autoKey, current: chosen ? setupKey(chosen) : autoKey }
+}
+
+// What to keep in the YAML for an entity's tile set up as given: nothing
+// when it is the one the panel picks anyway at the rows it takes by itself.
+export function choiceFor(autoKey: string, config: Record<string, unknown>): TileChoice | undefined {
+  if (setupKey(config) === autoKey && setRows(config) === undefined) return undefined
+  const { entity: _, ...choice } = config
+  return choice as TileChoice
 }
 
 // The name of the card an entity's tile is now, for its row in the list.
@@ -96,11 +104,7 @@ export function TilePicker({
         const own = span(plain, hass).rows
         const shown = (picked ? withRows(plain, setRows(chosen)) : plain) as AutoCard
         const { columns, rows } = span(shown, hass)
-        const pick = (config: Record<string, unknown>, stay?: boolean) => {
-          const { entity: _, ...choice } = config
-          if (setupKey(config) === autoKey && setRows(config) === undefined) return onChoose(undefined, stay)
-          onChoose(choice as TileChoice, stay)
-        }
+        const pick = (config: Record<string, unknown>, stay?: boolean) => onChoose(choiceFor(autoKey, config), stay)
         return (
           <Option
             key={key}
@@ -240,7 +244,7 @@ type Card = HTMLElement & { setConfig: (config: unknown) => void; hass: HomeAssi
 
 // One of our cards, live with the entity's state but out of reach, so a
 // press on it picks it rather than working it.
-function TilePreview({
+export function TilePreview({
   hass,
   config,
   height,

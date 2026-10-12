@@ -9,6 +9,14 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- The eye on a device's widget in the card's settings hides it from the side panel.
+
+### Changed
+
+- The card's settings show each room's widgets under a big heading, as they look in the side panel, to drag into order, resize from a corner, remove, or pick another widget for with the pen.
+
 ### Fixed
 
 - Pressing Escape in a dropdown of the editor no longer closes the whole editor.

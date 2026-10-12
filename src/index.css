@@ -5,6 +5,8 @@
   --font-montserrat: 'Montserrat', sans-serif;
   /* The editor is set in the system's own interface font. */
   --font-system: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* The headings of the side panel, for the editor's headings over its widgets. */
+  --font-title: var(--dio-font-title, var(--fp-font-title, 'Inter Tight', system-ui, sans-serif));
   --transition-duration-slow: 300ms;
 }
 

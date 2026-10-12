@@ -140,7 +140,7 @@ function heading(room: RoomConfig): AutoCard {
 
 // An entity's tile as the panel shows it: the card chosen for it, if any,
 // in place of the one picked for its domain, keeping the piece's icon.
-function chosen(card: AutoCard, tiles: TileChoices | undefined): AutoCard {
+export function chosen(card: AutoCard, tiles: TileChoices | undefined): AutoCard {
   const choice = tiles?.[String(card.entity)]
   if (!choice) return card
   const { type: _, size: __, ...kept } = card
@@ -170,7 +170,9 @@ export function autoGroups(plan: CardConfig): AutoGroup[] {
     groups.push({ room: null, cards: [title, ...home] })
   }
   for (const room of plan.rooms ?? []) {
-    const tiles = [...autoTiles(plan, room).values()].map(card => chosen(card, room.tiles))
+    const tiles = [...autoTiles(plan, room)]
+      .filter(([id]) => !room.hidden?.includes(id))
+      .map(([, card]) => chosen(card, room.tiles))
     if (tiles.length) groups.push({ room: room.id, cards: [heading(room), ...tiles] })
   }
   return groups

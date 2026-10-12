@@ -2,7 +2,7 @@ import { aspectRatioNumber } from '#/lib/aspect.ts'
 import { BACKGROUNDS, DEFAULT_BACKGROUND, PLAIN_SWATCH, THEME_BACKGROUND } from '#/lib/background.ts'
 import { setPreviewRoom } from '#/lib/previewRoom.ts'
 import { cn } from '#/lib/utils.ts'
-import { field, group, iconButton } from '#/editor/look.ts'
+import { group } from '#/editor/look.ts'
 import ControlsGuide from '#/editor/ControlsGuide.tsx'
 import { ResetButton, Slider, Switch } from '#/editor/panel.tsx'
 import { SUN_DIRECTION_DEG } from '#/constants.ts'
@@ -10,19 +10,17 @@ import { EDITOR_TINT_COLOR } from '#/theme.ts'
 import { entityName } from '#/devices/catalog.ts'
 import type { BackgroundConfig, CardConfig, HomeAssistant, HomeConfig, RoomConfig, TileChoices } from '#/types.ts'
 import { autoTiles } from '#/tiles/auto.ts'
-import { tileName, TilePicker } from '#/editor/TilePicker.tsx'
+import { TilePicker } from '#/editor/TilePicker.tsx'
+import { WidgetGrid } from '#/editor/WidgetGrid.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { defaultIcon } from '#/tiles/icons.ts'
 import {
   faArrowLeft,
-  faChevronRight,
   faCirclePlus,
-  faGripVertical,
   faLocationArrow,
   faMagnifyingGlass,
   faPenRuler,
   faSpinner,
-  faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -32,7 +30,6 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent,
-  type PointerEvent,
   type ReactNode,
 } from 'react'
 
@@ -133,6 +130,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
       const updated: RoomConfig = { ...room, ...lists }
       if (!updated.entities?.length) delete updated.entities
       if (!updated.order?.length) delete updated.order
+      if (!updated.hidden?.length) delete updated.hidden
       if (!Object.keys(updated.tiles ?? {}).length) delete updated.tiles
       return updated
     })
@@ -350,27 +348,28 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
           title="Home"
           description="Widgets for the whole home rather than a room, such as a scene, a script, the weather or a group of lights, under a heading of their own. With any here, they are all the panel shows until a room is in view, and each room's widgets show only inside it. Leave it empty to show every room."
         >
-          <div className={group} {...showsInPreview(null)}>
-            <label className="grid grid-cols-[auto_1fr] items-center gap-3 text-[13px]">
-              <span>Heading</span>
-              <input
-                type="text"
-                value={home.name ?? ''}
-                placeholder="Home"
-                onChange={event => setHome({ name: event.target.value })}
-                className={cn(field, 'bg-fill-strong hover:bg-fill-stronger focus:bg-fill-strong outline-none')}
-              />
-            </label>
-            {homeEntities.length > 0 && (
-              <SortableList
-                items={[...autoTiles(config, null)].map(([id, auto]) => ({
+          <div className="flex flex-col gap-3 px-1" {...showsInPreview(null)}>
+            <input
+              type="text"
+              value={home.name ?? ''}
+              placeholder="Home"
+              aria-label="Home heading"
+              onChange={event => setHome({ name: event.target.value })}
+              className={cn(heading, 'hover:bg-fill focus:bg-fill -mx-1.5 rounded-lg px-1.5 outline-none')}
+            />
+            {hass && homeEntities.length > 0 && (
+              <WidgetGrid
+                hass={hass}
+                widgets={[...autoTiles(config, null)].map(([id, auto]) => ({
                   id,
-                  title: hass ? entityName(hass, id) : id,
-                  card: hass && { name: tileName(hass, auto, home.tiles?.[id]), onOpen: () => choose(null, id) },
+                  auto,
                   onRemove: () =>
                     setHome({ entities: homeEntities.filter(other => other !== id), tiles: without(home.tiles, id) }),
                 }))}
+                tiles={home.tiles}
                 onReorder={entities => setHome({ entities })}
+                onSize={(id, choice) => setHome({ tiles: choice ? { ...home.tiles, [id]: choice } : without(home.tiles, id) })}
+                onEdit={id => choose(null, id)}
               />
             )}
             {hass && (
@@ -387,22 +386,24 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
       {sidePanel && (
         <Section
           title="Widgets by room"
-          description="Every device on the plan already has a widget in its room. Add other entities, such as a sensor or a thermostat, and drag the handles to put the widgets in the order the panel shows them. Each widget is the one made for its kind of entity until you pick another under its name."
+          description="Every device on the plan already has a widget in its room, and the eye on it hides it from the panel. Add other entities, such as a sensor or a thermostat. Drag the widgets to put them in order, drag a corner to resize one, and the pen picks another widget for it."
         >
           {rooms.length === 0 ? (
             <p className={cn(group, 'text-label-2 text-[13px]')}>Draw a room in the editor first.</p>
           ) : (
-            rooms.map(room => (
-              <RoomEntities
-                key={room.id}
-                hass={hass}
-                config={config}
-                room={room}
-                taken={taken}
-                onChange={lists => setRoom(room.id, lists)}
-                onChoose={id => choose(room.id, id)}
-              />
-            ))
+            <div className="flex flex-col gap-8">
+              {rooms.map(room => (
+                <RoomEntities
+                  key={room.id}
+                  hass={hass}
+                  config={config}
+                  room={room}
+                  taken={taken}
+                  onChange={lists => setRoom(room.id, lists)}
+                  onChoose={id => choose(room.id, id)}
+                />
+              ))}
+            </div>
           )}
         </Section>
       )}
@@ -560,27 +561,32 @@ function RoomEntities({
   onChoose: (id: string) => void
 }) {
   const extra = room.entities ?? []
+  const hidden = room.hidden ?? []
   const tiles = autoTiles(config, room)
-  const name = (id: string) => (hass ? entityName(hass, id) : id)
   const remove = (id: string) =>
     onChange({
       entities: extra.filter(other => other !== id),
       order: room.order?.filter(other => other !== id),
       tiles: without(room.tiles, id),
     })
+  const hide = (id: string, on: boolean) =>
+    onChange({ hidden: on ? [...hidden, id] : hidden.filter(other => other !== id) })
 
   return (
-    <div className={group} {...showsInPreview(room.id)}>
-      <p className="px-0.5 text-[13px] font-semibold">{roomName(hass, room)}</p>
-      {tiles.size > 0 && (
-        <SortableList
-          items={[...tiles].map(([id, auto]) => ({
-            id,
-            title: name(id),
-            card: hass && { name: tileName(hass, auto, room.tiles?.[id]), onOpen: () => onChoose(id) },
-            onRemove: extra.includes(id) ? () => remove(id) : undefined,
-          }))}
+    <div className="flex flex-col gap-3 px-1" {...showsInPreview(room.id)}>
+      <h3 className={heading}>{roomName(hass, room)}</h3>
+      {hass && tiles.size > 0 && (
+        <WidgetGrid
+          hass={hass}
+          widgets={[...tiles].map(([id, auto]) =>
+            extra.includes(id)
+              ? { id, auto, onRemove: () => remove(id) }
+              : { id, auto, hidden: hidden.includes(id), onHide: (on: boolean) => hide(id, on) },
+          )}
+          tiles={room.tiles}
           onReorder={order => onChange({ order })}
+          onSize={(id, choice) => onChange({ tiles: choice ? { ...room.tiles, [id]: choice } : without(room.tiles, id) })}
+          onEdit={onChoose}
         />
       )}
       {hass && <EntityPicker hass={hass} exclude={taken} onPick={id => onChange({ entities: [...extra, id] })} />}
@@ -588,7 +594,10 @@ function RoomEntities({
   )
 }
 
-type RoomLists = { entities?: string[]; order?: string[]; tiles?: TileChoices }
+// A room's or the home's heading over its widgets, large as in the panel.
+const heading = 'h-10 w-full truncate text-[26px] leading-10 font-bold tracking-[-0.02em] font-title'
+
+type RoomLists = { entities?: string[]; order?: string[]; hidden?: string[]; tiles?: TileChoices }
 
 // The chosen cards without the one for an entity.
 function without(tiles: TileChoices | undefined, id: string) {
@@ -607,156 +616,6 @@ function pickPage(hass: HomeAssistant, config: CardConfig, { room: roomId, id }:
   const auto = autoTiles(config, room).get(id)
   if (!auto || !hass.states[id]) return null
   return { auto, room, tiles: room ? room.tiles : config.home?.tiles }
-}
-
-type Item = {
-  id: string
-  title: string
-  // The card the row's tile is, which opens the page to pick another.
-  card?: { name: string; onOpen: () => void } | null
-  onRemove?: () => void
-}
-type Drag = { id: string; grab: number; y: number }
-
-// A list whose rows are put in order by dragging the handle on their right,
-// or by focusing it and pressing the up and down arrows. While a row is
-// dragged the others make room for it, and the new order is handed on once
-// it is let go.
-function SortableList({ items, onReorder }: { items: Item[]; onReorder: (ids: string[]) => void }) {
-  const [order, setOrder] = useState<string[] | null>(null)
-  const [held, setHeld] = useState<string | null>(null)
-  const rows = useRef(new Map<string, HTMLLIElement>())
-  const drag = useRef<Drag | null>(null)
-  const byId = new Map(items.map(item => [item.id, item]))
-  const ids = (order ?? items.map(item => item.id)).filter(id => byId.has(id))
-
-  // Keeps the dragged row under the pointer, wherever its slot now is.
-  const place = () => {
-    const current = drag.current
-    const row = current && rows.current.get(current.id)
-    if (!current || !row) return
-    const top = current.y - current.grab - row.parentElement!.getBoundingClientRect().top
-    row.style.transform = `translateY(${top - row.offsetTop}px)`
-  }
-  useLayoutEffect(place)
-
-  const start = (event: PointerEvent<HTMLButtonElement>, id: string) => {
-    if (event.button !== 0) return
-    event.preventDefault()
-    event.currentTarget.setPointerCapture(event.pointerId)
-    const row = rows.current.get(id)!
-    drag.current = { id, grab: event.clientY - row.getBoundingClientRect().top, y: event.clientY }
-    setOrder(ids)
-    setHeld(id)
-  }
-
-  const move = (event: PointerEvent<HTMLButtonElement>) => {
-    const current = drag.current
-    if (!current || !order) return
-    current.y = event.clientY
-    const row = rows.current.get(current.id)!
-    const middle = event.clientY - current.grab + row.offsetHeight / 2
-    const others = order.filter(id => id !== current.id)
-    const index = others.filter(id => {
-      const other = rows.current.get(id)!.getBoundingClientRect()
-      return other.top + other.height / 2 < middle
-    }).length
-    const next = [...others.slice(0, index), current.id, ...others.slice(index)]
-    if (next.some((id, i) => id !== order[i])) setOrder(next)
-    else place()
-  }
-
-  const end = () => {
-    const current = drag.current
-    if (!current) return
-    rows.current.get(current.id)?.style.removeProperty('transform')
-    drag.current = null
-    const changed = order && order.some((id, i) => id !== items[i]?.id)
-    setOrder(null)
-    setHeld(null)
-    if (changed) onReorder(order)
-  }
-
-  const nudge = (event: KeyboardEvent<HTMLButtonElement>, id: string) => {
-    const by = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0
-    const from = ids.indexOf(id)
-    if (!by || from + by < 0 || from + by >= ids.length) return
-    event.preventDefault()
-    const next = [...ids]
-    next.splice(from, 1)
-    next.splice(from + by, 0, id)
-    onReorder(next)
-  }
-
-  return (
-    <ul className="bg-raised relative flex flex-col overflow-visible rounded-lg shadow-[0_0_0_0.5px_rgba(0,0,0,0.08)]">
-      {ids.map(id => {
-        const item = byId.get(id)!
-        const dragging = held === id
-        return (
-          <li
-            key={id}
-            ref={element => {
-              if (element) rows.current.set(id, element)
-              else rows.current.delete(id)
-            }}
-            className={cn(
-              'bg-raised not-first:border-separator flex flex-col pr-1 pl-3 not-first:border-t first:rounded-t-lg last:rounded-b-lg',
-              dragging &&
-                'relative z-10 rounded-lg border-transparent shadow-[0_10px_30px_-8px_rgba(0,0,0,0.45),0_0_0_0.5px_rgba(0,0,0,0.1)]',
-            )}
-          >
-            <div className={cn('flex items-center gap-0.5', item.card ? 'h-12' : 'h-10')}>
-              <span className="flex min-w-0 flex-1 flex-col items-start">
-                <span className="w-full truncate text-[13px]">{item.title}</span>
-                {item.card && (
-                  <button
-                    type="button"
-                    data-choose={id}
-                    aria-label={`Widget for ${item.title}: ${item.card.name}`}
-                    onClick={item.card.onOpen}
-                    className="text-tint -mx-1 flex max-w-full cursor-pointer items-center gap-1 rounded px-1 text-[11px] font-medium transition-opacity hover:opacity-70"
-                  >
-                    <span className="truncate">{item.card.name}</span>
-                    <FontAwesomeIcon icon={faChevronRight} className="size-2.5 shrink-0" />
-                  </button>
-                )}
-              </span>
-              {item.onRemove && (
-                <button
-                  type="button"
-                  aria-label={`Remove ${item.title}`}
-                  onClick={item.onRemove}
-                  className={cn(
-                    iconButton,
-                    'text-label-2 size-8 shrink-0 cursor-pointer hover:text-(--primary-text-color)',
-                  )}
-                >
-                  <FontAwesomeIcon icon={faXmark} className="size-3.5" />
-                </button>
-              )}
-              <button
-                type="button"
-                aria-label={`Move ${item.title}`}
-                onPointerDown={event => start(event, id)}
-                onPointerMove={move}
-                onPointerUp={end}
-                onPointerCancel={end}
-                onKeyDown={event => nudge(event, id)}
-                className={cn(
-                  iconButton,
-                  'text-label-2 size-8 shrink-0 touch-none hover:text-(--primary-text-color)',
-                  dragging ? 'cursor-grabbing' : 'cursor-grab',
-                )}
-              >
-                <FontAwesomeIcon icon={faGripVertical} className="size-3.5" />
-              </button>
-            </div>
-          </li>
-        )
-      })}
-    </ul>
-  )
 }
 
 // How many matches the search lists at once. Typing narrows it further.

@@ -87,6 +87,8 @@ export type RoomConfig = {
   // The order of the room's tiles in the side panel, as entity ids, both
   // the devices on the plan and the entities above.
   order?: string[]
+  // Devices on the plan whose tile the side panel leaves out, as entity ids.
+  hidden?: string[]
   // The card each entity's tile is, by entity id, in place of the one the
   // side panel picks for its domain.
   tiles?: TileChoices
