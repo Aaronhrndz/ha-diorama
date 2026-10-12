@@ -39,13 +39,19 @@
     "id": "07-second-room",
     "title": "A second room",
     "screen": "Draw a second room against the first. Name Bedroom, area Bedroom. Add a door on the shared wall and a bed.",
-    "say": "Draw a second room next to the first. Its corners snap onto the walls that are already there. Call it Bedroom and link its area. Add a door on the wall the two rooms share, and a bed."
+    "say": "Draw a second room next to the first. Its corners snap onto the walls that are already there. Call it Bedroom and link its area. You can change the floor style too. Add a door on the wall the two rooms share, and drag it into place. Then add a bed, and push it against the wall."
+  },
+  {
+    "id": "07b-fan",
+    "title": "A second device",
+    "screen": "Search the catalog for a ceiling fan, add it to the bedroom, and link it to the fan entity.",
+    "say": "Now a second device: a ceiling fan for the bedroom. Search the catalog for it and add it. Link it to your fan, the same way as the lamp."
   },
   {
     "id": "08-cameras",
     "title": "Camera views",
     "screen": "Press Fly to view: the whole home framed. Orbit the preview, press Save opening view. Select the living room, press its eye button, orbit, press Use current view.",
-    "say": "Now the camera. Every time you open the dashboard or reload the page, the card starts from its opening view. Press Fly to view to see it. By default it frames the whole home. To open on another angle, orbit the preview until you like it and press Save opening view. Each room has a view of its own too, the one the camera flies to when you click the room. Select the living room and press its eye button to see it. To change it, orbit the preview and press Use current view."
+    "say": "Now the camera. Every time you open the dashboard or reload the page, the card starts from its opening view. Press Fly to view to see it. By default it frames the whole home. To open on another angle, orbit the preview until you like it and press Save opening view. Each room has its own view too, where the camera flies when you click it. Select the living room and press its eye button to see it. To change it, orbit the preview and press Use current view."
   },
   {
     "id": "09-try-it",
@@ -57,7 +63,7 @@
     "id": "10-side-panel",
     "title": "Turn on the side panel",
     "screen": "Edit the card, switch on Show the side panel. The preview shows the widgets beside the model.",
-    "say": "Now the widgets. Edit the card and turn on Show the side panel. The model moves to the left, and the widgets for the devices you linked are already on the right: a heading for each room, and a widget for each device."
+    "say": "Now the widgets. Open the card's settings, and switch on the side panel. The widgets for the devices you linked appear next to the model: a heading for each room, and a widget for each device."
   },
   {
     "id": "11-widget-type",
@@ -69,13 +75,13 @@
     "id": "12-panel-follows",
     "title": "The panel follows the room",
     "screen": "Save. Click the living room: the widgets fade to the living room's. Click back: every room returns.",
-    "say": "Save, and click a room. The panel follows the camera and fades to that room's widgets. Go back, and they all return."
+    "say": "Save, and now you can dim your lamp right from here. Now click a room. The panel follows the camera and fades to that room's widgets. Go back, and they all return."
   },
   {
     "id": "13-home",
     "title": "A section for the whole home",
     "screen": "Edit the card, add the weather and an entity for all the lights under Home. Save. The panel shows only the Home widgets. Click the living room: its widgets come in. Click back.",
-    "say": "Widgets that belong to the whole home, like the weather, go in the Home section. Once it has any, they are what the panel shows when you open the card, so the list stays short. Click a room, and that room's widgets come in."
+    "say": "Widgets that belong to the whole home, like the weather, go in the Home section. While the whole home is in view, the panel shows only these, so it stays short and tidy. Click a room, and that room's widgets come in."
   },
   {
     "id": "14-outro",
