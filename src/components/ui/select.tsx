@@ -97,6 +97,9 @@ export function Select({
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
+      // Without preventDefault the browser still reads Escape as a request
+      // to close the dialog the editor lives in, and the whole editor goes.
+      e.preventDefault()
       e.stopPropagation()
       setOpen(false)
     }

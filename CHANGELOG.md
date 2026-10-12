@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- Pressing Escape in a dropdown of the editor no longer closes the whole editor.
+
 ## [1.4.0] - 2026-10-11
 
 ### Added

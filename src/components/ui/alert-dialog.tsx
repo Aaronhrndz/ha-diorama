@@ -17,6 +17,7 @@ export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps) 
     if (!open) return
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        e.preventDefault()
         e.stopPropagation()
         onOpenChange(false)
       }
