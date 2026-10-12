@@ -82,7 +82,7 @@ export function TilePicker({
   return (
     <div
       role="radiogroup"
-      aria-label="Card"
+      aria-label="Widget"
       className="grid grid-cols-12 items-start"
       style={{ gap: `18px ${GAP_PX}px` }}
     >

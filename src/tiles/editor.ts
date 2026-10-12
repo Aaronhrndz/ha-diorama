@@ -55,7 +55,7 @@ const LABELS: Record<string, string> = {
 
 const HELPERS: Record<string, string> = {
   area: 'The room filter uses the entity area when this is empty',
-  room_filter: 'Only while a diorama card hides the tiles of other rooms',
+  room_filter: 'Only while a diorama card hides the widgets of other rooms',
   never_hide: 'Keeps it showing whatever room a diorama card is in',
   color: 'Any CSS color, like #ffb340',
   state_text: 'Replaces the line under the name',
@@ -63,7 +63,7 @@ const HELPERS: Record<string, string> = {
   battery_entity: 'Found on the same device when empty',
   aspect_ratio: 'Width to height, like 16:9',
   title: 'The area name when empty',
-  feature: 'A control beside the icon. Some only fit a wide tile and make it wide',
+  feature: 'A control beside the icon. Some only fit a wide widget and make it wide',
   confirm: 'Acts only on a second tap, so a stray one does nothing',
 }
 

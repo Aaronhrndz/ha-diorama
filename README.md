@@ -22,22 +22,22 @@ A sharper version of the clip is in [docs/video/demo.mp4](docs/video/demo.mp4).
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | ![The demo flat at dusk with every light off](docs/images/lights-off.png) | ![The same view with one lamp on in each room](docs/images/lights-on.png) |
 
-## Tiles and the side panel
+## Widgets and the side panel
 
-Diorama brings its own tiles and cards in the same look as the model: toggles for lights and switches, sliders for brightness and blinds, a dial for a thermostat, media controls with the cover art, a camera, the weather, a calendar, a to-do list and more. They come in the same download, and every one can be set up from Home Assistant's own card editor.
+Diorama brings its own widgets in the same look as the model: toggles for lights and switches, sliders for brightness and blinds, a dial for a thermostat, media controls with the cover art, a camera, the weather, a calendar, a to-do list and more. They come in the same download, and every one can be set up from Home Assistant's own card editor.
 
-The easiest way to use them is the side panel. Turn on **Show the side panel** in the card's settings and the model moves to the left, with its tiles on the right. You do not lay them out yourself: the panel builds them from your plan, with a heading for each room and a tile for each device you placed in it.
+The easiest way to use them is the side panel. Turn on **Show the side panel** in the card's settings and the model moves to the left, with its widgets on the right. You do not lay them out yourself: the panel builds them from your plan, with a heading for each room and a widget for each device you placed in it.
 
-The panel follows the camera. With the whole home in view it shows every room. Click a room and, as the camera flies there, the tiles fade to that room's alone. Come back and they all return. On a phone the tiles sit under the model.
+The panel follows the camera. With the whole home in view it shows every room. Click a room and, as the camera flies there, the widgets fade to that room's alone. Come back and they all return. On a phone the widgets sit under the model.
 
 In the card's settings you can shape what the panel shows:
 
-- **Add what has no piece.** A scene, a sensor or a thermostat can join a room's tiles, even with nothing on the plan for it.
-- **Put them in order.** Drag each row by its handle, and the tiles follow.
-- **Pick another look.** Tap the card name under any entity to see every card it can be, live, and pick one: a lamp as a big dial instead of a toggle, a camera made taller, a blind with its buttons.
-- **A home section.** Tiles that are for the whole home, like the weather or an all lights off switch, go under **Home**. They show while the whole home is in view, and each room's own tiles show once you fly to it.
+- **Add other entities.** A sensor or a thermostat can join a room's widgets, even with nothing on the plan for it.
+- **Put them in order.** Drag each row by its handle, and the widgets follow.
+- **Pick another look.** Tap the widget name under any entity to see every widget it can be and pick one: a lamp as a big dial instead of a toggle, a camera made taller, a blind with its buttons.
+- **A home section.** Widgets that are for the whole home, like the weather or an all lights off switch, go under **Home**. They show while the whole home is in view, and each room's own widgets show once you fly to it.
 
-If you would rather place the tiles yourself, leave the panel off and put them next to the card. Turn on **Hide other rooms' tiles** and they still follow the room in view.
+If you would rather place the widgets yourself, leave the panel off and put them next to the card. Turn on **Hide other rooms' widgets** and they still follow the room in view.
 
 ## The editor
 
