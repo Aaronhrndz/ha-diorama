@@ -2565,6 +2565,17 @@
   color: #fff;
 }
 
+/* Two rows tall, or half as wide, with no volume under the buttons, and
+   the cover art in place of the icon only as wide as it is tall, so the
+   buttons have the rest. */
+.dio-media-compact > .dio-tile {
+  min-height: 0;
+}
+
+.dio-media-compact.dio-media-cover > .dio-tile {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
 /* The cover art in place of the icon takes all the height the title
    leaves it, a padding above the title, without making the card any
    taller than the one with the art behind it. The title stays in the

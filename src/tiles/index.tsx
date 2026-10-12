@@ -332,7 +332,13 @@ const CARDS: Card[] = [
   },
   {
     type: 'dio-media-control',
-    element: panelCard<MediaControlConfig>(MEDIA_DOMAINS, MediaControl, { columns: 'full', rows: 'auto' }, 4, ['art']),
+    element: panelCard<MediaControlConfig>(
+      MEDIA_DOMAINS,
+      MediaControl,
+      { columns: 'full', rows: 'auto', min_columns: 6, min_rows: 2 },
+      4,
+      ['art'],
+    ),
     extra: true,
     domains: MEDIA_DOMAINS,
     name: 'Diorama Now Playing',

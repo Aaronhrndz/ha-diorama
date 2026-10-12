@@ -66,6 +66,9 @@ export type MediaControlConfig = TileConfig & {
 // card fills from the left as far into the song as it is, faintly, and a
 // drag sideways anywhere on it moves along the song when the player can.
 // A tap plays or pauses it, or opens the player's dialog while it is off.
+// Made two rows tall or half as wide, it leaves out the volume, shuffle and
+// repeat, and keeps the buttons and how far in it is. Half as wide it also
+// leaves out the power button, which its dialog still has.
 export default function MediaControl({ env, config }: { env: TileEnv; config: MediaControlConfig }) {
   const entity = env.hass.states[config.entity!]
   const attributes = entity?.attributes ?? {}
@@ -73,6 +76,9 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   const off = !entity || OFF.includes(entity.state)
   const picture = typeof attributes.entity_picture === 'string' ? attributes.entity_picture : null
   const square = config.art === 'icon'
+  const { rows, columns } = config.grid_options ?? {}
+  const narrow = typeof columns === 'number' && columns <= 6
+  const compact = narrow || (typeof rows === 'number' && rows <= 2)
   const cover = square && !off ? picture : null
   const title = typeof attributes.media_title === 'string' ? attributes.media_title : null
   const artist = [attributes.media_artist, attributes.media_album_name, attributes.app_name].find(
@@ -205,7 +211,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
         state={off ? formatState(env.hass, entity) : (artist ?? (title ? name : formatState(env.hass, entity)))}
         accent="var(--_accent-media)"
         onTap={!off && has(playing ? MEDIA.pause : MEDIA.play) ? run('media_play_pause') : undefined}
-        className={cn('dio-media-control', cover && 'dio-media-cover')}
+        className={cn('dio-media-control', cover && 'dio-media-cover', compact && 'dio-media-compact')}
         picture={cover ?? undefined}
         style={
           {
@@ -232,7 +238,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
                 {!off && has(MEDIA.next) && (
                   <Control icon="ph:skip-forward" label="Next" onPress={run('media_next_track')} />
                 )}
-                {has(off ? MEDIA.turnOn : MEDIA.turnOff) && (
+                {!narrow && has(off ? MEDIA.turnOn : MEDIA.turnOff) && (
                   <Control
                     icon="ph:power-bold"
                     label={off ? 'Turn on' : 'Turn off'}
@@ -244,7 +250,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
           )
         }
       >
-        {(shuffle || repeat || volume) && (
+        {!compact && (shuffle || repeat || volume) && (
           <div className="dio-media-row">
             {volume}
             {shuffle}

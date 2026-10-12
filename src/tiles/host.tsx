@@ -45,7 +45,7 @@ export type TileConfig = {
   grid_options?: GridOptions
 }
 
-export type GridOptions = { columns?: number | 'full'; rows?: number | 'auto' }
+export type GridOptions = { columns?: number | 'full'; rows?: number | 'auto'; min_columns?: number; min_rows?: number }
 
 const FONTS_ID = 'dio-tiles-fonts'
 const FONTS_URL =

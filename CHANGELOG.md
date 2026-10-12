@@ -12,6 +12,7 @@ moves that section under the new version and uses it as the release notes.
 ### Added
 
 - Home Assistant's list of every card now has each way of setting up a Diorama card as a card of its own, like Diorama Double Tap Toggle or Diorama Toggle with Color.
+- The Now Playing widget can be made two rows tall or half as wide, leaving out the volume and keeping its buttons and how far in it is.
 
 ### Changed
 
