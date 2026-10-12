@@ -29,6 +29,8 @@ export type SelectOption = {
   detail?: ReactNode
   // Matched by the search as well as the label, for example an entity id.
   keywords?: string
+  // Listed but not taken, for example an area another room already has.
+  disabled?: boolean
 }
 
 type Props = {
@@ -128,7 +130,7 @@ export function Select({
     }
     if (e.key === 'Enter') {
       e.preventDefault()
-      if (shown[active]) pick(shown[active].value)
+      if (shown[active] && !shown[active].disabled) pick(shown[active].value)
     }
   }
 
@@ -207,11 +209,13 @@ export function Select({
                 type="button"
                 role="option"
                 aria-selected={o.value === value}
+                disabled={o.disabled}
                 onPointerEnter={() => setActive(i)}
                 onClick={() => pick(o.value)}
                 className={cn(
                   'flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-[13px]',
-                  i === active && 'bg-fill-strong',
+                  i === active && !o.disabled && 'bg-fill-strong',
+                  o.disabled && 'text-label-2',
                 )}
               >
                 <FontAwesomeIcon

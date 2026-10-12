@@ -1,3 +1,4 @@
+import { Select } from '#/components/ui/select.tsx'
 import { decorationKind } from '#/decoration/catalog.ts'
 import { ResetButton, SelectedHeader, Slider, Switch } from '#/editor/panel.tsx'
 import { neighboursOf } from '#/geometry/passages.ts'
@@ -111,40 +112,33 @@ export default function RoomInfo({
         </label>
         <label className={cn(row, 'grid-cols-[96px_1fr]')}>
           Area
-          <select
-            className={input}
+          <Select
+            aria-label="Area"
             value={room.area_id ?? ''}
-            onChange={e => onAssignArea(room.id, e.target.value || undefined)}
-          >
-            <option value="">No area</option>
-            {sorted.map(a => {
-              const owner = used.get(a.area_id)
-              const taken = owner !== undefined && owner !== room.id
-              return (
-                <option key={a.area_id} value={a.area_id} disabled={taken}>
-                  {a.name}
-                  {taken ? ' (used)' : ''}
-                </option>
-              )
-            })}
-          </select>
+            options={[
+              { value: '', label: 'No area' },
+              ...sorted.map(a => {
+                const owner = used.get(a.area_id)
+                const taken = owner !== undefined && owner !== room.id
+                return { value: a.area_id, label: taken ? `${a.name} (used)` : a.name, disabled: taken }
+              }),
+            ]}
+            onChange={v => onAssignArea(room.id, v || undefined)}
+          />
         </label>
       </div>
       <div className={group}>
         <label className={cn(row, 'grid-cols-[96px_1fr_24px]')}>
           Floor
-          <select
-            className={input}
+          <Select
+            aria-label="Floor"
             value={room.floor?.material ?? ''}
-            onChange={e => onFloor(room.id, e.target.value ? { ...room.floor, material: e.target.value } : undefined)}
-          >
-            <option value="">Room color</option>
-            {Object.entries(FLOOR_MATERIALS).map(([id, m]) => (
-              <option key={id} value={id}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: 'Room color' },
+              ...Object.entries(FLOOR_MATERIALS).map(([id, m]) => ({ value: id, label: m.label })),
+            ]}
+            onChange={v => onFloor(room.id, v ? { ...room.floor, material: v } : undefined)}
+          />
           <ResetButton label="Floor" changed={!!room.floor} onReset={() => onFloor(room.id, undefined)} />
         </label>
         {room.floor && (

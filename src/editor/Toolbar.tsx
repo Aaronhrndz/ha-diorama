@@ -1,3 +1,4 @@
+import { Select } from '#/components/ui/select.tsx'
 import type { Trace, TraceMode } from '#/editor/trace.ts'
 import type { Tool } from '#/editor/types.ts'
 import { cn } from '#/lib/utils.ts'
@@ -219,15 +220,17 @@ function TracePanel({
             <>
               <label className="flex items-center justify-between gap-2 text-[13px]">
                 Show
-                <select
+                <Select
+                  aria-label="Show"
                   value={trace.mode ?? 'picture'}
-                  className={field}
-                  onChange={e => onTrace({ ...trace, mode: e.target.value as TraceMode })}
-                >
-                  <option value="picture">Whole picture</option>
-                  <option value="dark-lines">Dark lines only</option>
-                  <option value="light-lines">Light lines only</option>
-                </select>
+                  className="w-auto"
+                  options={[
+                    { value: 'picture', label: 'Whole picture' },
+                    { value: 'dark-lines', label: 'Dark lines only' },
+                    { value: 'light-lines', label: 'Light lines only' },
+                  ]}
+                  onChange={v => onTrace({ ...trace, mode: v as TraceMode })}
+                />
               </label>
               <label className="flex flex-col gap-1.5 text-[13px]">
                 Opacity
