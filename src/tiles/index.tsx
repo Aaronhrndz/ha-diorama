@@ -20,7 +20,7 @@ import MapCard, { type MapConfig } from '#/tiles/cards/Map.tsx'
 import MediaControl, { type MediaControlConfig } from '#/tiles/cards/MediaControl.tsx'
 import Todo from '#/tiles/cards/Todo.tsx'
 import Weather, { type WeatherConfig } from '#/tiles/cards/Weather.tsx'
-import { featuresFor, isWide } from '#/tiles/features/index.tsx'
+import { FEATURES, featuresFor, isWide } from '#/tiles/features/index.tsx'
 import { supports } from '#/tiles/features/parts.tsx'
 import type { HomeAssistant } from '#/types.ts'
 import type { ReactNode } from 'react'
@@ -176,6 +176,9 @@ type Card = {
   // The suggestions in place of the ones made from twice, controls and the
   // features.
   suggest?: (hass: HomeAssistant, entityId: string) => Suggestion[] | null
+  // The names of those suggestions past the first, each offered as a card
+  // of its own in the card picker's list.
+  variants?: string[]
 }
 
 // A way to set up a card, named for Home Assistant's card picker by what
@@ -275,6 +278,7 @@ const CARDS: Card[] = [
     domains: WEATHER_DOMAINS,
     name: 'Diorama Weather',
     description: 'The weather now and the next hours',
+    variants: ['Hourly Weather', 'Daily Weather', 'Small Weather', 'Large Weather'],
     suggest: (hass, entityId) => {
       const features = Number(hass.states[entityId]?.attributes.supported_features ?? 0)
       const config = { type: 'custom:dio-weather', entity: entityId }
@@ -333,6 +337,7 @@ const CARDS: Card[] = [
     domains: MEDIA_DOMAINS,
     name: 'Diorama Now Playing',
     description: 'What is playing, with its art, how far in it is, its buttons and volume',
+    variants: ['Now Playing with Art as Icon'],
     // Only for a player that plays, pauses, skips or changes its volume,
     // since one that only browses or searches would show next to nothing.
     suggest: (hass, entityId) =>
@@ -354,6 +359,7 @@ const CARDS: Card[] = [
     domains: ['calendar'],
     name: 'Diorama Calendar',
     description: 'The coming events of one calendar or more, day by day',
+    variants: ["Today's Calendar"],
     suggest: (_, entityId) => [
       { config: { type: 'custom:dio-calendar', entity: entityId } },
       { label: 'Today', name: "Today's Calendar", config: { type: 'custom:dio-calendar', entity: entityId, days: 1 } },
@@ -374,6 +380,7 @@ const CARDS: Card[] = [
     domains: GRAPH_DOMAINS,
     name: 'Diorama History Graph',
     description: 'The history of a reading, or the times something was on',
+    variants: ['Daily Bar Graph'],
     suggest: (hass, entityId) => {
       const entity = hass.states[entityId]
       const config = { type: 'custom:dio-graph', entity: entityId }
@@ -405,6 +412,7 @@ const CARDS: Card[] = [
     domains: MAP_DOMAINS,
     name: 'Diorama Map',
     description: 'Where a person, a tracker or a zone is',
+    variants: ['Map on Top'],
     suggest: (_, entityId) => [
       { config: { type: 'custom:dio-map', entity: entityId } },
       { label: 'On Top', name: 'Map on Top', config: { type: 'custom:dio-map', entity: entityId, layout: 'top' } },
@@ -430,7 +438,55 @@ export function registerTiles() {
         getEntitySuggestion: (hass, entityId) =>
           suggestions(card, hass, entityId)?.map(({ label, config }) => ({ label, config })) ?? null,
       })
+    for (const name of variantNames(card)) registerVariant(card, name)
   }
+}
+
+// Every way a card can be set up past the plain one, by name, whatever the
+// entity: acting on a second tap, wide with its controls, and with each
+// control it can show beside its icon.
+function variantNames(card: Card): string[] {
+  if (card.suggest) return card.variants ?? []
+  const name = shortName(card)
+  const features = card.extra
+    ? []
+    : FEATURES.filter(
+        feature =>
+          !card.repeats?.includes(feature.id) && feature.domains.some(domain => shows(card, `${domain}.any`)),
+      )
+  return [
+    ...new Set([
+      ...(card.twice ? [`Double Tap ${name}`] : []),
+      ...(card.controls ? [`${name} with ${card.controls}`] : []),
+      ...features.map(feature => `${name} with ${feature.name}`),
+    ]),
+  ]
+}
+
+// A way to set up a card offered as a card of its own in the card picker's
+// list, as in Diorama Toggle with Color. It goes by a name of its own there,
+// but picking it adds the card itself, set up that way for the first entity
+// that can be, so nothing but the card's own name ever reaches the YAML.
+function registerVariant(card: Card, name: string) {
+  const type = `${card.type}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '')}`
+  if (customElements.get(type)) return
+  const element = card.element as CustomElementConstructor & {
+    getStubConfig?: (hass?: HomeAssistant) => Record<string, unknown>
+  }
+  customElements.define(
+    type,
+    class extends element {
+      static getStubConfig(hass?: HomeAssistant) {
+        const ids = Object.keys(hass?.states ?? {})
+        for (const id of ids) {
+          const found = suggestions(card, hass!, id)?.find(suggestion => suggestion.name === name)
+          if (found) return found.config
+        }
+        return { ...element.getStubConfig?.(hass), type: `custom:${card.type}` }
+      }
+    },
+  )
+  window.customCards!.push({ type, name: `Diorama ${name}`, description: card.description, preview: true })
 }
 
 // The suggestions of a card for an entity picked in Home Assistant's card
