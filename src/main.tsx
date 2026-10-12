@@ -8,7 +8,7 @@ import { sameButBackground, ViewBackground } from '#/lib/background.ts'
 import { closest, closestClass, inPanelView } from '#/lib/panelView.ts'
 import WithSidePanel from '#/tiles/WithSidePanel.tsx'
 import pickerPicture from '#/assets/picker.jpg?inline'
-import type { BackgroundConfig, CardConfig, TileChoices } from '#/types.ts'
+import type { BackgroundConfig, CardConfig, TileChoice, TileChoices } from '#/types.ts'
 
 // Baked in by the build from package.json.
 declare const __CARD_VERSION__: string
@@ -135,11 +135,10 @@ function migrate(config: CardConfig): CardConfig {
 }
 
 function renameTiles(tiles: TileChoices): TileChoices {
+  const rename = (tile: TileChoice) =>
+    typeof tile.type === 'string' ? { ...tile, type: tile.type.replace(/^custom:fp-/, 'custom:dio-') } : tile
   return Object.fromEntries(
-    Object.entries(tiles).map(([id, tile]) => [
-      id,
-      typeof tile.type === 'string' ? { ...tile, type: tile.type.replace(/^custom:fp-/, 'custom:dio-') } : tile,
-    ]),
+    Object.entries(tiles).map(([id, tile]) => [id, Array.isArray(tile) ? tile.map(rename) : rename(tile)]),
   )
 }
 

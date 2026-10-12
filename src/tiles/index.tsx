@@ -270,7 +270,7 @@ const CARDS: Card[] = [
     name: 'Diorama Media Player',
     repeats: ['playback'],
     does: 'Tap to play or pause',
-    controls: 'play and skip buttons',
+    controls: 'its playback buttons',
     description: 'Speaker or TV widget with play, pause and tracks',
   },
   {
@@ -541,10 +541,10 @@ export function tileOptions(hass: HomeAssistant, entityId: string): TileOption[]
   const made = (card: Card) => !card.extra && Array.isArray(card.domains) && card.domains.includes(domain)
   const ranked = [...CARDS.filter(made), ...CARDS.filter(card => fits(card) && !made(card))]
   return ranked.flatMap(card => {
-    const name = card.name.replace(/^Diorama /, '')
+    const name = card.name.replace(/^Diorama (Any )?/, '')
     const own =
       card.domains === 'any' && !shows(card, entityId)
-        ? [{ config: { type: `custom:${card.type}`, entity: entityId } }]
+        ? [{ label: typeof card.does === 'function' ? card.does(domain) : card.does, config: { type: `custom:${card.type}`, entity: entityId } }]
         : (suggestions(card, hass, entityId) ?? [])
     return own.map(suggestion => ({ name, label: suggestion.label, config: suggestion.config }))
   })

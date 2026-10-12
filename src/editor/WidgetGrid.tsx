@@ -1,21 +1,25 @@
 import { entityName } from '#/devices/catalog.ts'
-import { choiceFor, choices, setRows, setupKey, TilePreview, withRows } from '#/editor/TilePicker.tsx'
+import { choiceFor, choices, setRows, setupKey, TilePreview, unstretched, withRows } from '#/editor/TilePicker.tsx'
 import { cn } from '#/lib/utils.ts'
 import { chosen, type AutoCard } from '#/tiles/auto.ts'
 import { GAP_PX, ROW_PX, span } from '#/tiles/sidePanel.ts'
-import type { HomeAssistant, TileChoice, TileChoices } from '#/types.ts'
+import type { HomeAssistant, TileChoice } from '#/types.ts'
 import { faEye, faPen, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { motion, useDragControls } from 'motion/react'
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react'
 
 // The most rows a card across the whole panel can be made, as in the picker.
 const MAX_ROWS = 12
 
 export type Widget = {
+  // Tells the widget apart from the entity's others.
   id: string
-  // The tile the panel makes for the entity, before any card is chosen.
+  entity: string
+  // The tile the panel makes for the entity, before any card is chosen, and
+  // the card chosen for this widget, none for the one the panel picks.
   auto: AutoCard
+  choice: TileChoice | undefined
   // Takes the entity out of the list, for one added by hand.
   onRemove?: () => void
   // Leaves a device on the plan out of the panel.
@@ -25,13 +29,12 @@ export type Widget = {
 type Props = {
   hass: HomeAssistant
   widgets: Widget[]
-  tiles: TileChoices | undefined
   // The new order of the widgets, as entity ids.
   onReorder: (ids: string[]) => void
-  // The card an entity's tile is now, none for the one the panel picks.
+  // The card a widget is now, none for the one the panel picks.
   onSize: (id: string, choice: TileChoice | undefined) => void
-  // Opens the page to pick another card for the entity.
-  onEdit: (id: string) => void
+  // Opens the page to pick the entity's cards.
+  onEdit: (entity: string) => void
 }
 
 // A setup of the card the tile is now, at its own size in the panel.
@@ -42,19 +45,19 @@ type Fit = { columns: number; config: Record<string, unknown>; own: number | 'au
 // arrow keys move the one in focus. The pen in its top left corner opens
 // the page to pick its card. The cross in the other takes away an entity
 // added by hand, and the eye hides a device on the plan from the panel or
-// shows it again. The grip in its bottom right corner, or bottom left for
-// one against the right side that can only grow leftwards, makes it wider or
+// shows it again. The grip in its bottom right corner makes it wider or
 // narrower, between the setups of its card that differ only in width or
 // stretched across the whole width, and taller or shorter while it takes
-// the whole width.
-export function WidgetGrid({ hass, widgets, tiles, onReorder, onSize, onEdit }: Props) {
+// the whole width. One against the right side takes the whole width once
+// the grip is pulled past the side.
+export function WidgetGrid({ hass, widgets, onReorder, onSize, onEdit }: Props) {
   const ids = widgets.map(widget => widget.id)
   const byId = new Map(widgets.map(widget => [widget.id, widget]))
   // The order while a widget is dragged, and the card a widget is being
   // resized to, each kept until the order or the cards that come back
   // differ from the ones they were made over.
   const idsKey = ids.join()
-  const tilesKey = JSON.stringify(tiles ?? {})
+  const tilesKey = JSON.stringify(widgets.map(widget => widget.choice ?? null))
   const [dragged, setOrder] = useState<{ over: string; ids: string[] } | null>(null)
   const [resized, setSizing] = useState<{ over: string; id: string; choice: TileChoice | undefined } | null>(null)
   const order = dragged?.over === idsKey ? dragged.ids : null
@@ -67,8 +70,6 @@ export function WidgetGrid({ hass, widgets, tiles, onReorder, onSize, onEdit }: 
   // keep trading places under it.
   const swapped = useRef<string | null>(null)
   const shown = order ?? ids
-  // Changes whenever any widget may have moved across the grid.
-  const arranged = `${shown.join()}|${tilesKey}|${JSON.stringify(sizing)}`
   // The order during a drag, for its handlers, which keep the ones from
   // when it started.
   const now = useRef<string[]>([])
@@ -118,18 +119,17 @@ export function WidgetGrid({ hass, widgets, tiles, onReorder, onSize, onEdit }: 
     <div ref={grid} className="relative grid grid-cols-12" style={{ gap: GAP_PX }}>
       {shown.map((id, index) => {
         const widget = byId.get(id)!
-        const choice = sizing?.id === id ? sizing.choice : tiles?.[id]
-        const name = entityName(hass, id)
+        const choice = sizing?.id === id ? sizing.choice : widget.choice
+        const name = entityName(hass, widget.entity)
         return (
           <Cell
             key={id}
             hass={hass}
             widget={widget}
             choice={choice}
-            saved={tiles?.[id]}
+            saved={widget.choice}
             name={name}
             label={`${name}, ${index + 1} of ${shown.length}`}
-            arranged={arranged}
             held={held === id}
             grid={grid}
             cell={element => {
@@ -145,11 +145,11 @@ export function WidgetGrid({ hass, widgets, tiles, onReorder, onSize, onEdit }: 
             onKey={event => nudge(event, id)}
             onSizing={next => setSizing({ over: tilesKey, id, choice: next })}
             onSized={next => {
-              if (setupKey(next ?? widget.auto) === setupKey(tiles?.[id] ?? widget.auto) && setRows(next) === setRows(tiles?.[id]))
+              if (setupKey(next ?? widget.auto) === setupKey(widget.choice ?? widget.auto) && setRows(next) === setRows(widget.choice))
                 setSizing(null)
               else onSize(id, next)
             }}
-            onEdit={() => onEdit(id)}
+            onEdit={() => onEdit(widget.entity)}
           />
         )
       })}
@@ -164,7 +164,6 @@ function Cell({
   saved,
   name,
   label,
-  arranged,
   held,
   grid,
   cell,
@@ -183,7 +182,6 @@ function Cell({
   saved: TileChoice | undefined
   name: string
   label: string
-  arranged: string
   held: boolean
   grid: RefObject<HTMLDivElement | null>
   cell: (element: HTMLDivElement | null) => void
@@ -196,7 +194,7 @@ function Cell({
   onEdit: () => void
 }) {
   const { auto } = widget
-  const config = chosen(auto, { [widget.id]: choice } as TileChoices)
+  const config = chosen(auto, choice)
   const { columns, rows } = span(config, hass)
 
   // The setups of the card it is now that differ only in width, one for
@@ -242,36 +240,29 @@ function Cell({
   const base = wide ? (wide.own === 'auto' ? natural : wide.own) : null
   const resizable = fits.size > 1 || base !== null
 
-  // A narrow card against the right side of the panel has its grip in the
-  // bottom left corner instead, as it can only grow to the left, and keeps
-  // it there until the resize ends.
   const self = useRef<HTMLDivElement>(null)
-  const [atEnd, setAtEnd] = useState(false)
-  useLayoutEffect(() => {
-    const box = self.current
-    const width = box?.parentElement?.clientWidth
-    if (box && width) setAtEnd(columns < 12 && box.offsetLeft + box.offsetWidth >= width - 1)
-  }, [columns, arranged])
-  const [pulling, setPulling] = useState<'left' | 'right' | null>(null)
-  const side = pulling ?? (atEnd ? 'left' : 'right')
 
-  // The edge of the card that stays put, and the card it would be let go now.
-  const resize = useRef<{ edge: number; side: 'left' | 'right'; choice: TileChoice | undefined } | null>(null)
+  // The left edge of the card, whether it started against the right side,
+  // and the card it would be let go now.
+  const resize = useRef<{ edge: number; atEnd: boolean; choice: TileChoice | undefined } | null>(null)
   const startResize = (event: PointerEvent<HTMLButtonElement>) => {
-    if (event.button !== 0) return
+    const area = grid.current?.getBoundingClientRect()
+    if (event.button !== 0 || !area) return
     event.preventDefault()
     event.stopPropagation()
     event.currentTarget.setPointerCapture(event.pointerId)
     const box = event.currentTarget.parentElement!.getBoundingClientRect()
-    resize.current = { edge: side === 'left' ? box.right : box.left, side, choice }
-    setPulling(side)
+    resize.current = { edge: box.left, atEnd: box.left > area.left + 1 && box.right >= area.right - 1, choice }
   }
   const moveResize = (event: PointerEvent<HTMLButtonElement>) => {
     const current = resize.current
     const area = grid.current?.getBoundingClientRect()
     if (!current || !area || !self.current) return
     const column = (area.width - 11 * GAP_PX) / 12
-    const across = current.side === 'left' ? current.edge - event.clientX : event.clientX - current.edge
+    // A card against the right side has no room to grow into on its line,
+    // so pulled past the side it takes the whole width on a line of its own.
+    const across =
+      current.atEnd && event.clientX > area.right + GAP_PX ? area.width : event.clientX - current.edge
     const wanted = (across + GAP_PX) / (column + GAP_PX)
     const fit = [...fits.values()].reduce((best, next) =>
       Math.abs(next.columns - wanted) < Math.abs(best.columns - wanted) ? next : best,
@@ -292,7 +283,6 @@ function Cell({
     const current = resize.current
     if (!current) return
     resize.current = null
-    setPulling(null)
     onSized(current.choice)
   }
 
@@ -344,7 +334,7 @@ function Cell({
       )}
       <button
         type="button"
-        data-choose={widget.id}
+        data-choose={widget.entity}
         aria-label={`Change the widget for ${name}`}
         title="Change the widget"
         onClick={onEdit}
@@ -390,15 +380,12 @@ function Cell({
           onPointerCancel={endResize}
           className={cn(
             corner,
-            '-bottom-0.5 touch-none',
-            side === 'left'
-              ? '-left-1 cursor-nesw-resize hover:cursor-nesw-resize'
-              : '-right-1 cursor-nwse-resize hover:cursor-nwse-resize',
+            '-right-1 -bottom-0.5 cursor-nwse-resize touch-none hover:cursor-nwse-resize',
           )}
         >
           <svg
             viewBox="0 0 12 12"
-            className={cn('size-3', side === 'left' && '-scale-x-100')}
+            className="size-3"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.6"
@@ -411,11 +398,4 @@ function Cell({
       )}
     </motion.div>
   )
-}
-
-// A card's setup without the width it was stretched to.
-function unstretched(config: Record<string, unknown>): Record<string, unknown> {
-  const { columns: _, ...grid } = (config.grid_options ?? {}) as Record<string, unknown>
-  const { grid_options: __, ...rest } = config
-  return Object.keys(grid).length > 0 ? { ...rest, grid_options: grid } : rest
 }

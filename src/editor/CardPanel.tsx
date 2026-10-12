@@ -8,9 +8,9 @@ import { ResetButton, Slider, Switch } from '#/editor/panel.tsx'
 import { SUN_DIRECTION_DEG } from '#/constants.ts'
 import { EDITOR_TINT_COLOR } from '#/theme.ts'
 import { entityName } from '#/devices/catalog.ts'
-import type { BackgroundConfig, CardConfig, HomeAssistant, HomeConfig, RoomConfig, TileChoices } from '#/types.ts'
-import { autoTiles, panelRooms } from '#/tiles/auto.ts'
-import { TilePicker } from '#/editor/TilePicker.tsx'
+import type { BackgroundConfig, CardConfig, HomeAssistant, HomeConfig, RoomConfig, TileChoice, TileChoices } from '#/types.ts'
+import { autoTiles, choicesOf, keyEntity, panelRooms, panelWidgets, type AutoCard, type PanelWidget } from '#/tiles/auto.ts'
+import { choiceFor, setupKey, TilePicker } from '#/editor/TilePicker.tsx'
 import { WidgetGrid } from '#/editor/WidgetGrid.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { defaultIcon } from '#/tiles/icons.ts'
@@ -173,6 +173,7 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
   // as short as it was.
   const home = config.home ?? {}
   const homeEntities = home.entities ?? []
+  const homeWidgets = panelWidgets(config, null)
   const setHome = (changes: HomeConfig) => {
     const next: HomeConfig = { ...home, ...changes }
     if (!next.name) delete next.name
@@ -203,24 +204,23 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
   if (picking) {
     const { auto, tiles, room } = picking
     const id = choosing!.id
-    const save = (next: TileChoices) => (room ? setRoom(room.id, { tiles: next }) : setHome({ tiles: next }))
+    // A widget taken away leaves the order naming the entity no more times
+    // than it has widgets.
+    const save = (picked: (TileChoice | undefined)[]) => {
+      const next = withChoices(tiles, id, auto, picked)
+      if (room) setRoom(room.id, { tiles: next, order: room.order && trimmed(room.order, id, picked.length) })
+      else setHome({ tiles: next, entities: trimmed(homeEntities, id, picked.length) })
+    }
     return (
       <Page
         root={root}
         light={light}
         title={entityName(hass, id)}
-        subtitle={`The widget it shows in the side panel, ${room ? roomName(hass, room) : home.name || 'Home'}`}
+        subtitle={`Its widgets in the side panel, ${room ? roomName(hass, room) : home.name || 'Home'}`}
         onBack={close}
+        onDone={close}
       >
-        <TilePicker
-          hass={hass}
-          auto={auto}
-          chosen={tiles?.[id]}
-          onChoose={(choice, stay) => {
-            save(choice ? { ...tiles, [id]: choice } : without(tiles, id))
-            if (!stay) close()
-          }}
-        />
+        <TilePicker hass={hass} auto={auto} picked={choicesOf(tiles, id)} onChange={save} />
       </Page>
     )
   }
@@ -240,16 +240,20 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
             {hass && homeEntities.length > 0 && (
               <WidgetGrid
                 hass={hass}
-                widgets={[...autoTiles(config, null)].map(([id, auto]) => ({
-                  id,
-                  auto,
+                widgets={homeWidgets.map(widget => ({
+                  ...gridWidget(widget),
                   onRemove: () =>
-                    setHome({ entities: homeEntities.filter(other => other !== id), tiles: without(home.tiles, id) }),
+                    setHome({
+                      entities: homeEntities.filter(other => other !== widget.entity),
+                      tiles: without(home.tiles, widget.entity),
+                    }),
                 }))}
-                tiles={home.tiles}
-                onReorder={entities => setHome({ entities })}
-                onSize={(id, choice) => setHome({ tiles: choice ? { ...home.tiles, [id]: choice } : without(home.tiles, id) })}
-                onEdit={id => choose(null, id)}
+                onReorder={keys => {
+                  const { order, tiles } = reordered(keys, homeWidgets, home.tiles)
+                  setHome({ entities: order, tiles })
+                }}
+                onSize={(key, choice) => setHome({ tiles: resized(homeWidgets, home.tiles, key, choice) })}
+                onEdit={entity => choose(null, entity)}
               />
             )}
             {hass && (
@@ -518,6 +522,7 @@ function Page({
   title,
   subtitle,
   onBack,
+  onDone,
   children,
 }: {
   root: RefObject<HTMLDivElement | null>
@@ -525,6 +530,8 @@ function Page({
   title: string
   subtitle: string
   onBack: () => void
+  // A button kept at the foot of the page that goes back too.
+  onDone?: () => void
   children: ReactNode
 }) {
   return (
@@ -556,6 +563,17 @@ function Page({
         </div>
       </header>
       {children}
+      {onDone && (
+        <footer className="sticky bottom-0 z-30 -mx-4 mt-auto bg-(--dio-surface) px-4 pt-3 pb-1">
+          <button
+            type="button"
+            onClick={onDone}
+            className="bg-tint-fill h-10 w-full cursor-pointer rounded-full text-[14px] font-semibold text-white transition-[filter,transform] hover:brightness-110 active:scale-[0.98]"
+          >
+            Done
+          </button>
+        </footer>
+      )}
     </div>
   )
 }
@@ -645,7 +663,7 @@ function RoomEntities({
   const extra = room.entities ?? []
   const hidden = room.hidden ?? []
   const tiles = [...autoTiles(config, room)]
-  const shown = tiles.filter(([id]) => !hidden.includes(id))
+  const shown = panelWidgets(config, room).filter(widget => !hidden.includes(widget.entity))
   const remove = (id: string) =>
     onChange({
       entities: extra.filter(other => other !== id),
@@ -681,13 +699,17 @@ function RoomEntities({
       {hass && shown.length > 0 && (
         <WidgetGrid
           hass={hass}
-          widgets={shown.map(([id, auto]) =>
-            extra.includes(id) ? { id, auto, onRemove: () => remove(id) } : { id, auto, onHide: () => hide(id, true) },
+          widgets={shown.map(widget =>
+            extra.includes(widget.entity)
+              ? { ...gridWidget(widget), onRemove: () => remove(widget.entity) }
+              : { ...gridWidget(widget), onHide: () => hide(widget.entity, true) },
           )}
-          tiles={room.tiles}
           // The hidden ones keep their place after the rest.
-          onReorder={order => onChange({ order: [...order, ...hidden] })}
-          onSize={(id, choice) => onChange({ tiles: choice ? { ...room.tiles, [id]: choice } : without(room.tiles, id) })}
+          onReorder={keys => {
+            const { order, tiles } = reordered(keys, shown, room.tiles)
+            onChange({ order: [...order, ...hidden], tiles })
+          }}
+          onSize={(key, choice) => onChange({ tiles: resized(shown, room.tiles, key, choice) })}
           onEdit={onChoose}
         />
       )}
@@ -772,10 +794,61 @@ const heading = 'h-10 w-full truncate text-[26px] leading-10 font-bold tracking-
 
 type RoomLists = { entities?: string[]; order?: string[]; hidden?: string[]; tiles?: TileChoices }
 
-// The chosen cards without the one for an entity.
+// The chosen cards without the ones for an entity.
 function without(tiles: TileChoices | undefined, id: string) {
   const { [id]: _, ...rest } = tiles ?? {}
   return rest
+}
+
+// A widget of the panel as the grid takes it.
+const gridWidget = ({ key, entity, auto, choice }: PanelWidget) => ({ id: key, entity, auto, choice })
+
+// The chosen cards with an entity's set to these, one for each of its
+// widgets. One that is the card the panel picks anyway is left out, and
+// with several it is written out in the list.
+function withChoices(
+  tiles: TileChoices | undefined,
+  id: string,
+  auto: AutoCard,
+  picked: (TileChoice | undefined)[],
+): TileChoices {
+  const rest = without(tiles, id)
+  const autoKey = setupKey(auto)
+  if (picked.length === 1) {
+    const choice = picked[0] && choiceFor(autoKey, picked[0])
+    return choice ? { ...rest, [id]: choice } : rest
+  }
+  const { type, size } = auto
+  const spelled: TileChoice = size ? { type, size } : { type }
+  return { ...rest, [id]: picked.map(choice => choice ?? spelled) }
+}
+
+// The chosen cards with one widget's set to this.
+function resized(widgets: PanelWidget[], tiles: TileChoices | undefined, key: string, choice: TileChoice | undefined) {
+  const widget = widgets.find(other => other.key === key)!
+  const picked = choicesOf(tiles, widget.entity)
+  picked[widget.index] = choice
+  return withChoices(tiles, widget.entity, widget.auto, picked)
+}
+
+// A section's widgets put in a new order: their entities, each named once
+// for each of its widgets, and the cards of an entity with several put in
+// the order its widgets now show.
+function reordered(keys: string[], widgets: PanelWidget[], tiles: TileChoices | undefined) {
+  const byKey = new Map(widgets.map(widget => [widget.key, widget]))
+  let next = tiles
+  for (const widget of widgets) {
+    if (widget.index !== 1) continue
+    const picked = keys.filter(key => keyEntity(key) === widget.entity).map(key => byKey.get(key)!.choice)
+    next = withChoices(next, widget.entity, widget.auto, picked)
+  }
+  return { order: keys.map(keyEntity), tiles: next }
+}
+
+// An order naming an entity no more than this many times.
+function trimmed(order: string[], id: string, most: number) {
+  let seen = 0
+  return order.filter(other => other !== id || ++seen <= Math.max(1, most))
 }
 
 type Choosing = { room: string | null; id: string }

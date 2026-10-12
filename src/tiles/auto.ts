@@ -1,4 +1,4 @@
-import type { CardConfig, DecorationConfig, DeviceConfig, RoomConfig, TileChoices } from '#/types.ts'
+import type { CardConfig, DecorationConfig, DeviceConfig, RoomConfig, TileChoice, TileChoices } from '#/types.ts'
 
 // The tiles of the diorama's side panel, made from the devices placed on
 // the diorama and the entities given to each room: a heading per room,
@@ -140,8 +140,7 @@ function heading(room: RoomConfig): AutoCard {
 
 // An entity's tile as the panel shows it: the card chosen for it, if any,
 // in place of the one picked for its domain, keeping the piece's icon.
-export function chosen(card: AutoCard, tiles: TileChoices | undefined): AutoCard {
-  const choice = tiles?.[String(card.entity)]
+export function chosen(card: AutoCard, choice: TileChoice | undefined): AutoCard {
   if (!choice) return card
   const { type: _, size: __, ...kept } = card
   return { ...kept, ...choice, entity: card.entity }
@@ -149,7 +148,7 @@ export function chosen(card: AutoCard, tiles: TileChoices | undefined): AutoCard
 
 // The tiles a room or the home shows, by entity id, before any is chosen.
 export function autoTiles(plan: CardConfig, room: RoomConfig | null): Map<string, AutoCard> {
-  if (!room) return new Map((plan.home?.entities ?? []).map(id => [id, entityTile(id)]))
+  if (!room) return new Map([...new Set(plan.home?.entities)].map(id => [id, entityTile(id)]))
   const pieces = new Map((plan.decorations ?? []).map(piece => [piece.id, piece]))
   const devices = new Map(
     (plan.devices ?? []).filter(device => device.room === room.id).map(device => [device.entity_id, device]),
@@ -172,17 +171,68 @@ export function panelRooms(plan: CardConfig): RoomConfig[] {
     .map(entry => entry.room)
 }
 
+// The cards chosen for an entity, one for each of its widgets, with none
+// chosen standing for the one the panel picks.
+export function choicesOf(tiles: TileChoices | undefined, id: string): (TileChoice | undefined)[] {
+  const choice = tiles?.[id]
+  return Array.isArray(choice) ? (choice.length > 0 ? choice : [undefined]) : [choice]
+}
+
+// What tells an entity's widgets apart: the entity id for its first, and
+// a number after it for the others.
+export const widgetKey = (id: string, index: number) => (index > 0 ? `${id}#${index + 1}` : id)
+export const keyEntity = (key: string) => key.replace(/#\d+$/, '')
+
+export type PanelWidget = {
+  key: string
+  entity: string
+  // Which of the entity's widgets it is.
+  index: number
+  // The tile the panel makes for the entity, and the card chosen for it.
+  auto: AutoCard
+  choice: TileChoice | undefined
+}
+
+// The widgets of a room or of the home, in the order they show. An entity
+// has a widget for each card chosen for it. The order names an entity once
+// for each of its widgets, its first, then its second, and so on. A widget
+// the order does not name follows the entity's widget before it, or goes
+// after the rest.
+export function panelWidgets(plan: CardConfig, room: RoomConfig | null): PanelWidget[] {
+  const tiles = room ? room.tiles : plan.home?.tiles
+  const widgets = [...autoTiles(plan, room)].flatMap(([id, auto]) =>
+    choicesOf(tiles, id).map((choice, index) => ({ key: widgetKey(id, index), entity: id, index, auto, choice })),
+  )
+  const byKey = new Map(widgets.map(widget => [widget.key, widget]))
+  const counted = new Map<string, number>()
+  const placed: PanelWidget[] = []
+  for (const id of (room ? room.order : plan.home?.entities) ?? []) {
+    const index = counted.get(id) ?? 0
+    counted.set(id, index + 1)
+    const widget = byKey.get(widgetKey(id, index))
+    if (widget) placed.push(widget)
+  }
+  for (const widget of widgets) {
+    if (placed.includes(widget)) continue
+    const before = byKey.get(widgetKey(widget.entity, widget.index - 1))
+    const at = before ? placed.indexOf(before) : -1
+    if (at >= 0) placed.splice(at + 1, 0, widget)
+    else placed.push(widget)
+  }
+  return placed
+}
+
 export function autoGroups(plan: CardConfig): AutoGroup[] {
   const groups: AutoGroup[] = []
-  const home = [...autoTiles(plan, null).values()].map(card => chosen(card, plan.home?.tiles))
+  const home = panelWidgets(plan, null).map(widget => chosen(widget.auto, widget.choice))
   if (home.length) {
     const title: AutoCard = { type: 'custom:dio-title', title: plan.home?.name || 'Home', never_hide: true }
     groups.push({ room: null, cards: [title, ...home] })
   }
   for (const room of panelRooms(plan)) {
-    const tiles = [...autoTiles(plan, room)]
-      .filter(([id]) => !room.hidden?.includes(id))
-      .map(([, card]) => chosen(card, room.tiles))
+    const tiles = panelWidgets(plan, room)
+      .filter(widget => !room.hidden?.includes(widget.entity))
+      .map(widget => chosen(widget.auto, widget.choice))
     if (tiles.length) groups.push({ room: room.id, cards: [heading(room), ...tiles] })
   }
   return groups
