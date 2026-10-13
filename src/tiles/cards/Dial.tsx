@@ -256,9 +256,8 @@ function useHeldValues(reported: number[]) {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(timer.current), [])
   const key = reported.join(',')
-  useEffect(() => {
-    if (held && held.join(',') === key) setHeld(null)
-  }, [held, key])
+  // Let go of as soon as they are reported back.
+  if (held && held.join(',') === key) setHeld(null)
   const hold = (values: number[]) => {
     setHeld(values)
     clearTimeout(timer.current)

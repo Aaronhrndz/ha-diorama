@@ -123,14 +123,21 @@ export function Tile({
   const unavailable = !entity || entity.state === 'unavailable' || (unknownIsUnavailable && entity.state === 'unknown')
   const { pressed, handlers } = useTileGestures({
     haptics: config.haptic !== false,
-    onTap: unavailable || (!onTap && !config.tap_action) ? undefined : () => runAction(env, config.tap_action, () => onTap?.()),
+    onTap:
+      unavailable || (!onTap && !config.tap_action)
+        ? undefined
+        : () => runAction(env, config.tap_action, () => onTap?.()),
     onHold: () => runAction(env, config.hold_action, () => moreInfo(env.host, config.entity)),
   })
   // Where a feature beside the icon is being moved to, shown on the tile
   // until Home Assistant says the entity changed, so it does not flash back
   // to what it was in between.
   const [preview, setPreview] = useState<Preview | null>(null)
-  useEffect(() => setPreview(p => (p?.sent ? null : p)), [entity])
+  const [seen, setSeen] = useState(entity)
+  if (seen !== entity) {
+    setSeen(entity)
+    if (preview?.sent) setPreview(null)
+  }
   useEffect(() => {
     if (!preview?.sent) return
     const timer = setTimeout(() => setPreview(null), PREVIEW_MS)

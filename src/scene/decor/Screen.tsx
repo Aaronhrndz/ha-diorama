@@ -116,15 +116,17 @@ const TITLE_PX = 15
 const OVER_PX = 2048
 
 // The logo in the top left corner and the title in the bottom left one, on
-// a clear canvas `aspect` times as wide as it is tall, as on a card `card`
-// pixels wide.
+// the clear canvas of `over`, `aspect` times as wide as it is tall, as on a
+// card `card` pixels wide.
 function drawOver(
-  canvas: HTMLCanvasElement,
+  over: CanvasTexture,
   aspect: number,
   card: number,
   logo: { image: HTMLImageElement; mono: boolean } | null,
   title: string | null,
 ) {
+  const canvas = over.image as HTMLCanvasElement
+  over.needsUpdate = true
   canvas.width = OVER_PX
   canvas.height = Math.round(OVER_PX / aspect)
   const context = canvas.getContext('2d')
@@ -259,7 +261,8 @@ export default function ScreenMaterial({
   useLayoutEffect(() => {
     // The material keeps its own copy of the uniforms, so its are the ones
     // set.
-    const u = (ref.current?.uniforms ?? uniforms) as typeof uniforms
+    const u = ref.current?.uniforms as typeof uniforms | undefined
+    if (!u) return
     u.uOver.value = over
     u.uMode.value = !showing ? 0 : art ? 2 : 1
     if (showing) showing.colors.forEach((hex, i) => rgbOf(hex, [u.uA, u.uB, u.uC][i].value))
@@ -272,8 +275,7 @@ export default function ScreenMaterial({
     const shown = showing && (logo || title)
     u.uHasOver.value = shown ? 1 : 0
     if (shown) {
-      drawOver(over.image as HTMLCanvasElement, aspect, card, logo && { image: logo.image, mono }, title)
-      over.needsUpdate = true
+      drawOver(over, aspect, card, logo && { image: logo.image, mono }, title)
     }
   }, [uniforms, showing, art, cover, logo, mono, title, aspect, card, over])
   // Only shown while the screen is on, so it plays for as long as it is.

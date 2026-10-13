@@ -31,9 +31,8 @@ export function useHeld<T>(reported: T) {
   const [held, setHeld] = useState<{ value: T } | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(timer.current), [])
-  useEffect(() => {
-    if (held && Object.is(held.value, reported)) setHeld(null)
-  }, [held, reported])
+  // Let go of as soon as it is reported back.
+  if (held && Object.is(held.value, reported)) setHeld(null)
   const hold = (value: T) => {
     setHeld({ value })
     clearTimeout(timer.current)
@@ -336,7 +335,11 @@ export function MenuPill({ icon, label, options, current, word, onPick }: MenuPr
         aria-haspopup="menu"
         data-empty={current === null || undefined}
         className="dio-pill dio-pill-menu"
-        {...press(() => openMenu(menu.current, anchor.current?.getBoundingClientRect()))}
+        {...insideTile}
+        onClick={e => {
+          e.stopPropagation()
+          openMenu(menu.current, anchor.current?.getBoundingClientRect())
+        }}
       >
         {icon && <Icon icon={icon} on />}
         <span className="dio-pill-label">{label}</span>
@@ -468,7 +471,7 @@ export function Stepper({ label, value, step, min = -Infinity, max = Infinity, f
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(timer.current), [])
   const now = pending ?? shown
-  const nudge = (by: number) => () => {
+  const nudge = (by: number) => {
     if (now === null) return
     const next = Math.min(max, Math.max(min, Math.round((now + by * step) / step) * step))
     setPending(next)
@@ -481,13 +484,31 @@ export function Stepper({ label, value, step, min = -Infinity, max = Infinity, f
   }
   return (
     <div className="dio-group dio-stepper" role="group" aria-label={label}>
-      <button type="button" className="dio-control" aria-label={`Lower ${label.toLowerCase()}`} {...press(nudge(-1))}>
+      <button
+        type="button"
+        className="dio-control"
+        aria-label={`Lower ${label.toLowerCase()}`}
+        {...insideTile}
+        onClick={e => {
+          e.stopPropagation()
+          nudge(-1)
+        }}
+      >
         <Icon icon="ph:minus-bold" on />
       </button>
       <span className="dio-stepper-value" aria-live="polite">
         {now === null ? '' : format(now)}
       </span>
-      <button type="button" className="dio-control" aria-label={`Raise ${label.toLowerCase()}`} {...press(nudge(1))}>
+      <button
+        type="button"
+        className="dio-control"
+        aria-label={`Raise ${label.toLowerCase()}`}
+        {...insideTile}
+        onClick={e => {
+          e.stopPropagation()
+          nudge(1)
+        }}
+      >
         <Icon icon="ph:plus-bold" on />
       </button>
     </div>

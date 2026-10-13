@@ -32,7 +32,12 @@ export default function AlarmPanel({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const [picked, setPicked] = useState<AlarmMode | null>(null)
   const [code, setCode] = useState('')
-  useEffect(() => setPicked(null), [entity?.state])
+  // A mode picked is let go of once the panel changes.
+  const [seen, setSeen] = useState(entity?.state)
+  if (seen !== entity?.state) {
+    setSeen(entity?.state)
+    setPicked(null)
+  }
   useEffect(() => {
     if (!picked) return
     const timer = setTimeout(() => {

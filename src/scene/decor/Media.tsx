@@ -106,7 +106,7 @@ export function Beam({
     const group = from.current
     const position = geometry.getAttribute('position') as BufferAttribute
     const array = position.array as Float32Array
-    const lands = thrown.lands
+    const lands = thrown.current.lands
     if (!group || !lands) {
       if (landed.current) {
         array.set(free)
