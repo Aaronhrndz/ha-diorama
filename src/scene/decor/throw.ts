@@ -26,7 +26,7 @@ const subscribe = (listener: () => void) => {
 const any = () => throws.size > 0
 
 // Puts a projector's picture in `throws` while it is on, leaving from
-// `from` along its z axis. Returns its picture, to see where it lands.
+// `from` along its z axis. Returns its ref, to see where it lands.
 export function useThrow(
   from: RefObject<Object3D | null>,
   length: number,
@@ -52,7 +52,7 @@ export function useThrow(
       tell()
     }
   }, [on])
-  return ref.current
+  return ref
 }
 
 // Whether any projector is throwing its picture.

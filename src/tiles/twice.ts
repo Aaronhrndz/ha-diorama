@@ -60,10 +60,13 @@ export function useConfirm(on: boolean, onConfirm: () => void) {
   // What the second tap sent it to, until Home Assistant says it is.
   const [goal, setGoal] = useState<boolean | null>(null)
   const lit = useRef<HTMLDivElement>(null)
-  useEffect(() => {
+  // Back to the start once it turns on or off.
+  const [seen, setSeen] = useState(on)
+  if (seen !== on) {
+    setSeen(on)
     setWaiting(false)
     setGoal(null)
-  }, [on])
+  }
   useEffect(() => {
     if (goal === null) return
     const timer = setTimeout(() => setGoal(null), SENT_MS)

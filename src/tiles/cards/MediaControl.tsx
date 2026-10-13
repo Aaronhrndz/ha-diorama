@@ -296,11 +296,13 @@ export default function MediaControl({
   // they are measured again after every render and on every resize.
   const [mask, setMask] = useState<string>()
   const measure = useRef(() => {})
-  measure.current = () => {
-    const tile = box.current?.querySelector<HTMLElement>('.dio-tile')
-    if (tile) setMask(holes(tile))
-  }
-  useLayoutEffect(() => measure.current())
+  useLayoutEffect(() => {
+    measure.current = () => {
+      const tile = box.current?.querySelector<HTMLElement>('.dio-tile')
+      if (tile) setMask(holes(tile))
+    }
+    measure.current()
+  })
   useEffect(() => {
     if (!box.current) return
     const observer = new ResizeObserver(() => measure.current())

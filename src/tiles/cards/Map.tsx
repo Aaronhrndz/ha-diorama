@@ -22,6 +22,9 @@ export default function MapCard({ env, config }: { env: TileEnv; config: MapConf
   const entity = env.hass.states[config.entity!]
   const box = useRef<HTMLDivElement>(null)
   const [card, setCard] = useState<Card | null>(null)
+  // The same card, to hand it each new state without changing what was
+  // rendered.
+  const element = useRef<Card | null>(null)
   const hours = config.hours_to_show ?? 0
 
   useEffect(() => {
@@ -39,6 +42,7 @@ export default function MapCard({ env, config }: { env: TileEnv; config: MapConf
         // Laid out as in a grid, the map fills its box rather than keeping
         // square, so it centers on what it shows.
         made.layout = 'grid'
+        element.current = made
         setCard(made)
       })
       .catch(() => {})
@@ -53,7 +57,7 @@ export default function MapCard({ env, config }: { env: TileEnv; config: MapConf
   }, [card])
 
   useEffect(() => {
-    if (card) card.hass = env.hass
+    if (card && element.current) element.current.hass = env.hass
   }, [card, env.hass])
 
   return (

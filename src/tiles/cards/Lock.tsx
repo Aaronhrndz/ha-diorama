@@ -53,7 +53,12 @@ function OpenDoorTile({ env, config }: Props) {
   // 0 before a tap, 1 waiting for the second, 2 sent.
   const [step, setStep] = useState(0)
   const lit = useRef<HTMLDivElement>(null)
-  useEffect(() => setStep(0), [entity?.state])
+  // Back to the start once the lock changes.
+  const [seen, setSeen] = useState(entity?.state)
+  if (seen !== entity?.state) {
+    setSeen(entity?.state)
+    setStep(0)
+  }
   // The lit half runs back frame by frame, since a browser may not repaint
   // a clip that only CSS animates until something else moves.
   useEffect(() => {
