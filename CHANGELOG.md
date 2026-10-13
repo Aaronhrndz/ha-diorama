@@ -9,6 +9,14 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- More lamps cast shadows at once, ten on a computer and six on a phone or tablet, every shadow has a softer edge, and a lamp no longer casts shadows of itself with its own light.
+
+### Fixed
+
+- The 3D home stops drawing once nothing in it moves, even with a light on, and draws at most sixty frames a second while it does, so a phone or computer with the card open no longer warms up and drains its battery.
+
 ## [1.8.5] - 2026-10-13
 
 ### Changed

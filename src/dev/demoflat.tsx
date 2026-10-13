@@ -10,6 +10,7 @@
 // `editor` shows the editor instead of the card; `merge=0` draws every piece
 // on its own, to compare against the merged room; `views` gives every room
 // a view from above it, where it would have the one worked out for it;
+// `fps` counts the frames drawn each second in a corner;
 // `first=device` has a click on a device act on it from any room;
 // `mobile=1:1` gives the card that aspect ratio while it is narrow, and 16:9
 // otherwise; `frame=living,kitchen` has the view of the whole home zoom in
@@ -22,6 +23,7 @@ import { DEMO_AREAS, DEMO_ENTITIES, DEMO_FLAT, DEMO_STATES, flip } from '../../s
 await import('#/main.tsx')
 
 const params = new URLSearchParams(location.search)
+if (params.has('fps')) (await import('./fps.ts')).showFps()
 if (params.get('merge') === '0') setMerging(false)
 if (params.has('dark')) {
   const dark: Record<string, string> = {

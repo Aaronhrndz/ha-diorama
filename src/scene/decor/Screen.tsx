@@ -4,7 +4,7 @@ import { screenTint } from '#/scene/decor/tint.ts'
 import { useEased } from '#/scene/decor/ease.ts'
 import { useLive } from '#/scene/live.ts'
 import { useWarmed } from '#/scene/warm.ts'
-import { LAMP_SHADOW_MAP_PX } from '#/constants.ts'
+import { LAMP_SHADOW_MAP_PX, LAMP_SHADOW_RADIUS } from '#/constants.ts'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { DoubleSide, Vector3, type Mesh, type Object3D, type PointLight, type ShaderMaterial } from 'three'
 
@@ -131,6 +131,7 @@ export function ScreenGlow({
       visible={shown}
       userData={{ rank }}
       shadow-mapSize={[LAMP_SHADOW_MAP_PX, LAMP_SHADOW_MAP_PX]}
+      shadow-radius={LAMP_SHADOW_RADIUS}
       shadow-bias={-0.0012}
       shadow-normalBias={0.008}
       shadow-camera-near={0.05}

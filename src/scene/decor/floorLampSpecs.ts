@@ -39,11 +39,11 @@ export const TMM_SHADE_X = 0.198
 // A ring round the mast at the top and bottom of the shade holds it on.
 export const TMM_RING_R = 0.021
 export const TMM_RING_H = 0.007
-// The bracket inside the shade reaches 8.7 cm from the mast, and the cable
-// drops from its end 9.2 cm out, so the bulb stands there and not in the
-// middle of the shade.
-export const TMM_BRACKET: [number, number] = [0.087, 0.022]
-export const TMM_BULB_X = 0.092
+// The bracket inside the shade reaches its middle, where the bulb stands
+// and the cable drops from. The drawing has them 9 cm out, by the near side
+// of the shade, but a bulb seen there through the top looked out of place.
+export const TMM_BULB_X = TMM_SHADE_X
+export const TMM_BRACKET: [number, number] = [TMM_BULB_X, 0.022]
 
 // FAD: the drawing gives 120 to 150 cm for the adjustable one and is drawn
 // at 120, which is its size here. The foot is 49 cm across, the shade Ø42

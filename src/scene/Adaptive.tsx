@@ -1,4 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber'
+import { due } from '#/scene/pace.ts'
 import { useEffect, useRef } from 'react'
 
 // The picture is drawn at the screen's own density, up to twice the CSS
@@ -44,7 +45,9 @@ export default function Adaptive() {
     level.current = steps.current.length - 1
   }, [])
 
-  useFrame(() => {
+  useFrame(state => {
+    // Only the frames drawn are timed. The ticks between them cost nothing.
+    if (!due(state.clock)) return
     const now = performance.now()
     const gap = now - last.current
     last.current = now

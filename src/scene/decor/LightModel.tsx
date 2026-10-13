@@ -8,14 +8,14 @@ import TableLamp from '#/scene/decor/TableLamps.tsx'
 import { TABLE_LAMPS } from '#/scene/decor/tableLampSpecs.ts'
 import WallLamp from '#/scene/decor/WallLamps.tsx'
 import { WALL_LAMPS } from '#/scene/decor/wallLampSpecs.ts'
-import { LAMP_SHADOW_MAP_PX } from '#/constants.ts'
+import { LAMP_SHADOW_MAP_PX, LAMP_SHADOW_RADIUS } from '#/constants.ts'
 import { CEILING_HEIGHT_M, LAMP_KEY_SHARE, LAMP_OUTPUT, LAMP_THROUGH_SHARE, LIGHT_POINT_INTENSITY } from '#/theme.ts'
 import type { DecorationConfig } from '#/types.ts'
 
 import { useEased } from '#/scene/decor/ease.ts'
 import { useWarmed } from '#/scene/warm.ts'
 import { useLayoutEffect, useRef } from 'react'
-import type { PointLight, RectAreaLight } from 'three'
+import type { BufferGeometry, Camera, Group, Mesh, PointLight, RectAreaLight } from 'three'
 import type { ItemState } from '#/scene/decor/state.ts'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
 
@@ -114,6 +114,7 @@ function Glow({
         visible={shown}
         userData={{ rank }}
         shadow-mapSize={[LAMP_SHADOW_MAP_PX, LAMP_SHADOW_MAP_PX]}
+        shadow-radius={LAMP_SHADOW_RADIUS}
         // Small offsets: a big one pushes the sample past a thin top or
         // panel and lets the light through the middle of it.
         shadow-bias={-0.0012}
@@ -138,7 +139,42 @@ function Glow({
   )
 }
 
+// A lamp's own parts are left out of its own bulb's shadows, so the lamp
+// never darkens itself or throws its stand across the room around it. They
+// still cast for the sun and for every other lamp. Three asks no one which
+// light a part should cast for, so the part is drawn as nothing while the
+// shadow of its own bulb is drawn.
+function ownShadowless(group: Group) {
+  const lights: PointLight[] = []
+  group.traverse(object => {
+    if ((object as PointLight).isPointLight && !object.userData.through) lights.push(object as PointLight)
+  })
+  // The bulb stays mounted while the lamp is off, so its camera is the same
+  // for as long as the lamp is.
+  const camera = lights[0]?.shadow.camera
+  if (!camera) return
+  let held = 0
+  group.traverse(object => {
+    const mesh = object as Mesh
+    if (!mesh.isMesh || mesh.userData.ownShadowless) return
+    mesh.userData.ownShadowless = true
+    mesh.onBeforeShadow = (_r, _o, _c, shadowCamera: Camera, geometry: BufferGeometry) => {
+      if (shadowCamera !== camera) return
+      held = geometry.drawRange.count
+      geometry.drawRange.count = 0
+    }
+    mesh.onAfterShadow = (_r, _o, _c, shadowCamera: Camera, geometry: BufferGeometry) => {
+      if (shadowCamera === camera) geometry.drawRange.count = held
+    }
+  })
+}
+
 export default function LightModel({ kind, item, state }: Props) {
+  const own = useRef<Group>(null)
+  // Again after every render, for the parts a new style or size brings.
+  useLayoutEffect(() => {
+    if (own.current) ownShadowless(own.current)
+  })
   const p = (id: string) => paramValue(kind, item.params, id, item.variant)
   const c = (slot: string) => colorValue(kind, item.colors, slot, item.variant)
   const m = (slot: string) => materialValue(kind, slot, item.variant)
@@ -245,9 +281,9 @@ export default function LightModel({ kind, item, state }: Props) {
   }
 
   return (
-    <>
+    <group ref={own}>
       {body}
       <Glow state={state} at={glowAt} spread={glowSpread} output={LAMP_OUTPUT[kind.id] ?? 1} />
-    </>
+    </group>
   )
 }
