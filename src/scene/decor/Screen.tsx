@@ -179,7 +179,7 @@ function drawOver(
       } else line = next
     }
     lines.push(line)
-    if (lines.length > 2) lines.splice(2, lines.length, lines.slice(1).join(' '))
+    if (lines.length > 2) lines.splice(1, lines.length, lines.slice(1).join(' '))
     // Over a dark shade rising from the bottom, so it reads on a light cover.
     const rise = lines.length * size * 1.2 + pad * 3
     const shade = context.createLinearGradient(0, canvas.height, 0, canvas.height - rise)

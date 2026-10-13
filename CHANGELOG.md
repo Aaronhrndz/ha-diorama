@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A long title on a TV or a projection screen no longer repeats its second line.
+
 ## [1.8.15] - 2026-10-13
 
 ### Fixed
