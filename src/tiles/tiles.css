@@ -2860,23 +2860,15 @@
     radial-gradient(closest-side, var(--_glow-b), transparent) 100% 30% / 60% 100% no-repeat,
     radial-gradient(closest-side, var(--_glow-c), transparent) 40% 100% / 75% 90% no-repeat;
   filter: blur(16px);
-  opacity: var(--_glow-strength, 0.42);
+  opacity: 0.8;
   animation: dio-media-drift 24s ease-in-out infinite alternate;
 }
 
-:host([data-light]) .dio-media-control {
-  --_glow-strength: 0.32;
-}
-
-/* The lights fade into a shade of the app's first color rather than into
-   the plain card, so the whole card looks lit: a much darker one on a
-   dark theme and a paler one on a light theme. */
+/* The lights fade into a dark shade of the app's first color rather than
+   into the plain card, so the whole card looks lit, on a light theme as
+   much as on a dark one, and its words are white as over cover art. */
 .dio-media-control[style*='--_glow-a'] > .dio-tile {
-  background: color-mix(in srgb, var(--_glow-a) 30%, #000);
-}
-
-:host([data-light]) .dio-media-control[style*='--_glow-a'] > .dio-tile {
-  background: color-mix(in srgb, var(--_glow-a) 30%, #fff);
+  background: color-mix(in srgb, var(--_glow-a) 36%, #000);
 }
 
 .dio-media-still > .dio-tile::before {
@@ -2947,7 +2939,7 @@
 }
 
 :host(:not([data-light])) .dio-logo-mono > img,
-:host .dio-media-control[style*='--_art'] .dio-logo-mono > img {
+:host .dio-media-control:is([style*='--_art'], [style*='--_glow-a']) .dio-logo-mono > img {
   filter: brightness(0) invert(1);
 }
 
@@ -2956,7 +2948,7 @@
   isolation: isolate;
 }
 
-.dio-media-control[style*='--_art'] > .dio-tile {
+.dio-media-control:is([style*='--_art'], [style*='--_glow-a']) > .dio-tile {
   color: #fff;
 }
 
@@ -3062,7 +3054,7 @@
 /* On the light glass with the art small the boxes of buttons and of the
    volume are a light grey of their own, so the shade goes darker than
    them to stand apart. */
-:host([data-light]) .dio-media-control:not([style*='--_art']) {
+:host([data-light]) .dio-media-control:not([style*='--_art'], [style*='--_glow-a']) {
   --_progress-shade: 24%;
 }
 
@@ -3101,7 +3093,7 @@
   --_volume-ink: #000;
 }
 
-:host([data-light]) .dio-media-control:not([style*='--_art']) {
+:host([data-light]) .dio-media-control:not([style*='--_art'], [style*='--_glow-a']) {
   --_volume-ink: #fff;
 }
 

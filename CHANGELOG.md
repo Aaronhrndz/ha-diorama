@@ -16,7 +16,7 @@ moves that section under the new version and uses it as the release notes.
 ### Changed
 
 - Now Playing shows the title on a single line, and at half width it leaves out the icon so its buttons fit.
-- Now Playing from an app with no cover art is tinted all over in the app's color, darker on a dark theme and paler on a light one, so the whole card looks lit.
+- Now Playing from an app with no cover art is lit all over in a dark shade of the app's color, with brighter lights over it, on a light theme as well as a dark one.
 - The TV remote's volume stands upright beside the round pad, and the name and the state are never cut short.
 
 ### Fixed

@@ -307,9 +307,9 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
           glow && !playing && 'dio-media-still',
         )}
         picture={cover ?? undefined}
-        // Over the cover art, which is darkened, the logo is the one for a
-        // dark card whatever the theme.
-        logo={known && picture && !square ? { ...known.logo, light: known.logo.dark } : known?.logo}
+        // Over the cover art, which is darkened, or the dark lights of the
+        // app, the logo is the one for a dark card whatever the theme.
+        logo={known && ((picture && !square) || glow) ? { ...known.logo, light: known.logo.dark } : known?.logo}
         style={
           {
             '--_art': picture && !square ? `url("${picture}")` : undefined,
