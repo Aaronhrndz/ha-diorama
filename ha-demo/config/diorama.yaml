@@ -77,6 +77,7 @@ views:
               - fan.ceiling_fan
               - humidifier.humidifier
               - media_player.walkman
+              - media_player.bedroom_projector
               - cover.projector_screen
           - id: bathroom
             name: Bathroom
@@ -199,6 +200,10 @@ views:
             position: [6, 2.35]
             decorations:
               - projector_screen
+          - entity_id: media_player.bedroom_projector
+            room: bedroom
+            position: [6, 5.5]
+            decorations:
               - projector
           - entity_id: water_heater.demo_water_heater_celsius
             room: bathroom

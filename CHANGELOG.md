@@ -9,6 +9,14 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- A projector's beam reaches the corners of the picture on the projection screen it lands on, and fades out just as it gets there.
+
+### Fixed
+
+- The picture on a projection screen no longer reads backwards, the cover on a TV drifts in and out where you can see it, and a soundbar's waves stay above the bar.
+
 ## [1.8.11] - 2026-10-13
 
 ### Added

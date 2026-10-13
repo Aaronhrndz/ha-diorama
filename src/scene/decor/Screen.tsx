@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { throws, useThrown } from '#/scene/decor/throw.ts'
+import { throws, useThrown, type Throw } from '#/scene/decor/throw.ts'
 import { screenTint, showingTint } from '#/scene/decor/tint.ts'
 import { useEased } from '#/scene/decor/ease.ts'
 import { useLive } from '#/scene/live.ts'
@@ -71,7 +71,7 @@ void main() {
     // The cover art, darkened a little so the words over it read, and
     // softened only a hint, so it shows almost as sharp as it is. It drifts
     // slowly in and out, easing at each end, so the picture is never still.
-    float zoom = 1.0 - 0.08 * (0.5 - 0.5 * cos(uTime * 0.25));
+    float zoom = 1.0 - 0.18 * (0.5 - 0.5 * cos(uTime * 0.45));
     vec3 art = texture2D(uArt, (p - 0.5) * uFit * zoom + 0.5, 0.3).rgb;
     float grey = dot(art, vec3(0.299, 0.587, 0.114));
     col = mix(vec3(grey), art, 1.2) * 0.8;
@@ -415,6 +415,16 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
     }),
     [],
   )
+  // The corners of the picture, which the projector it shows is told of,
+  // so its beam reaches them.
+  const corners = useMemo(() => [new Vector3(), new Vector3(), new Vector3(), new Vector3()], [])
+  const lit = useRef<Throw | null>(null)
+  useEffect(
+    () => () => {
+      if (lit.current?.lands === corners) lit.current.lands = null
+    },
+    [corners],
+  )
   useFrame((_, delta) => {
     const m = mesh.current
     const sheet = m?.parent
@@ -429,6 +439,7 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
     let target = 0
     let side = 1
     let shows: Showing | null = latest.current
+    let won: Throw | null = null
     for (const t of throws) {
       const o = t.object
       if (!o || top(o) !== home) continue
@@ -446,6 +457,7 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
         // On the face the light comes from.
         side = facing < 0 ? 1 : -1
         shows = t.showing
+        won = t
       }
     }
     // Kept while the picture fades out, so it fades out as it was.
@@ -456,9 +468,22 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
     level.current += (target - level.current) * Math.min(1, delta * 4)
     m.visible = level.current > 0.01
     m.position.z = side * 0.003
+    // Seen from the face the light comes from, so it never reads backwards.
+    m.scale.x = (side * (w - 2 * edge)) / w
+    // A sheet rolled up too far to show a picture leaves the beam as it is.
+    if (h * open - 2 * edge < 0.05) won = null
+    if (lit.current !== won && lit.current?.lands === corners) lit.current.lands = null
+    lit.current = won
+    if (won) {
+      m.updateWorldMatrix(false, false)
+      corners.forEach((corner, i) =>
+        corner.set(i % 3 === 0 ? -w / 2 : w / 2, i < 2 ? -h / 2 : h / 2, 0).applyMatrix4(m.matrixWorld),
+      )
+      won.lands = corners
+    }
   })
   return (
-    <mesh ref={mesh} scale={[(w - 2 * edge) / w, Math.max(0, h * open - 2 * edge) / h, 1]}>
+    <mesh ref={mesh} scale-y={Math.max(0, h * open - 2 * edge) / h}>
       <planeGeometry args={[w, h]} />
       <ScreenMaterial
         level={level}

@@ -326,7 +326,8 @@ device('light.living_room', 'living_light')
 device('light.bedroom', 'bedroom_light')
 device('media_player.bedroom_speaker', 'bedroom_speaker')
 device('humidifier.bedroom', 'humidifier')
-device('cover.projector_screen', 'projector_screen', 'projector')
+device('cover.projector_screen', 'projector_screen')
+device('media_player.bedroom_projector', 'projector')
 device('water_heater.boiler', 'water_heater')
 device('binary_sensor.bathroom_moisture', 'bathroom_leak')
 device('button.litter_box_scoop', 'litter_box')
@@ -385,6 +386,7 @@ export const DEMO_FLAT: CardConfig = {
         'fan.ceiling_fan',
         'humidifier.bedroom',
         'media_player.bedroom_speaker',
+        'media_player.bedroom_projector',
         'cover.projector_screen',
       ],
     },
@@ -433,6 +435,7 @@ export const HA_DEMO_IDS: Record<string, string> = {
   'media_player.bedroom_speaker': 'media_player.walkman',
   'humidifier.bedroom': 'humidifier.humidifier',
   'cover.projector_screen': 'cover.projector_screen',
+  'media_player.bedroom_projector': 'media_player.bedroom_projector',
   'water_heater.boiler': 'water_heater.demo_water_heater_celsius',
   'binary_sensor.bathroom_moisture': 'binary_sensor.basement_floor_wet',
   'button.litter_box_scoop': 'button.push',
@@ -458,6 +461,7 @@ const NAMES: Record<string, string> = {
   'fan.ceiling_fan': 'Ceiling fan',
   'humidifier.bedroom': 'Humidifier',
   'media_player.bedroom_speaker': 'Bedroom speaker',
+  'media_player.bedroom_projector': 'Projector',
   'cover.projector_screen': 'Projector screen',
   'light.bathroom': 'Bathroom light',
   'binary_sensor.bathroom_motion': 'Bathroom motion',

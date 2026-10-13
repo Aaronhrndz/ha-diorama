@@ -12,12 +12,33 @@ homeassistant:
     media_player.walkman:
       friendly_name: Bedroom speaker
 
+# The bedroom projector, playing a show from an app with no cover, so its
+# picture is the app's colors. It is the Demo integration's lounge room
+# player, with the cover it tells of taken away.
+media_player:
+  - platform: universal
+    name: Projector
+    unique_id: bedroom_projector
+    children:
+      - media_player.lounge_room
+    attributes:
+      entity_picture: input_boolean.projector_screen_down|no_picture
+    commands:
+      turn_on:
+        action: media_player.turn_on
+        target:
+          entity_id: media_player.lounge_room
+      turn_off:
+        action: media_player.turn_off
+        target:
+          entity_id: media_player.lounge_room
+
 # A projector screen that rolls down and up, which the Demo integration does
 # not have, kept as a toggle behind a cover. Then two scenes for the side
 # panel's Home section, as switches so they have a state. Projector scene
 # is on while the screen is down: turning it on turns off the bedroom
-# lights and brings the screen down, and turning it off only rolls the
-# screen up. TV scene is the same around the living room TV, turning off
+# lights, brings the screen down and turns the projector on, and turning
+# it off rolls the screen up and turns the projector off. TV scene is the same around the living room TV, turning off
 # the living room and the kitchen. All lights is a plain switch, not a
 # light, so its tile has no brightness or color: on while any light is,
 # and a tap turns them all off, or all on when every one is off. Cleaning is
@@ -56,10 +77,16 @@ template:
           - action: cover.open_cover
             target:
               entity_id: cover.projector_screen
+          - action: media_player.turn_on
+            target:
+              entity_id: media_player.bedroom_projector
         turn_off:
           - action: cover.close_cover
             target:
               entity_id: cover.projector_screen
+          - action: media_player.turn_off
+            target:
+              entity_id: media_player.bedroom_projector
       - name: TV scene
         unique_id: tv_scene
         icon: ph:television
@@ -139,8 +166,9 @@ automation:
         data:
           brightness: 255
           color_temp_kelvin: 3200
-  # The living room TV comes up on, which would turn TV scene on, so this
-  # turns it off and every scene starts off.
+  # The living room TV and the projector come up on, which would turn TV
+  # scene on and leave the projector lit, so this turns them off and every
+  # scene starts off.
   - id: tv_off_on_start
     alias: TV off on start
     triggers:
@@ -149,7 +177,9 @@ automation:
     actions:
       - action: media_player.turn_off
         target:
-          entity_id: media_player.living_room
+          entity_id:
+            - media_player.living_room
+            - media_player.lounge_room
 
 # The Diorama Glass theme from the repo's themes folder.
 frontend:
