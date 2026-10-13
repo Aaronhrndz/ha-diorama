@@ -2868,6 +2868,17 @@
   --_glow-strength: 0.32;
 }
 
+/* The lights fade into a shade of the app's first color rather than into
+   the plain card, so the whole card looks lit: a much darker one on a
+   dark theme and a paler one on a light theme. */
+.dio-media-control[style*='--_glow-a'] > .dio-tile {
+  background: color-mix(in srgb, var(--_glow-a) 30%, #000);
+}
+
+:host([data-light]) .dio-media-control[style*='--_glow-a'] > .dio-tile {
+  background: color-mix(in srgb, var(--_glow-a) 30%, #fff);
+}
+
 .dio-media-still > .dio-tile::before {
   animation-play-state: paused;
 }
