@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- The TV remote leaves out its power key when the side panel already has a toggle for the same TV.
+
 ## [1.8.4] - 2026-10-13
 
 ### Added

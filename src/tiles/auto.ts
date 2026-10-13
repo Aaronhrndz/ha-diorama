@@ -222,17 +222,30 @@ export function panelWidgets(plan: CardConfig, room: RoomConfig | null): PanelWi
   return placed
 }
 
+// A remote leaves out its power key when the same list already has a toggle
+// for its entity, unless its own config says otherwise.
+function sparePower(cards: AutoCard[]): AutoCard[] {
+  const toggled = new Set(cards.filter(card => card.type === 'custom:dio-toggle').map(card => card.entity))
+  return cards.map(card =>
+    card.type === 'custom:dio-remote' && card.power === undefined && toggled.has(card.entity)
+      ? { ...card, power: false }
+      : card,
+  )
+}
+
 export function autoGroups(plan: CardConfig): AutoGroup[] {
   const groups: AutoGroup[] = []
-  const home = panelWidgets(plan, null).map(widget => chosen(widget.auto, widget.choice))
+  const home = sparePower(panelWidgets(plan, null).map(widget => chosen(widget.auto, widget.choice)))
   if (home.length) {
     const title: AutoCard = { type: 'custom:dio-title', title: plan.home?.name || 'Home', never_hide: true }
     groups.push({ room: null, cards: [title, ...home] })
   }
   for (const room of panelRooms(plan)) {
-    const tiles = panelWidgets(plan, room)
-      .filter(widget => !room.hidden?.includes(widget.entity))
-      .map(widget => chosen(widget.auto, widget.choice))
+    const tiles = sparePower(
+      panelWidgets(plan, room)
+        .filter(widget => !room.hidden?.includes(widget.entity))
+        .map(widget => chosen(widget.auto, widget.choice)),
+    )
     if (tiles.length) groups.push({ room: room.id, cards: [heading(room), ...tiles] })
   }
   return groups
