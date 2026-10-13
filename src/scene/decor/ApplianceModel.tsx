@@ -29,7 +29,7 @@ import {
 import type { ItemState } from '#/scene/decor/state.ts'
 import type { DecorationConfig } from '#/types.ts'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useLive } from '#/scene/live.ts'
+import { shadowless, useLive } from '#/scene/live.ts'
 import { useMemo, useRef } from 'react'
 import { Color, Shape, type Group, type Mesh } from 'three'
 
@@ -102,6 +102,7 @@ function Drum({ running, position, radius }: { running: boolean; position: [numb
   const ref = useRef<Group>(null)
   useLive(running)
   useFrame((_, delta) => {
+    shadowless(ref.current)
     if (running && ref.current) ref.current.rotation.z += delta * 2.2
   })
   return (

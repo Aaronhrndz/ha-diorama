@@ -1,12 +1,14 @@
 // The card draws at most sixty frames a second. A screen that refreshes
 // faster asks for a frame twice as often, and drawing every one of them
-// doubled the work for a picture the eye can barely tell apart. The ticks in
+// doubled the work for a picture the eye can barely tell apart. Performance
+// mode, a developer setting, lowers that to twenty four. The ticks in
 // between still run, so the camera and whatever moves keep their time, but
 // nothing is drawn on them.
 
+import { MAX_FPS, PERFORMANCE_MAX_FPS } from '#/constants.ts'
+import { devSettings } from '#/lib/devSettings.ts'
 import type { Clock } from 'three'
 
-const GAP_S = 1 / 60
 // A tick a hair early still counts, or a sixty hertz screen would lose one
 // frame in every few to the jitter of its own timing.
 const SLACK_S = 0.002
@@ -25,7 +27,8 @@ export function due(clock: Clock) {
   if (t < p.tick) p.next = 0
   p.tick = t
   p.answer = t + SLACK_S >= p.next
+  const gap = 1 / (devSettings().performance ? PERFORMANCE_MAX_FPS : MAX_FPS)
   // After a rest the next frame is a whole gap away, not owed at once.
-  if (p.answer) p.next = t - p.next > GAP_S ? t + GAP_S : p.next + GAP_S
+  if (p.answer) p.next = t - p.next > gap ? t + gap : p.next + gap
   return p.answer
 }

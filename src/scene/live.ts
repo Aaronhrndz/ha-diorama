@@ -1,5 +1,7 @@
-import { useFrame, useThree } from '@react-three/fiber'
+import { LIVE_FPS } from '#/constants.ts'
+import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
+import { Mesh, type Object3D } from 'three'
 
 // The card draws a frame only when something in it has changed: a light
 // switching, the camera moving, a door swinging. A room that sits still
@@ -8,17 +10,42 @@ import { useEffect } from 'react'
 // has to ask for the next frame itself, and these are the two ways to ask.
 
 // Keeps frames coming for as long as `active`: for a fan that spins, a
-// picture that plays, a flame that flickers. The first frame is asked for
-// when it turns on, and the last one when it turns off, so what it leaves
-// behind is drawn too.
+// picture that plays, a flame that flickers. They come a few times a second,
+// see LIVE_FPS, since asked for on every frame a spinning fan alone kept the
+// card drawing sixty a second. Anything else that moves, the camera or a
+// light fading, still asks for every frame, and what plays here moves on
+// each of those too. The first frame is asked for when it turns on, and the
+// last one when it turns off, so what it leaves behind is drawn too.
 export function useLive(active: boolean) {
   const invalidate = useThree(state => state.invalidate)
   useEffect(() => {
     invalidate()
+    if (!active) return
+    return beat(invalidate)
   }, [active, invalidate])
-  useFrame(() => {
-    if (active) invalidate()
-  })
+}
+
+// One timer for every live thing in a card, kept while any of them is.
+// Keyed by the card's `invalidate`.
+const beats = new Map<() => void, { users: number; id: ReturnType<typeof setInterval> }>()
+
+// Whether the card is drawing a few times a second for what moves on its
+// own, so a gap that long between frames is that pace and not a slow frame.
+export const beating = (invalidate: () => void) => beats.has(invalidate)
+
+function beat(invalidate: () => void) {
+  let b = beats.get(invalidate)
+  if (!b) {
+    b = { users: 0, id: setInterval(invalidate, 1000 / LIVE_FPS) }
+    beats.set(invalidate, b)
+  }
+  b.users++
+  return () => {
+    b.users--
+    if (b.users > 0) return
+    clearInterval(b.id)
+    beats.delete(invalidate)
+  }
 }
 
 // Asks for a frame at the top of every second, for a clock. A frame
@@ -39,4 +66,14 @@ export function useEverySecond() {
     arm()
     return () => clearTimeout(id)
   }, [invalidate])
+}
+
+// Leaves what moves on its own out of the shadows, a fan's blades, a drum, a
+// robot on its rounds. Each frame it moves would have the sun's map and the
+// lamps' near it drawn again, the most costly part of a frame, for a shadow
+// nobody follows. Called on each frame, so parts that load later are caught.
+export function shadowless(object: Object3D | null) {
+  object?.traverse(part => {
+    if (part instanceof Mesh && !part.userData.noShadow) part.userData.noShadow = true
+  })
 }

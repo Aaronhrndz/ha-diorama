@@ -548,6 +548,20 @@ function Footer() {
                   onChange={fps => setDevSettings({ fps })}
                 />
               </label>
+              <label className="border-separator flex cursor-pointer items-center justify-between gap-4 border-t py-2.5">
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-[13px]">Performance mode</span>
+                  <span className="text-label-2 text-xs">
+                    At most 24 frames a second and no shadows, on this browser. For a phone or tablet that struggles
+                  </span>
+                </span>
+                <Switch
+                  checked={dev.performance}
+                  accent={EDITOR_TINT_COLOR}
+                  label="Performance mode"
+                  onChange={performance => setDevSettings({ performance })}
+                />
+              </label>
             </div>
           </Section>
         </div>

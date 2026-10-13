@@ -9,10 +9,12 @@ export type DevSettings = {
   open: boolean
   // The frames drawn each second, in the card's top right corner.
   fps: boolean
+  // Fewer frames and no shadows, for a phone or tablet that struggles.
+  performance: boolean
 }
 
 const KEY = 'diorama-dev'
-const NONE: DevSettings = { open: false, fps: false }
+const NONE: DevSettings = { open: false, fps: false, performance: false }
 
 function load(): DevSettings {
   try {
@@ -51,5 +53,8 @@ const subscribe = (listener: () => void) => {
     if (listeners.size === 0) removeEventListener('storage', onStorage)
   }
 }
+
+// For code that runs every frame, outside React.
+export const devSettings = () => settings
 
 export const useDevSettings = () => useSyncExternalStore(subscribe, () => settings)

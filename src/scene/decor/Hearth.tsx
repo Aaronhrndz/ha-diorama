@@ -7,7 +7,7 @@ import { Glass, Halo, Led, Material, SEG, Slab, Waves } from '#/scene/decor/part
 import type { ItemState } from '#/scene/decor/state.ts'
 import type { DecorationConfig } from '#/types.ts'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useLive } from '#/scene/live.ts'
+import { shadowless, useLive } from '#/scene/live.ts'
 import { LITTER_TURN } from '#/scene/decor/pressed.ts'
 import { useMemo, useRef, type ReactNode } from 'react'
 import { Color, Vector3, type Group } from 'three'
@@ -745,6 +745,7 @@ function Cycling({ on, children }: { on: boolean; children: ReactNode }) {
   useLive(on)
   useFrame((_, delta) => {
     if (!ref.current) return
+    shadowless(ref.current)
     const lap = Math.PI * 2
     if (on) phase.current += LITTER_TURN * lap * delta
     else {

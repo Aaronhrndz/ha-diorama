@@ -4,7 +4,7 @@ import { alongPath, legLengths, roamKey, roamRound } from '#/scene/decor/roam.ts
 import type { ItemState } from '#/scene/decor/state.ts'
 import type { DecorationConfig, Point, RoomConfig } from '#/types.ts'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useLive } from '#/scene/live.ts'
+import { shadowless, useLive } from '#/scene/live.ts'
 import { useMemo, useRef } from 'react'
 import { MathUtils, type Group } from 'three'
 
@@ -102,6 +102,7 @@ export default function Vacuum({ kind, item, state, room, all, lit }: Props) {
   useFrame((_, delta) => {
     const g = rig.current
     if (!g) return
+    shadowless(g)
     const dt = Math.min(delta, 0.1)
     // Off, it still has to drive home and turn to face the room.
     if (!on && going.current !== 'parked') invalidate()

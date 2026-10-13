@@ -1,3 +1,4 @@
+import { beating } from '#/scene/live.ts'
 import { ahead, balance } from '#/scene/pad.ts'
 import { useWarm } from '#/scene/warm.ts'
 import { useFrame, useThree } from '@react-three/fiber'
@@ -271,7 +272,9 @@ export default function Shadows() {
     armed.current = true
     since.current += delta
     if (since.current < SWEEP_S) {
-      if (owed.current === null)
+      // While something moves on its own the next frame is never far off,
+      // and booking one of its own here added frames to its slow pace.
+      if (owed.current === null && !beating(three.invalidate))
         owed.current = setTimeout(
           () => {
             owed.current = null

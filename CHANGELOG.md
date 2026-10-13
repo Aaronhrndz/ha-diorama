@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- A fan, a screen or anything else that moves on its own no longer keeps the card drawing at full speed, and what spins casts no shadow, so a phone or tablet stays cool.
+
 ## [1.8.7] - 2026-10-13
 
 ### Added
