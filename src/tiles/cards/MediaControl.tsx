@@ -122,7 +122,13 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   const playing = media?.state === 'playing'
   // A player that only says it is on, like some TVs, never tells whether it
   // plays or is paused, so its button shows both.
-  const unsure = !!media && !['playing', 'paused', 'idle', 'buffering'].includes(media.state)
+  // Some apps cast to a box, like Netflix, say they play even while paused,
+  // and then tell neither how far in nor how long it is, so their button
+  // shows both too.
+  const unsure =
+    !!media &&
+    (!['playing', 'paused', 'idle', 'buffering'].includes(media.state) ||
+      (media !== entity && playing && told.media_position == null && told.media_duration == null))
   const picture = typeof told.entity_picture === 'string' ? told.entity_picture : null
   const square = config.art === 'icon'
   const { rows, columns } = config.grid_options ?? {}
@@ -326,8 +332,8 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
                 )}
                 {!off && can(playing ? MEDIA.pause : MEDIA.play) && (
                   <Control
-                    icon={playing ? 'ph:pause' : unsure ? 'ph:play-pause' : 'ph:play'}
-                    label={playing ? 'Pause' : unsure ? 'Play or pause' : 'Play'}
+                    icon={unsure ? 'ph:play-pause' : playing ? 'ph:pause' : 'ph:play'}
+                    label={unsure ? 'Play or pause' : playing ? 'Pause' : 'Play'}
                     onPress={play('media_play_pause', playing ? MEDIA.pause : MEDIA.play)}
                   />
                 )}

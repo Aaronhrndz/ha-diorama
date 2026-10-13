@@ -16,6 +16,7 @@ moves that section under the new version and uses it as the release notes.
 ### Fixed
 
 - A card with no buttons to show, like Now Playing while nothing plays, no longer shows an empty pill in its top right corner.
+- Now Playing on a TV box shows a play or pause button for an app that never says it is paused, like Netflix, instead of a pause button that never changes.
 
 ## [1.8.2] - 2026-10-13
 
