@@ -14,7 +14,7 @@ import type { DecorationConfig } from '#/types.ts'
 
 import { useEased } from '#/scene/decor/ease.ts'
 import { useWarmed } from '#/scene/warm.ts'
-import { useLayoutEffect, useRef, type RefObject } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import type { BufferGeometry, Camera, Group, Mesh, PointLight, RectAreaLight } from 'three'
 import type { ItemState } from '#/scene/decor/state.ts'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
@@ -38,10 +38,8 @@ function Glow({
   at,
   spread = 0,
   output = 1,
-  bulb,
 }: {
   state: LightState | null
-  bulb: RefObject<PointLight | null>
   // Where the bulb is, inside the shade rather than on the frame that holds
   // it: a floor lamp lights from the middle of its shade, not from its mast.
   at: [number, number, number]
@@ -75,6 +73,7 @@ function Glow({
   // it off while the lamp is lit would change the count of shadows behind
   // the back of what hands them out.
   const strip = useRef<RectAreaLight>(null)
+  const bulb = useRef<PointLight>(null)
   const through = useRef<PointLight>(null)
   const latestRank = useRef(rank)
   useLayoutEffect(() => {
@@ -145,29 +144,36 @@ function Glow({
 // still cast for the sun and for every other lamp. Three asks no one which
 // light a part should cast for, so the part is drawn as nothing while the
 // shadow of its own bulb is drawn.
-function ownShadowless(group: Group, bulb: RefObject<PointLight | null>) {
+function ownShadowless(group: Group) {
+  const lights: PointLight[] = []
+  group.traverse(object => {
+    if ((object as PointLight).isPointLight && !object.userData.through) lights.push(object as PointLight)
+  })
+  // The bulb stays mounted while the lamp is off, so its camera is the same
+  // for as long as the lamp is.
+  const camera = lights[0]?.shadow.camera
+  if (!camera) return
   let held = 0
   group.traverse(object => {
     const mesh = object as Mesh
     if (!mesh.isMesh || mesh.userData.ownShadowless) return
     mesh.userData.ownShadowless = true
     mesh.onBeforeShadow = (_r, _o, _c, shadowCamera: Camera, geometry: BufferGeometry) => {
-      if (shadowCamera !== bulb.current?.shadow.camera) return
+      if (shadowCamera !== camera) return
       held = geometry.drawRange.count
       geometry.drawRange.count = 0
     }
     mesh.onAfterShadow = (_r, _o, _c, shadowCamera: Camera, geometry: BufferGeometry) => {
-      if (shadowCamera === bulb.current?.shadow.camera) geometry.drawRange.count = held
+      if (shadowCamera === camera) geometry.drawRange.count = held
     }
   })
 }
 
 export default function LightModel({ kind, item, state }: Props) {
   const own = useRef<Group>(null)
-  const bulb = useRef<PointLight>(null)
   // Again after every render, for the parts a new style or size brings.
   useLayoutEffect(() => {
-    if (own.current) ownShadowless(own.current, bulb)
+    if (own.current) ownShadowless(own.current)
   })
   const p = (id: string) => paramValue(kind, item.params, id, item.variant)
   const c = (slot: string) => colorValue(kind, item.colors, slot, item.variant)
@@ -275,9 +281,9 @@ export default function LightModel({ kind, item, state }: Props) {
   }
 
   return (
-    <>
-      <group ref={own}>{body}</group>
-      <Glow state={state} at={glowAt} spread={glowSpread} output={LAMP_OUTPUT[kind.id] ?? 1} bulb={bulb} />
-    </>
+    <group ref={own}>
+      {body}
+      <Glow state={state} at={glowAt} spread={glowSpread} output={LAMP_OUTPUT[kind.id] ?? 1} />
+    </group>
   )
 }
