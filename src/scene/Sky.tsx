@@ -21,7 +21,7 @@ import {
   NIGHT_SUN_COLOR,
   NIGHT_SUN_INTENSITY,
 } from '#/theme.ts'
-import { useDevSettings } from '#/lib/devSettings.ts'
+import { lean as isLean, useDevSettings } from '#/lib/devSettings.ts'
 import type { HomeAssistant, RoomConfig } from '#/types.ts'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
@@ -47,7 +47,7 @@ export default function Sky({
   // Compass bearing the sun comes from, clockwise from the top of the plan.
   direction?: number
 }) {
-  const lean = useDevSettings().performance
+  const lean = isLean(useDevSettings())
   const target = daylight(sunElevation(hass, mode === 'auto' ? undefined : mode))
   const level = useRef(target.level)
   const height = useRef(target.height)
@@ -170,7 +170,7 @@ export default function Sky({
         position={where}
         intensity={DAY_SUN_INTENSITY}
         color={DAY_SUN_COLOR}
-        // Performance mode, a developer setting, leaves the sun without one.
+        // Performance mode, on a phone or tablet, leaves the sun without one.
         castShadow={!lean}
         // The map is fitted to the flat and kept coarse on purpose, which is
         // what softens daylight: a piece gets a soft pool under it rather

@@ -75,7 +75,7 @@ export const MAX_SHADOW_LAMPS_TOUCH = 6
 // nothing else is moving. Enough to read as motion, at a quarter of the work.
 // A camera moving or a light fading still draws at the full rate.
 export const LIVE_FPS = 16
-// The most frames a second, and in performance mode, a developer setting.
+// The most frames a second, and in performance mode, on a phone or tablet.
 export const MAX_FPS = 60
 export const PERFORMANCE_MAX_FPS = 24
 // The hour the editor lights its preview at, and the one its N key flips to.

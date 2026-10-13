@@ -550,16 +550,16 @@ function Footer() {
               </label>
               <label className="border-separator flex cursor-pointer items-center justify-between gap-4 border-t py-2.5">
                 <span className="flex min-w-0 flex-col">
-                  <span className="text-[13px]">Performance mode</span>
+                  <span className="text-[13px]">Performance mode on touch screens</span>
                   <span className="text-label-2 text-xs">
-                    At most 24 frames a second and no shadows, on this browser. For a phone or tablet that struggles
+                    At most 24 frames a second and no shadows on a phone or tablet. Turn it off here for the full picture on this browser
                   </span>
                 </span>
                 <Switch
-                  checked={dev.performance}
+                  checked={dev.touchPerformance}
                   accent={EDITOR_TINT_COLOR}
-                  label="Performance mode"
-                  onChange={performance => setDevSettings({ performance })}
+                  label="Performance mode on touch screens"
+                  onChange={touchPerformance => setDevSettings({ touchPerformance })}
                 />
               </label>
             </div>

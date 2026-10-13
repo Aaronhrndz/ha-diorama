@@ -1,3 +1,4 @@
+import { coarseOnly } from '#/scene/device.ts'
 import { useSyncExternalStore } from 'react'
 
 // Settings for whoever works on the card, found by tapping the version at
@@ -9,12 +10,13 @@ export type DevSettings = {
   open: boolean
   // The frames drawn each second, in the card's top right corner.
   fps: boolean
-  // Fewer frames and no shadows, for a phone or tablet that struggles.
-  performance: boolean
+  // Performance mode on a phone or tablet, on unless turned off here: fewer
+  // frames and no shadows. A computer never has it.
+  touchPerformance: boolean
 }
 
 const KEY = 'diorama-dev'
-const NONE: DevSettings = { open: false, fps: false, performance: false }
+const NONE: DevSettings = { open: false, fps: false, touchPerformance: true }
 
 function load(): DevSettings {
   try {
@@ -56,5 +58,8 @@ const subscribe = (listener: () => void) => {
 
 // For code that runs every frame, outside React.
 export const devSettings = () => settings
+
+// Whether the card runs in performance mode on this device.
+export const lean = (from: DevSettings = settings) => from.touchPerformance && coarseOnly()
 
 export const useDevSettings = () => useSyncExternalStore(subscribe, () => settings)
