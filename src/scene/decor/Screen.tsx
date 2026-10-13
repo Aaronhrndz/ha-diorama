@@ -182,6 +182,10 @@ function drawOver(
     context.fillStyle = shade
     context.fillRect(0, canvas.height - rise, canvas.width, rise)
     context.fillStyle = '#ffffff'
+    // A black outline round each letter, as subtitles have.
+    context.strokeStyle = '#000000'
+    context.lineWidth = size * 0.16
+    context.lineJoin = 'round'
     lines.forEach((text, i) => {
       let shown = text
       if (context.measureText(shown).width > room) {
@@ -189,6 +193,7 @@ function drawOver(
         shown = `${shown.trimEnd()}…`
       }
       const y = canvas.height - pad - (lines.length - 1 - i) * size * 1.2 - size * 0.25
+      context.strokeText(shown, pad, y)
       context.fillText(shown, pad, y)
     })
   }
