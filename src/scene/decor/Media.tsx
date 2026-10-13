@@ -63,7 +63,7 @@ export function Beam({
   strength: number
   showing?: Showing | null
 }) {
-  const material = useBeamScene(0.28 * strength, useShowingColor(showing))
+  const material = useBeamScene(0.24 * strength, useShowingColor(showing))
   const from = useRef<Group>(null)
   const thrown = useThrow(from, length, strength, showing)
   const geometry = useMemo(() => {
@@ -75,8 +75,8 @@ export function Beam({
       const along = t * BEAM_REACH
       const hx = LENS + (width / 2 - LENS) * along
       const hy = LENS + (width / 2 / (16 / 9) - LENS) * along
-      // Brightest just out of the lens, gone by the end of what is drawn.
-      const fade = Math.pow(1 - t, 1.8) * Math.min(1, t * 5 + 0.2)
+      // Faint at the lens, brightest a little out of it, gone by the end.
+      const fade = Math.pow(1 - t, 1.8) * Math.min(1, t * 3 + 0.1)
       for (const [sx, sy] of CORNERS) {
         const x = sx * hx
         const y = sy * hy
@@ -144,7 +144,7 @@ export function Beam({
             color="#eef3ff"
             vertexColors
             transparent
-            opacity={0.28 * strength}
+            opacity={0.24 * strength}
             blending={AdditiveBlending}
             depthWrite={false}
             side={DoubleSide}
