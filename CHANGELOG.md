@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.14] - 2026-10-13
+
 ### Fixed
 
 - A TV or speaker whose state Home Assistant does not know yet no longer shows as on in the model.
@@ -557,7 +559,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.13...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.14...HEAD
+[1.8.14]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.13...v1.8.14
 [1.8.13]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.12...v1.8.13
 [1.8.12]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.11...v1.8.12
 [1.8.11]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.10...v1.8.11
