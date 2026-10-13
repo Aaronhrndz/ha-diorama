@@ -211,10 +211,13 @@ function drawOver(
     if (subtitle) {
       context.font = `500 ${small}px Inter, system-ui, sans-serif`
       context.lineWidth = small * 0.16
-      context.fillStyle = 'rgba(255, 255, 255, 0.72)'
+      context.fillStyle = '#ffffff'
+      // Faded, outline and all, so it reads as a note to the title.
+      context.globalAlpha = 0.5
       const y = canvas.height - pad - small * 0.25
       context.strokeText(subtitle, pad, y)
       context.fillText(subtitle, pad, y)
+      context.globalAlpha = 1
     }
   }
 }
