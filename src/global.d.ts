@@ -1,6 +1,11 @@
 import type { HTMLAttributes } from 'react'
 import type { HomeAssistant } from '#/types.ts'
 
+// Baked in by the build from package.json.
+declare global {
+  const __CARD_VERSION__: string
+}
+
 declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
