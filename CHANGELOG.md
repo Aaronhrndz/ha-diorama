@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.13] - 2026-10-13
+
 ### Fixed
 
 - On a narrow phone, the remote's volume and buttons on a TV card no longer run under its round pad.
@@ -551,7 +553,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.12...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.13...HEAD
+[1.8.13]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.12...v1.8.13
 [1.8.12]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.11...v1.8.12
 [1.8.11]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.10...v1.8.11
 [1.8.10]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.9...v1.8.10
