@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.9] - 2026-10-13
+
 ### Added
 
 - The now playing card turns its player on with a double tap while it is off, then fades into what plays, and has a power button that turns it off on a second press, so it needs no other card to turn it on and off. A remote beside it, or beside a toggle for the same device, leaves out its power key.
@@ -513,7 +515,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.8...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.9...HEAD
+[1.8.9]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.8...v1.8.9
 [1.8.8]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.7...v1.8.8
 [1.8.7]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.6...v1.8.7
 [1.8.6]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.5...v1.8.6
