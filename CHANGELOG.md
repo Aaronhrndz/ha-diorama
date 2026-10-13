@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.3] - 2026-10-13
+
 ### Changed
 
 - The volume on the wide TV Remote sits on the left of the arrows, centered on them, away from the icon.
@@ -447,7 +449,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.2...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.3...HEAD
+[1.8.3]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.2...v1.8.3
 [1.8.2]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.1...v1.8.2
 [1.8.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.1...v1.8.0
