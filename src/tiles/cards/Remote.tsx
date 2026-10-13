@@ -335,11 +335,11 @@ const ARROWS: Arrow[] = ['up', 'right', 'down', 'left']
 // How far a finger goes on the pad before it steers that way.
 const SWIPE_PX = 28
 // How often the pad sends the way it is steered while the finger stays
-// down: once a second at first, like stepping through a row of videos, and
-// a little sooner each time, down to a few a second.
-const STEER_FIRST_MS = 1000
-const STEER_FASTEST_MS = 300
-const STEER_SOONER = 0.8
+// down: twice a second at first, like stepping through a row of videos,
+// and a little sooner each time, up to four a second.
+const STEER_FIRST_MS = 500
+const STEER_FASTEST_MS = 250
+const STEER_SOONER = 0.85
 
 // How long a pulse of light lasts on the pad when a key is sent.
 const PULSE_MS = 260
