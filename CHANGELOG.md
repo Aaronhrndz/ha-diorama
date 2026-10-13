@@ -13,6 +13,10 @@ moves that section under the new version and uses it as the release notes.
 
 - A projector now shows the logo and the title of what it plays on its screen, as its card does, instead of only the colors.
 
+### Changed
+
+- A TV or a projector that does not say what it plays shows the name of its app on its screen.
+
 ## [1.8.14] - 2026-10-13
 
 ### Fixed

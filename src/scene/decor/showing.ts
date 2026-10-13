@@ -40,8 +40,9 @@ export function showingOf(hass: HomeAssistant, entityId: string): Showing | null
     colors: known?.colors ?? NEUTRAL,
     art: typeof told.entity_picture === 'string' ? told.entity_picture : null,
     logo: known ? { src: known.logo.dark, mono: !!known.logo.mono } : null,
-    // A known app already shows as its logo, so only another one is named.
-    title: said ?? (known ? null : named),
+    // With nothing told of what plays, the name of the app it plays from,
+    // as people know it rather than as its package.
+    title: said ?? known?.name ?? named,
     playing: media.state === 'playing',
   }
 }
