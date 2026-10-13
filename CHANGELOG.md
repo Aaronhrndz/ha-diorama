@@ -15,7 +15,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-- Under the title of what plays, a TV or a projection screen shows the name of its app in a smaller line.
+- Under the title of what plays, a TV or a projection screen shows the artist, the album or the app in a smaller line, as its card does.
 
 ## [1.8.15] - 2026-10-13
 

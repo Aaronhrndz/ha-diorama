@@ -13,8 +13,8 @@ export type Showing = {
   // made white.
   logo: { src: string; mono: boolean } | null
   title: string | null
-  // The app it plays from, in a smaller line under a title that is not
-  // already its name.
+  // The artist, the album or the app, in a smaller line under the title,
+  // as on the card.
   subtitle: string | null
   playing: boolean
 }
@@ -35,18 +35,24 @@ export function showingOf(hass: HomeAssistant, entityId: string): Showing | null
   const known = appOf(entity.attributes.app_name, entity.attributes.app_id)
   const said =
     typeof told.media_title === 'string' && !PLACEHOLDER.test(told.media_title.trim()) ? told.media_title : null
-  const named =
-    typeof entity.attributes.app_name === 'string' && !PACKAGE.test(entity.attributes.app_name)
+  const app =
+    known?.name ??
+    (typeof entity.attributes.app_name === 'string' && !PACKAGE.test(entity.attributes.app_name)
       ? entity.attributes.app_name
-      : null
+      : null)
+  // The line under the title, as on the card: the artist, or else the
+  // album, or else the app it plays from.
+  const artist =
+    ([told.media_artist, told.media_album_name, app].find(part => typeof part === 'string' && part) as
+      string | undefined) ?? null
   return {
     colors: known?.colors ?? NEUTRAL,
     art: typeof told.entity_picture === 'string' ? told.entity_picture : null,
     logo: known ? { src: known.logo.dark, mono: !!known.logo.mono } : null,
-    // With nothing told of what plays, the name of the app it plays from,
-    // as people know it rather than as its package.
-    title: said ?? known?.name ?? named,
-    subtitle: said ? (known?.name ?? named) : null,
+    // With nothing told of what plays, that line takes its place, which is
+    // the name of the app as people know it rather than as its package.
+    title: said ?? artist,
+    subtitle: said ? artist : null,
     playing: media.state === 'playing',
   }
 }
