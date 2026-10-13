@@ -1,5 +1,6 @@
 import { cn } from '#/lib/utils.ts'
 import { appOf, PACKAGE } from '#/tiles/apps.ts'
+import { PLACEHOLDER, twinOf } from '#/tiles/playing.ts'
 import { callService, entityName, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
 import { useArmed, useConfirm } from '#/tiles/twice.ts'
 import { Control } from '#/tiles/Control.tsx'
@@ -9,7 +10,6 @@ import { useNow } from '#/tiles/history.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
 import { cornerOf, CornerKeys, remoteOf, RemoteKeys, type RemoteConfig } from '#/tiles/cards/Remote.tsx'
-import type { EntityState, HomeAssistant } from '#/types.ts'
 import {
   useEffect,
   useLayoutEffect,
@@ -23,8 +23,6 @@ const OFF = ['off', 'standby', 'unavailable', 'unknown']
 // The colors of the light behind a card that plays from an app it does
 // not know, or that tells of none.
 const NEUTRAL = ['var(--_accent-media)', '#7c8aa5', '#5b6b8c']
-// What a player puts in the title when it has none.
-const PLACEHOLDER = /^not provided$/i
 // How far a finger goes sideways before the press is a drag along the song.
 const SLOP_PX = 8
 // How long the lit card takes to fade into what plays once it is on.
@@ -43,35 +41,6 @@ const clock = (seconds: number) => {
   const hours = Math.floor(minutes / 60)
   const pad = (n: number) => String(n).padStart(2, '0')
   return hours ? `${hours}:${pad(minutes % 60)}:${pad(whole % 60)}` : `${minutes}:${pad(whole % 60)}`
-}
-
-// What a player does while something is open in it.
-const SESSION = ['playing', 'paused', 'buffering']
-
-// A player that only assumes what it does, like a TV box driven as its
-// remote, cannot tell what plays in it. Another player of a device with the
-// same name, like the one the box casts from, may tell it while something
-// is open in it: whether it plays or is paused, and which buttons the app
-// takes, as some apps never skip to the next or the previous.
-function twinOf(hass: HomeAssistant, entityId: string, entity: EntityState): EntityState | undefined {
-  if (entity.attributes.assumed_state !== true) return undefined
-  const registry = hass.entities ?? {}
-  const deviceName = (id: string) => {
-    const device = hass.devices?.[registry[id]?.device_id ?? '']
-    return device?.name_by_user ?? device?.name ?? undefined
-  }
-  const own = registry[entityId]?.device_id
-  const name = deviceName(entityId)
-  if (!own || !name) return undefined
-  const id = Object.keys(registry).find(
-    id =>
-      id !== entityId &&
-      id.startsWith('media_player.') &&
-      registry[id].device_id !== own &&
-      deviceName(id) === name &&
-      SESSION.includes(hass.states[id]?.state ?? ''),
-  )
-  return id ? hass.states[id] : undefined
 }
 
 // What the progress leaves out: the boxes that hold the buttons and the

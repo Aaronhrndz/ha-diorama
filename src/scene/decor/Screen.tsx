@@ -1,12 +1,25 @@
 import { useFrame } from '@react-three/fiber'
 import { throws, useThrown } from '#/scene/decor/throw.ts'
-import { screenTint } from '#/scene/decor/tint.ts'
+import { screenTint, showingTint } from '#/scene/decor/tint.ts'
 import { useEased } from '#/scene/decor/ease.ts'
 import { useLive } from '#/scene/live.ts'
 import { useWarmed } from '#/scene/warm.ts'
 import { LAMP_SHADOW_MAP_PX, LAMP_SHADOW_RADIUS } from '#/constants.ts'
-import { useLayoutEffect, useMemo, useRef } from 'react'
-import { DoubleSide, Vector3, type Mesh, type Object3D, type PointLight, type ShaderMaterial } from 'three'
+import { sameShowing, usePicture, useShowingColor, type Showing } from '#/scene/decor/showing.ts'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  CanvasTexture,
+  DoubleSide,
+  LinearMipmapLinearFilter,
+  NoColorSpace,
+  Texture,
+  Vector2,
+  Vector3,
+  type Mesh,
+  type Object3D,
+  type PointLight,
+  type ShaderMaterial,
+} from 'three'
 
 // A screen that is playing. Soft blocks of changing color glow out of black
 // and drift across it, so a TV or a monitor that is on reads as running
@@ -26,6 +39,18 @@ precision mediump float;
 varying vec2 vUv;
 uniform float uTime;
 uniform float uLevel;
+// 0 for the colors it always had, 1 for the colors of an app, and 2 for
+// cover art.
+uniform float uMode;
+uniform vec3 uA;
+uniform vec3 uB;
+uniform vec3 uC;
+uniform sampler2D uArt;
+// How much of the art shows across and up, so it covers the screen.
+uniform vec2 uFit;
+// The logo and the title, over the picture.
+uniform sampler2D uOver;
+uniform float uHasOver;
 
 // A deep, muted color of the given hue, from 0 to 1 round the wheel.
 vec3 shade(float h) {
@@ -39,32 +64,205 @@ void main() {
   float a = sin(p.x * 4.0 + t * 1.7) * 0.5 + 0.5;
   float b = sin((p.y + p.x * 0.4) * 5.0 - t * 2.1) * 0.5 + 0.5;
   float c = sin((p.y - p.x) * 3.0 + t * 1.1) * 0.5 + 0.5;
-  // The hue starts on blue green and sways between greens and blues. Once
-  // every hundred seconds it goes the whole way round the wheel, through
-  // the yellows, oranges, reds and pinks, and back to blue green in half a
-  // minute. The blocks drift between the tone of the moment and its
-  // neighbor, so there are never more than two colors on it at once.
-  float trip = smoothstep(0.7, 1.0, fract(uTime / 100.0));
-  float hue = 0.47 + 0.1 * sin(uTime * 0.15) + trip;
-  vec3 col = mix(shade(hue), shade(hue + 0.08), clamp(a * 0.6 + c * 0.4, 0.0, 1.0));
-  // The colors glow out of a black screen, brightest where the waves overlap.
+  // The colors glow out of a dark screen, brightest where the waves overlap.
   float glow = smoothstep(0.0, 0.75, a * 0.45 + c * 0.35 + b * 0.2);
-  col = mix(vec3(0.02, 0.02, 0.03), col, glow);
+  vec3 col;
+  if (uMode > 1.5) {
+    // The cover art, darkened a little so the words over it read, and
+    // softened only a hint, so it shows almost as sharp as it is.
+    vec3 art = texture2D(uArt, (p - 0.5) * uFit + 0.5, 0.3).rgb;
+    float grey = dot(art, vec3(0.299, 0.587, 0.114));
+    col = mix(vec3(grey), art, 1.2) * 0.8;
+  } else if (uMode > 0.5) {
+    // The app's three colors in the same waves, out of a dark shade of its
+    // first one, as on its card.
+    vec3 lit = mix(mix(uA, uB, clamp(a * 0.6 + c * 0.4, 0.0, 1.0)), uC, b * 0.35);
+    col = mix(uA * 0.3, lit * 0.6, glow * 0.85);
+  } else {
+    // The hue starts on blue green and sways between greens and blues. Once
+    // every hundred seconds it goes the whole way round the wheel, through
+    // the yellows, oranges, reds and pinks, and back to blue green in half a
+    // minute. The blocks drift between the tone of the moment and its
+    // neighbor, so there are never more than two colors on it at once.
+    float trip = smoothstep(0.7, 1.0, fract(uTime / 100.0));
+    float hue = 0.47 + 0.1 * sin(uTime * 0.15) + trip;
+    col = mix(shade(hue), shade(hue + 0.08), clamp(a * 0.6 + c * 0.4, 0.0, 1.0));
+    col = mix(vec3(0.02, 0.02, 0.03), col, glow);
+  }
+  vec4 over = texture2D(uOver, p);
+  col = mix(col, over.rgb, over.a * uHasOver);
   gl_FragColor = vec4(col, uLevel);
 }
 `
 
-// `level`, when given, fades the picture in over whatever is behind it, for
-// one that is thrown onto a projection screen rather than lit from inside.
-export default function ScreenMaterial({ level }: { level?: { current: number } }) {
+// The colors of a hex color from 0 to 1, as they are, the way the picture
+// writes its own.
+const rgbOf = (hex: string, out: Vector3) =>
+  out.set(parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255)
+
+// How wide a card is, in its own pixels, for a TV to show what plays in
+// the same proportions. A projection is bigger and seen from further, so
+// its logo and its words take less of it.
+export const TV_CARD_PX = 360
+export const PROJECTION_CARD_PX = 520
+// The logo, the title and the space round them on a card, in its pixels.
+const PADDING_PX = 18
+const LOGO_PX = 30
+const LOGO_MAX_PX = 120
+const TITLE_PX = 15
+// How wide the drawing of the words and the logo is, in texture pixels.
+const OVER_PX = 1024
+
+// The logo in the top left corner and the title in the bottom left one, on
+// a clear canvas `aspect` times as wide as it is tall, as on a card `card`
+// pixels wide.
+function drawOver(
+  canvas: HTMLCanvasElement,
+  aspect: number,
+  card: number,
+  logo: { image: HTMLImageElement; mono: boolean } | null,
+  title: string | null,
+) {
+  canvas.width = OVER_PX
+  canvas.height = Math.round(OVER_PX / aspect)
+  const context = canvas.getContext('2d')
+  if (!context) return
+  const k = OVER_PX / card
+  const pad = PADDING_PX * k
+  context.clearRect(0, 0, canvas.width, canvas.height)
+  if (logo) {
+    const { naturalWidth: lw, naturalHeight: lh } = logo.image
+    const ratio = lw && lh ? lw / lh : 3
+    // A long wordmark stands lower, as on the card.
+    let h = LOGO_PX * k * Math.min(1, (ratio / 2) ** -0.5)
+    let w = h * ratio
+    if (w > LOGO_MAX_PX * k) {
+      w = LOGO_MAX_PX * k
+      h = w / ratio
+    }
+    // On a soft shadow, so a logo in the colors of its own app, like a red
+    // one over red, still stands out of them.
+    context.filter = `${logo.mono ? 'brightness(0) invert(1) ' : ''}drop-shadow(0 0 ${6 * k}px rgba(0, 0, 0, 0.6))`
+    context.drawImage(logo.image, pad, pad, w, h)
+    context.filter = 'none'
+  }
+  if (title) {
+    const size = TITLE_PX * k
+    context.font = `600 ${size}px Inter, system-ui, sans-serif`
+    context.fillStyle = '#ffffff'
+    context.textBaseline = 'alphabetic'
+    // Two lines at most, the second cut short, as on the card.
+    const room = canvas.width * 0.62
+    const words = title.split(/\s+/)
+    const lines: string[] = []
+    let line = ''
+    for (const word of words) {
+      const next = line ? `${line} ${word}` : word
+      if (line && context.measureText(next).width > room) {
+        lines.push(line)
+        line = word
+      } else line = next
+    }
+    lines.push(line)
+    if (lines.length > 2) lines.splice(2, lines.length, lines.slice(1).join(' '))
+    lines.forEach((text, i) => {
+      let shown = text
+      if (context.measureText(shown).width > room) {
+        while (shown.length > 1 && context.measureText(`${shown}…`).width > room) shown = shown.slice(0, -1)
+        shown = `${shown.trimEnd()}…`
+      }
+      const y = canvas.height - pad - (lines.length - 1 - i) * size * 1.2 - size * 0.25
+      context.fillText(shown, pad, y)
+    })
+  }
+}
+
+/**
+ * A screen that plays. Bound to a player that is on, it shows what plays
+ * the way its card does: the cover art, or else the colors of its app in
+ * the same waves, held still while it is paused, with the app's logo and
+ * the title over them. `aspect` is how much wider the picture is than it is
+ * tall and `card` how wide a card it is drawn like, in the card's pixels.
+ * `level`, when given, fades the picture in over whatever is behind it, for
+ * one that is thrown onto a projection screen rather than lit from inside.
+ */
+export default function ScreenMaterial({
+  level,
+  showing,
+  aspect = 16 / 9,
+  card = TV_CARD_PX,
+}: {
+  level?: { current: number }
+  showing?: Showing | null
+  aspect?: number
+  card?: number
+}) {
   const ref = useRef<ShaderMaterial>(null)
-  const uniforms = useMemo(() => ({ uTime: { value: 0 }, uLevel: { value: 1 } }), [])
+  const over = useMemo(() => {
+    const texture = new CanvasTexture(document.createElement('canvas'))
+    texture.colorSpace = NoColorSpace
+    return texture
+  }, [])
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uLevel: { value: 1 },
+      uMode: { value: 0 },
+      uA: { value: new Vector3() },
+      uB: { value: new Vector3() },
+      uC: { value: new Vector3() },
+      uArt: { value: null as Texture | null },
+      uFit: { value: new Vector2(1, 1) },
+      uOver: { value: over },
+      uHasOver: { value: 0 },
+    }),
+    [over],
+  )
+  const cover = usePicture(showing?.art)
+  const logo = usePicture(showing?.logo?.src)
+  const art = useMemo(() => {
+    if (!cover) return null
+    const texture = new Texture(cover.image)
+    texture.colorSpace = NoColorSpace
+    texture.minFilter = LinearMipmapLinearFilter
+    texture.needsUpdate = true
+    return texture
+  }, [cover])
+  useEffect(() => () => art?.dispose(), [art])
+  useEffect(() => () => over.dispose(), [over])
+  const title = showing?.title ?? null
+  const mono = !!showing?.logo?.mono
+  useLayoutEffect(() => {
+    // The material keeps its own copy of the uniforms, so its are the ones
+    // set.
+    const u = (ref.current?.uniforms ?? uniforms) as typeof uniforms
+    u.uOver.value = over
+    u.uMode.value = !showing ? 0 : art ? 2 : 1
+    if (showing) showing.colors.forEach((hex, i) => rgbOf(hex, [u.uA, u.uB, u.uC][i].value))
+    u.uArt.value = art
+    if (cover) {
+      // Covering the screen, cut at its long sides.
+      const ratio = cover.image.naturalWidth / Math.max(1, cover.image.naturalHeight)
+      u.uFit.value.set(ratio > aspect ? aspect / ratio : 1, ratio > aspect ? 1 : ratio / aspect)
+    }
+    const shown = showing && (logo || title)
+    u.uHasOver.value = shown ? 1 : 0
+    if (shown) {
+      drawOver(over.image as HTMLCanvasElement, aspect, card, logo && { image: logo.image, mono }, title)
+      over.needsUpdate = true
+    }
+  }, [uniforms, showing, art, cover, logo, mono, title, aspect, card, over])
   // Only shown while the screen is on, so it plays for as long as it is.
-  // On the scene's clock, so the glow round it keeps the same color.
+  // On the scene's clock, so the glow round it keeps the same color. A
+  // player's colors run on a clock of their own, which stops while it is
+  // paused.
   useLive(true)
-  useFrame(({ clock }) => {
+  const own = useRef(0)
+  const still = !!showing && !showing.playing
+  useFrame(({ clock }, delta) => {
     if (!ref.current) return
-    ref.current.uniforms.uTime.value = clock.elapsedTime
+    if (!still) own.current += delta
+    ref.current.uniforms.uTime.value = showing ? own.current : clock.elapsedTime
     // Copied each frame, since the material keeps its own copy of the uniforms.
     if (level) ref.current.uniforms.uLevel.value = level.current
   })
@@ -92,11 +290,13 @@ export function ScreenGlow({
   position,
   intensity,
   distance,
+  showing,
 }: {
   on: boolean
   position: [number, number, number]
   intensity: number
   distance: number
+  showing?: Showing | null
 }) {
   const lit = useEased(on ? 1 : 0, 4)
   const light = useRef<PointLight>(null)
@@ -115,10 +315,13 @@ export function ScreenGlow({
     if (visible && latestRank.current > 0) light.current.castShadow = true
   })
   const rgb = useMemo<[number, number, number]>(() => [0, 0, 0], [])
+  // Showing what a player plays, it is the main color of its picture.
+  const color = useShowingColor(showing)
   useLive(on)
   useFrame(({ clock }) => {
     if (!light.current) return
-    screenTint(clock.elapsedTime, rgb)
+    if (color) showingTint(color, rgb)
+    else screenTint(clock.elapsedTime, rgb)
     light.current.color.setRGB(rgb[0], rgb[1], rgb[2])
   })
   return (
@@ -173,6 +376,9 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
   const edge = Math.min(w, h) * 0.05
   const mesh = useRef<Mesh>(null)
   const level = useRef(0)
+  // What the projector that lands on it shows.
+  const [showing, setShowing] = useState<Showing | null>(null)
+  const latest = useRef<Showing | null>(null)
   const v = useMemo(
     () => ({
       c: new Vector3(),
@@ -198,6 +404,7 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
     const home = top(sheet)
     let target = 0
     let side = 1
+    let shows: Showing | null = latest.current
     for (const t of throws) {
       const o = t.object
       if (!o || top(o) !== home) continue
@@ -214,7 +421,13 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
         target = t.strength
         // On the face the light comes from.
         side = facing < 0 ? 1 : -1
+        shows = t.showing
       }
+    }
+    // Kept while the picture fades out, so it fades out as it was.
+    if (target > 0 && !sameShowing(shows, latest.current)) {
+      latest.current = shows
+      setShowing(shows)
     }
     level.current += (target - level.current) * Math.min(1, delta * 4)
     m.visible = level.current > 0.01
@@ -223,7 +436,12 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
   return (
     <mesh ref={mesh} scale={[(w - 2 * edge) / w, Math.max(0, h * open - 2 * edge) / h, 1]}>
       <planeGeometry args={[w, h]} />
-      <ScreenMaterial level={level} />
+      <ScreenMaterial
+        level={level}
+        showing={showing}
+        aspect={(w - 2 * edge) / (h - 2 * edge)}
+        card={PROJECTION_CARD_PX}
+      />
     </mesh>
   )
 }

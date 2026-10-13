@@ -9,6 +9,14 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- A TV or a projector bound to a player shows what plays like its card does, the cover or the app's colors with its logo and the title, and lights the room in that color.
+
+### Changed
+
+- The cover on the now playing cards is only a little blurred, so it reads almost as sharp as it is.
+
 ### Fixed
 
 - Play and pause on the media and remote card go through the remote, so they work in apps like Netflix, and a `play` command can be given for a remote on another device.

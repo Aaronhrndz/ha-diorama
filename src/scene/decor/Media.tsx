@@ -1,6 +1,7 @@
 import { Halo, Led, Material, SEG, Slab, Spinner, Waves } from '#/scene/decor/parts.tsx'
 import { useBeamScene } from '#/scene/decor/beam.ts'
 import { ScreenGlow } from '#/scene/decor/Screen.tsx'
+import { useShowingColor, type Showing } from '#/scene/decor/showing.ts'
 import { useThrow } from '#/scene/decor/throw.ts'
 import { useMemo, useRef, type ReactNode } from 'react'
 import {
@@ -35,10 +36,22 @@ export type Look = {
 // How far along the throw the beam is drawn before it has faded away.
 const BEAM_REACH = 0.85
 
-export function Beam({ length, width, strength }: { length: number; width: number; strength: number }) {
-  const material = useBeamScene(0.28 * strength)
+// `showing` is what a player behind the projector plays, which the beam
+// takes the color of and a projection screen it lands on shows.
+export function Beam({
+  length,
+  width,
+  strength,
+  showing = null,
+}: {
+  length: number
+  width: number
+  strength: number
+  showing?: Showing | null
+}) {
+  const material = useBeamScene(0.28 * strength, useShowingColor(showing))
   const from = useRef<Group>(null)
-  useThrow(from, length, strength)
+  useThrow(from, length, strength, showing)
   const geometry = useMemo(() => {
     const rows = 24
     const lens = 0.012
@@ -93,7 +106,13 @@ export function Beam({ length, width, strength }: { length: number; width: numbe
         </mesh>
       )}
       {/* Three quarters of the way along the haze, the picture's colors light the room. */}
-      <ScreenGlow on={strength > 0.5} position={[0, 0, length * BEAM_REACH * 0.75]} intensity={0.6} distance={3} />
+      <ScreenGlow
+        on={strength > 0.5}
+        position={[0, 0, length * BEAM_REACH * 0.75]}
+        intensity={0.6}
+        distance={3}
+        showing={showing}
+      />
     </group>
   )
 }
@@ -586,12 +605,14 @@ export function PortableProjector({
   swing,
   lit,
   look,
+  showing,
 }: {
   s: number
   throwLength: number
   swing: number
   lit: number
   look: Look
+  showing?: Showing | null
 }) {
   const { paint, color } = look
   const r = s / 2
@@ -644,7 +665,12 @@ export function PortableProjector({
           {paint('cradle')}
         </mesh>
         <group position={[0, 0, len / 2 + 0.006]}>
-          <Beam length={throwLength} width={throwLength * 0.55} strength={lit * Math.max(0, (swing - 0.85) / 0.15)} />
+          <Beam
+            length={throwLength}
+            width={throwLength * 0.55}
+            strength={lit * Math.max(0, (swing - 0.85) / 0.15)}
+            showing={showing}
+          />
         </group>
       </group>
     </group>

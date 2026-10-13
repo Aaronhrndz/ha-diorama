@@ -5,6 +5,7 @@ import { DOOR_KINDS } from '#/geometry/passages.ts'
 import DecorationModel from '#/scene/decor/DecorationModel.tsx'
 import type { PressAction } from '#/scene/decor/press.ts'
 import { deskRise } from '#/scene/decor/state.ts'
+import { showingOf } from '#/scene/decor/showing.ts'
 import type { ItemState } from '#/scene/decor/state.ts'
 import {
   clickAction,
@@ -144,6 +145,7 @@ function itemState(
     value: v.value,
     text: v.state,
     presses: signals.includes('press') ? countPresses(presses, entityId, v.pressed) : undefined,
+    showing: showingOf(hass, entityId),
   }
 }
 

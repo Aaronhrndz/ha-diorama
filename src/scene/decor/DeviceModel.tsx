@@ -217,7 +217,11 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
       </Slab>
       <mesh position={[0, h / 2, z + 0.0095]}>
         <planeGeometry args={[w - 0.012, h - 0.012]} />
-        {on ? <ScreenMaterial /> : <meshStandardMaterial color={c('screen')} roughness={0.12} metalness={0.25} />}
+        {on ? (
+          <ScreenMaterial showing={state?.showing} aspect={(w - 0.012) / (h - 0.012)} />
+        ) : (
+          <meshStandardMaterial color={c('screen')} roughness={0.12} metalness={0.25} />
+        )}
       </mesh>
       {/* The picture's light on the room round it, more for a bigger screen. */}
       <ScreenGlow
@@ -225,6 +229,7 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
         position={[0, h / 2, z + 0.25]}
         intensity={0.7 * Math.min(1.8, 0.6 + w * 0.9)}
         distance={2.5 + w * 2}
+        showing={state?.showing}
       />
     </group>
   )
@@ -363,7 +368,16 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
     case 'game_console':
       return <Console style={style} w={p('width')} h={p('height')} on={on} lit={lit} look={look} />
     case 'projector_portable':
-      return <PortableProjector s={p('size')} throwLength={p('throw')} swing={swing} lit={lit} look={look} />
+      return (
+        <PortableProjector
+          s={p('size')}
+          throwLength={p('throw')}
+          swing={swing}
+          lit={lit}
+          look={look}
+          showing={state?.showing}
+        />
+      )
     case 'projector': {
       // After the Epson EH-TW7100 on a ceiling pole: a round plate on the
       // ceiling, a pole down to a flat bracket, and the wide body hanging
@@ -417,7 +431,7 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
           <Led on={on} position={[w * 0.44, top - bh * 0.15, bd / 2 + 0.002]} radius={Math.min(0.006, w * 0.02)} />
           {/* The picture on its way out, aimed a little down into the room. */}
           <group position={[0, mid, bd / 2 + w * 0.05]} rotation={[0.1, 0, 0]}>
-            <Beam length={p('throw')} width={p('throw') * 0.55} strength={lit} />
+            <Beam length={p('throw')} width={p('throw') * 0.55} strength={lit} showing={state?.showing} />
           </group>
         </group>
       )
