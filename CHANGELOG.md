@@ -12,6 +12,7 @@ moves that section under the new version and uses it as the release notes.
 ### Changed
 
 - The volume on the wide TV Remote sits on the left of the arrows, centered on them, away from the icon.
+- A press on a card that a device fails to take, like a TV still waking up, no longer shows a red error at the bottom of the screen.
 
 ### Fixed
 
