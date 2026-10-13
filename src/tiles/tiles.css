@@ -3237,6 +3237,23 @@
   }
 }
 
+/* Narrower still, the buttons on the left and the pad shrink together so
+   the volume never runs under the pad. */
+@container (min-width: 301px) and (max-width: 345px) {
+  .dio-media-remote > .dio-tile {
+    --_pad: min(154px, 100cqi - 2 * var(--_padding) - 142px);
+  }
+
+  .dio-media-remote .dio-remote-side .dio-control {
+    width: 38px;
+    height: 38px;
+  }
+
+  .dio-media-remote .dio-remote-side .dio-controls {
+    gap: 6px;
+  }
+}
+
 /* How far in, on the left of the buttons. */
 .dio-media-control .dio-controls {
   align-items: center;

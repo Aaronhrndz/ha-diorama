@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- On a narrow phone, the remote's volume and buttons on a TV card no longer run under its round pad.
+
 ## [1.8.12] - 2026-10-13
 
 ### Changed
