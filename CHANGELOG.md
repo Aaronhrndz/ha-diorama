@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.10] - 2026-10-13
+
 ### Changed
 
 - The media and remote card takes `commands` and `volume_entity` like the remote card, so it works for a player whose remote is on another device.
@@ -519,7 +521,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.9...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.10...HEAD
+[1.8.10]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.9...v1.8.10
 [1.8.9]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.8...v1.8.9
 [1.8.8]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.7...v1.8.8
 [1.8.7]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.6...v1.8.7

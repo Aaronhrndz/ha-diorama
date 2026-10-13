@@ -2,7 +2,7 @@
   "name": "diorama",
   "private": true,
   "license": "MIT",
-  "version": "1.8.9",
+  "version": "1.8.10",
   "type": "module",
   "packageManager": "pnpm@10.31.0",
   "scripts": {
