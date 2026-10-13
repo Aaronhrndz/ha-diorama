@@ -1840,6 +1840,7 @@
    pad, cut from its center to its edge, and lights up alone when pressed. */
 .dio-remote-keys {
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
   gap: 16px;
   touch-action: none;
