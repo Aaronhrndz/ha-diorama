@@ -15,7 +15,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Fixed
 
-- The picture on a projection screen no longer reads backwards, the cover on a TV drifts in and out where you can see it, and a soundbar's waves stay above the bar.
+- The picture on a projection screen no longer reads backwards, the cover on a TV drifts in and out where you can see it, a soundbar's waves stay above the bar, and a projector's beam shows through a window or other glass.
 
 ## [1.8.11] - 2026-10-13
 
