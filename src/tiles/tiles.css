@@ -3085,6 +3085,44 @@
   }
 }
 
+/* The media card with the remote: two rows tall while it is off, and four
+   once on, with the remote's pad and volume under what plays, as the remote
+   has them, and its buttons in the top right. */
+.dio-media-seek[data-remote] {
+  --_rows-gap: var(--_gap, var(--row-gap, 8px));
+  height: calc(2 * var(--row-height, 56px) + var(--_rows-gap));
+  transition: height 300ms ease;
+}
+
+.dio-media-seek[data-remote][data-on] {
+  height: calc(4 * var(--row-height, 56px) + 3 * var(--_rows-gap));
+}
+
+.dio-media-seek[data-remote] .dio-media-control > .dio-tile {
+  height: 100%;
+  min-height: 0;
+}
+
+.dio-media-remote .dio-top > :first-child {
+  grid-area: 1 / 1;
+}
+
+.dio-media-remote .dio-top > .dio-controls {
+  grid-area: 1 / 2 / 2 / 4;
+}
+
+.dio-media-remote .dio-controls.dio-volume {
+  gap: 4px;
+  padding: 3px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* What plays is cut short with an ellipsis, never run over the pad. */
+.dio-media-remote .dio-text :is(.dio-name, .dio-state) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* How far in, on the left of the buttons. */
 .dio-media-control .dio-controls {
   align-items: center;
@@ -3106,6 +3144,11 @@
   padding: 3px;
   border-radius: 999px;
   background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* A player that takes none of the buttons that play has no group for them. */
+.dio-media-buttons:empty {
+  display: none;
 }
 
 /* The volume across from the title, with shuffle and repeat to its

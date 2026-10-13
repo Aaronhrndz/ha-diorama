@@ -86,7 +86,10 @@ for (const s of [
     supported_features: 1 | 16 | 32 | 16384,
   }),
   state('remote.tv_box', 'on', { friendly_name: 'TV Box' }),
-  state('media_player.tv_panel', 'off', { friendly_name: 'TV Panel', supported_features: 4 | 8 | 128 | 256 | 1024 }),
+  state('media_player.tv_panel', 'off', {
+    friendly_name: 'TV Panel',
+    supported_features: 1 | 4 | 8 | 16 | 32 | 128 | 256 | 1024 | 16384,
+  }),
   state('lock.front', 'locked', { friendly_name: 'Front Door' }),
   state('sensor.living_temperature', '21.4', {
     friendly_name: 'Temperature',
@@ -104,6 +107,9 @@ const entities = Object.fromEntries(
     {
       entity_id: id,
       platform: id === 'remote.tv_box' ? 'androidtv_remote' : undefined,
+      // The panel and the box are one device, so the media card with the
+      // remote finds its keys.
+      device_id: ['remote.tv_box', 'media_player.tv_panel'].includes(id) ? 'tv' : undefined,
       area_id: id.includes('office')
         ? 'office'
         : id.includes('kitchen')
@@ -208,6 +214,7 @@ const sections: { title: Record<string, unknown>; cards: Record<string, unknown>
         power: false,
         grid_options: { columns: 6, rows: 6 },
       },
+      { type: 'dio-media-remote', entity: 'media_player.tv_panel' },
       { type: 'dio-toggle', entity: 'media_player.tv_panel', confirm: true },
       { type: 'dio-lock', entity: 'lock.front' },
       { type: 'dio-entity', entity: 'sensor.living_temperature' },
@@ -262,7 +269,7 @@ type Card = HTMLElement & {
 // a card hidden when it says so, and the section hidden with all its cards.
 for (const section of sections) {
   const el = document.createElement('div')
-  el.style.cssText = 'display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:56px;gap:8px'
+  el.style.cssText = 'display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:minmax(56px,auto);gap:8px'
   const cells: HTMLElement[] = []
   for (const config of [section.title, ...section.cards]) {
     const card = document.createElement(config.type as string) as Card

@@ -228,7 +228,7 @@ export function panelWidgets(plan: CardConfig, room: RoomConfig | null): PanelWi
 // the remote, so it is given the entities of those cards.
 function sparePower(cards: AutoCard[]): AutoCard[] {
   const beside = cards
-    .filter(card => card.type === 'custom:dio-toggle' || card.type === 'custom:dio-media-control')
+    .filter(card => ['custom:dio-toggle', 'custom:dio-media-control', 'custom:dio-media-remote'].includes(card.type))
     .map(card => card.entity)
     .filter(entity => typeof entity === 'string')
   if (!beside.length) return cards

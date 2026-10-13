@@ -17,7 +17,7 @@ import Dial from '#/tiles/cards/Dial.tsx'
 import Gauge, { type GaugeConfig } from '#/tiles/cards/Gauge.tsx'
 import Graph, { isNumeric, type GraphConfig } from '#/tiles/cards/Graph.tsx'
 import MapCard, { type MapConfig } from '#/tiles/cards/Map.tsx'
-import MediaControl, { type MediaControlConfig } from '#/tiles/cards/MediaControl.tsx'
+import MediaControl, { MediaRemote, type MediaControlConfig } from '#/tiles/cards/MediaControl.tsx'
 import Remote, { keysOf, type RemoteConfig } from '#/tiles/cards/Remote.tsx'
 import Todo from '#/tiles/cards/Todo.tsx'
 import Weather, { type WeatherConfig } from '#/tiles/cards/Weather.tsx'
@@ -397,6 +397,26 @@ const CARDS: Card[] = [
               config: { type: 'custom:dio-media-control', entity: entityId, art: 'icon' },
             },
           ],
+  },
+  {
+    type: 'dio-media-remote',
+    element: panelCard<MediaControlConfig>(
+      MEDIA_DOMAINS,
+      MediaRemote,
+      // Always across the whole width, two rows tall while it is off, and
+      // as tall as the remote under it makes it once on.
+      { columns: 'full', rows: 'auto', min_columns: 12, max_columns: 12, fixed: true },
+      2,
+    ),
+    extra: true,
+    domains: MEDIA_DOMAINS,
+    name: 'Diorama Media and Remote',
+    description: 'What is playing and its buttons, with the remote under them while it is on',
+    // Only for a player that plays and whose remote keys it knows.
+    suggest: (hass, entityId) =>
+      supports(hass.states[entityId], PLAYS) && keysOf(hass, entityId)
+        ? [{ config: { type: 'custom:dio-media-remote', entity: entityId } }]
+        : [],
   },
   {
     type: 'dio-remote',

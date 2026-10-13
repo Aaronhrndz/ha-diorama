@@ -8,6 +8,7 @@ import { numberOf, supports } from '#/tiles/features/parts.tsx'
 import { useNow } from '#/tiles/history.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
+import { cornerOf, CornerKeys, remoteOf, RemoteKeys } from '#/tiles/cards/Remote.tsx'
 import type { EntityState, HomeAssistant } from '#/types.ts'
 import {
   useEffect,
@@ -70,7 +71,7 @@ function twinOf(hass: HomeAssistant, entityId: string, entity: EntityState): Ent
 
 // What the progress leaves out: the boxes that hold the buttons and the
 // volume, so it passes behind them without showing through.
-const HOLES = '.dio-media-buttons, .dio-slider, .dio-media-small[aria-checked="true"]'
+const HOLES = '.dio-media-buttons, .dio-slider, .dio-media-small[aria-checked="true"], .dio-pad, .dio-volume'
 
 // A mask the size of the card, clear where each box is, with its corners.
 const holes = (tile: HTMLElement) => {
@@ -83,7 +84,8 @@ const holes = (tile: HTMLElement) => {
     const height = hole.offsetHeight
     const x = box.left + box.width / 2 - width / 2 - card.left
     const y = box.top + box.height / 2 - height / 2 - card.top
-    const radius = Math.min(parseFloat(getComputedStyle(hole).borderTopLeftRadius) || 0, height / 2)
+    const corner = getComputedStyle(hole).borderTopLeftRadius
+    const radius = corner.endsWith('%') ? height / 2 : Math.min(parseFloat(corner) || 0, height / 2)
     return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="${radius}"/>`
   })
   const svg =
@@ -121,12 +123,37 @@ export type MediaControlConfig = TileConfig & {
 // Made two rows tall or half as wide, it leaves out the volume, shuffle and
 // repeat, and keeps the buttons and how far in it is. Half as wide, it
 // also leaves out the icon, so the buttons fit across the top.
-export default function MediaControl({ env, config }: { env: TileEnv; config: MediaControlConfig }) {
+// With `remote`, it is the media card with the remote: two rows across the
+// whole width while it is off, with only its name, its state and power,
+// which turns it on at once. Once on, it grows to show the remote's pad and
+// volume under what plays, and has back, home and power in a group of their
+// own beside the buttons that play it. Power turns it off on a second press.
+export default function MediaControl({
+  env,
+  config,
+  remote = false,
+}: {
+  env: TileEnv
+  config: MediaControlConfig
+  remote?: boolean
+}) {
   const entity = env.hass.states[config.entity!]
   const attributes = entity?.attributes ?? {}
   const off = !entity || OFF.includes(entity.state)
-  const wakes = !!entity && ASLEEP.includes(entity.state) && supports(entity, MEDIA.turnOn)
-  const confirm = useConfirm(!off, () => callService(env.hass, 'media_player.turn_on', { entity_id: config.entity }))
+  // The remote of the same device, for its keys and, when the player
+  // cannot, to turn it on and off.
+  const keys = remote ? remoteOf(env.hass, { entity: config.entity }) : null
+  const switcher = keys?.keys?.entity.startsWith('remote.') ? keys.keys.entity : undefined
+  const turnOf = (on: boolean) => {
+    const turn = on ? 'turn_on' : 'turn_off'
+    if (supports(entity, on ? MEDIA.turnOn : MEDIA.turnOff))
+      return () => callService(env.hass, `media_player.${turn}`, { entity_id: config.entity })
+    if (switcher) return () => callService(env.hass, `remote.${turn}`, { entity_id: switcher })
+    return null
+  }
+  const wakeUp = turnOf(true)
+  const wakes = !!entity && ASLEEP.includes(entity.state) && !!wakeUp
+  const confirm = useConfirm(!off, () => wakeUp?.())
   const { lit } = confirm
   // The lit card, filled by the second tap, fades out once it is on.
   const [wasOff, setWasOff] = useState(off)
@@ -140,12 +167,8 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
     const timer = setTimeout(() => setLeaving(false), WAKE_FADE_MS)
     return () => clearTimeout(timer)
   }, [leaving])
-  const power = useArmed(
-    off,
-    !off && supports(entity, MEDIA.turnOff)
-      ? () => callService(env.hass, 'media_player.turn_off', { entity_id: config.entity })
-      : null,
-  )
+  const turnOff = off ? null : turnOf(false)
+  const power = useArmed(off, turnOff)
   // Where what plays is told, and where the buttons that play it go.
   const media = entity && !off ? (twinOf(env.hass, config.entity!, entity) ?? entity) : entity
   const told = media?.attributes ?? {}
@@ -162,8 +185,10 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   const picture = typeof told.entity_picture === 'string' ? told.entity_picture : null
   const square = config.art === 'icon'
   const { rows, columns } = config.grid_options ?? {}
-  const narrow = typeof columns === 'number' && columns <= 6
-  const compact = narrow || (typeof rows === 'number' && rows <= 2)
+  const narrow = !remote && typeof columns === 'number' && columns <= 6
+  const compact = !remote && (narrow || (typeof rows === 'number' && rows <= 2))
+  // The remote's pad and volume show under what plays while it is on.
+  const pad = !!keys && !off
   const cover = square && !off ? picture : null
   const said = typeof told.media_title === 'string' ? told.media_title : null
   // A player with nothing to tell, like a speaker playing from a phone over
@@ -264,12 +289,35 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   // A drag that starts on the volume or a button is theirs.
   const down = (e: ReactPointerEvent) => {
     if (e.button !== 0 || !seekable) return
-    if ((e.target as Element).closest('button, [role="slider"], .dio-feature, .dio-control')) return
+    if ((e.target as Element).closest('button, [role="slider"], .dio-feature, .dio-control, .dio-pad')) return
     start.current = { x: e.clientX, y: e.clientY, from: share, dragging: false }
   }
   // While it waits for the second tap, and once that is sent until it is on.
   const waking = confirm.waiting ? 'Tap again to turn on' : confirm.step === 2 || leaving ? 'Turning on' : null
   const looks = cn('dio-media-control', compact && 'dio-media-compact', narrow && 'dio-media-narrow')
+  // Power while it is off, on the card with the remote, which turns it on
+  // at once.
+  const wake = wakeUp && (
+    <div className="dio-media-buttons">
+      <Control
+        icon="ph:power-bold"
+        label="Turn on"
+        onPress={() => {
+          haptic('selection')
+          wakeUp()
+        }}
+      />
+    </div>
+  )
+  const powerOff = turnOff && (
+    <Control
+      icon="ph:power-bold"
+      label={power.armed ? 'Press again to turn off' : 'Turn off'}
+      className={power.className}
+      style={power.style}
+      onPress={power.press}
+    />
+  )
   const time = timed && <span className="dio-media-time">{clock(share * duration)}</span>
   const shuffle = !off && can(MEDIA.shuffle) && (
     <Control
@@ -314,6 +362,8 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
       data-dragging={drag !== null || undefined}
       data-step={wakes || leaving ? confirm.step : undefined}
       data-leaving={leaving || undefined}
+      data-remote={remote || undefined}
+      data-on={(remote && !off) || undefined}
       style={{ '--_wake-ms': `${WAKE_FADE_MS}ms` } as CSSProperties}
       onPointerDownCapture={down}
     >
@@ -337,7 +387,12 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
               ? play('media_play_pause', playing ? MEDIA.pause : MEDIA.play)
               : null
         }
-        className={cn(looks, cover && 'dio-media-cover', glow && !playing && 'dio-media-still')}
+        className={cn(
+          looks,
+          cover && 'dio-media-cover',
+          glow && !playing && 'dio-media-still',
+          pad && 'dio-remote dio-media-remote',
+        )}
         picture={cover ?? undefined}
         // Over the cover art, which is darkened, or the dark lights of the
         // app, the logo is the one for a dark card whatever the theme.
@@ -353,9 +408,12 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
           } as CSSProperties
         }
         controls={
-          entity && (
+          entity &&
+          (remote && off ? (
+            wake
+          ) : (
             <>
-              {time}
+              {!remote && time}
               <div className="dio-media-buttons">
                 {!off && can(MEDIA.previous) && (
                   <Control
@@ -375,21 +433,20 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
                 {!off && can(MEDIA.next) && (
                   <Control icon="ph:skip-forward" label="Next" onPress={play('media_next_track', MEDIA.next)} />
                 )}
-                {!off && supports(entity, MEDIA.turnOff) && (
-                  <Control
-                    icon="ph:power-bold"
-                    label={power.armed ? 'Press again to turn off' : 'Turn off'}
-                    className={power.className}
-                    style={power.style}
-                    onPress={power.press}
-                  />
-                )}
+                {!remote && powerOff}
               </div>
+              {remote && (keys || powerOff) && (
+                <div className="dio-media-buttons">
+                  {keys && <CornerKeys corner={cornerOf(keys.reach)} />}
+                  {powerOff}
+                </div>
+              )}
             </>
-          )
+          ))
         }
       >
-        {!compact && (shuffle || repeat || volume) && (
+        {pad && keys && <RemoteKeys sendOf={keys.reach} muted={keys.muted} />}
+        {!compact && !remote && (shuffle || repeat || volume) && (
           <div className="dio-media-row">
             {volume}
             {shuffle}
@@ -412,13 +469,22 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
             onTap={null}
             className={looks}
             controls={
-              <div className="dio-media-buttons">
-                <Control icon="ph:play" label="Play" disabled onPress={() => {}} />
-              </div>
+              remote ? (
+                wake
+              ) : (
+                <div className="dio-media-buttons">
+                  <Control icon="ph:play" label="Play" disabled onPress={() => {}} />
+                </div>
+              )
             }
           />
         </div>
       )}
     </div>
   )
+}
+
+// The media card with the remote under it while it is on.
+export function MediaRemote(props: { env: TileEnv; config: MediaControlConfig }) {
+  return <MediaControl {...props} remote />
 }

@@ -35,8 +35,15 @@ const FADE_IN_MS = 220
 // How many of the 12 columns and how many rows a side card takes, read from
 // its config so the layout is known before the card has loaded. One of our
 // cards says so itself, as it would to Home Assistant's grid, with how
-// narrow and how short it can be made, when it can be made smaller.
-type Grid = { columns?: number | 'full'; rows?: number | 'auto'; min_columns?: number; min_rows?: number }
+// narrow and how short it can be made, when it can be made smaller, or that
+// it is fixed at its size.
+type Grid = {
+  columns?: number | 'full'
+  rows?: number | 'auto'
+  min_columns?: number
+  min_rows?: number
+  fixed?: boolean
+}
 type Sized = { prototype: { getGridOptions?: (this: object) => Grid } }
 export function span(config: CardConfig, hass: HomeAssistant | null) {
   const own = config.grid_options
@@ -50,6 +57,7 @@ export function span(config: CardConfig, hass: HomeAssistant | null) {
     rows,
     minColumns: grid.min_columns,
     minRows: grid.min_rows,
+    fixed: grid.fixed === true,
   }
 }
 

@@ -151,7 +151,10 @@ export function WidgetGrid({ hass, widgets, onReorder, onSize, onEdit }: Props) 
             onKey={event => nudge(event, id)}
             onSizing={next => setSizing({ over: tilesKey, id, choice: next })}
             onSized={next => {
-              if (setupKey(next ?? widget.auto) === setupKey(widget.choice ?? widget.auto) && setRows(next) === setRows(widget.choice))
+              if (
+                setupKey(next ?? widget.auto) === setupKey(widget.choice ?? widget.auto) &&
+                setRows(next) === setRows(widget.choice)
+              )
                 setSizing(null)
               else onSize(id, next)
             }}
@@ -201,7 +204,7 @@ function Cell({
 }) {
   const { auto } = widget
   const config = chosen(auto, choice)
-  const { columns, rows } = span(config, hass)
+  const { columns, rows, fixed } = span(config, hass)
 
   // The setups of the card it is now that differ only in width, one for
   // each width, the one it is now kept for its own width.
@@ -250,7 +253,7 @@ function Cell({
     return () => observer.disconnect()
   }, [measuring])
   const base = wide ? (wide.own === 'auto' ? natural : wide.own) : null
-  const resizable = fits.size > 1 || base !== null
+  const resizable = !fixed && (fits.size > 1 || base !== null)
 
   const self = useRef<HTMLDivElement>(null)
 
@@ -273,8 +276,7 @@ function Cell({
     const column = (area.width - 11 * GAP_PX) / 12
     // A card against the right side has no room to grow into on its line,
     // so pulled past the side it takes the whole width on a line of its own.
-    const across =
-      current.atEnd && event.clientX > area.right + GAP_PX ? area.width : event.clientX - current.edge
+    const across = current.atEnd && event.clientX > area.right + GAP_PX ? area.width : event.clientX - current.edge
     const wanted = (across + GAP_PX) / (column + GAP_PX)
     const fit = [...fits.values()].reduce((best, next) =>
       Math.abs(next.columns - wanted) < Math.abs(best.columns - wanted) ? next : best,
@@ -336,7 +338,10 @@ function Cell({
         held && 'z-20 cursor-grabbing',
       )}
       style={{ gridColumn: `span ${columns}` }}
-      animate={{ scale: held ? 1.03 : 1, boxShadow: held ? '0 14px 34px -10px rgba(0,0,0,0.5)' : '0 0 0 rgba(0,0,0,0)' }}
+      animate={{
+        scale: held ? 1.03 : 1,
+        boxShadow: held ? '0 14px 34px -10px rgba(0,0,0,0.5)' : '0 0 0 rgba(0,0,0,0)',
+      }}
     >
       <TilePreview hass={hass} config={config} height={rows === 'auto' ? undefined : rows} />
       {measuring && (
@@ -390,10 +395,7 @@ function Cell({
           onPointerMove={moveResize}
           onPointerUp={endResize}
           onPointerCancel={endResize}
-          className={cn(
-            corner,
-            '-right-1 -bottom-0.5 cursor-nwse-resize touch-none hover:cursor-nwse-resize',
-          )}
+          className={cn(corner, '-right-1 -bottom-0.5 cursor-nwse-resize touch-none hover:cursor-nwse-resize')}
         >
           <svg
             viewBox="0 0 12 12"

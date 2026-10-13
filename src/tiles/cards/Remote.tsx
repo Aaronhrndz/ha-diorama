@@ -186,9 +186,7 @@ function besideOf(hass: HomeAssistant, config: RemoteConfig) {
 export default function Remote({ env, config }: Props) {
   const { hass } = env
   const entity = hass.states[config.entity!]
-  const keys = config.entity ? keysOf(hass, config.entity) : null
-  const player = config.volume_entity ?? (keys ? undefined : config.entity && playerOf(hass, config.entity))
-  const muted = player ? hass.states[player]?.attributes.is_volume_muted === true : false
+  const { keys, player, muted, reach } = remoteOf(hass, config)
   const off = !entity || OFF.includes(entity.state)
   // The service that turns it on or off, when it has one.
   const domain = config.entity?.split('.')[0]
@@ -199,7 +197,50 @@ export default function Remote({ env, config }: Props) {
   const turn = config.power === false || besideOf(hass, config) ? null : powerOf(off)
   const power = useArmed(off, turn)
 
-  // What a key does, or nothing when there is no way to send it.
+  // While it is off only power can be pressed, since any other key would
+  // wake it, and with it the TV.
+  const sendOf = (key: Key) => (off ? null : reach(key))
+
+  const known = !!keys || !!config.commands || !!player
+  const corner = cornerOf(reach)
+  return (
+    <Panel
+      env={env}
+      config={{ ...config, icon: config.icon ?? 'ph:television' }}
+      entity={entity}
+      state={known ? formatState(hass, entity) : 'Unknown remote, set its commands'}
+      className="dio-remote"
+      onTap={null}
+      controls={
+        (corner.length > 0 || turn) && (
+          <>
+            <CornerKeys corner={corner} disabled={off} />
+            {turn && (
+              <Control
+                icon="ph:power-bold"
+                label={off ? 'Turn on' : power.armed ? 'Press again to turn off' : 'Turn off'}
+                className={power.className}
+                style={power.style}
+                onPress={power.press}
+              />
+            )}
+          </>
+        )
+      }
+    >
+      <RemoteKeys sendOf={sendOf} muted={muted} />
+    </Panel>
+  )
+}
+
+type Reach = (key: Key) => (() => void) | null
+
+// The keys of a remote for `config.entity` and what each one does, or
+// nothing for one there is no way to send.
+export function remoteOf(hass: HomeAssistant, config: Pick<RemoteConfig, 'entity' | 'volume_entity' | 'commands'>) {
+  const keys = config.entity ? keysOf(hass, config.entity) : null
+  const player = config.volume_entity ?? (keys ? undefined : config.entity && playerOf(hass, config.entity))
+  const muted = player ? hass.states[player]?.attributes.is_volume_muted === true : false
   const reach = (key: Key): (() => void) | null => {
     const own = config.commands?.[key]
     if (own) {
@@ -220,51 +261,35 @@ export default function Remote({ env, config }: Props) {
       return () => callService(hass, 'webostv.button', { entity_id: keys.entity, button: command })
     return () => callService(hass, 'remote.send_command', { entity_id: keys.entity, command })
   }
-  // While it is off only power can be pressed, since any other key would
-  // wake it, and with it the TV.
-  const sendOf = (key: Key) => (off ? null : reach(key))
+  return { keys, player, muted, reach }
+}
 
-  const known = !!keys || !!config.commands || !!player
-  const corner = (['back', 'home'] as const).flatMap(key => {
+// Back and home, those of them there is a way to send.
+export const cornerOf = (reach: Reach) =>
+  (['back', 'home'] as const).flatMap(key => {
     const send = reach(key)
     return send ? [[key, send] as const] : []
   })
+
+export function CornerKeys({ corner, disabled }: { corner: ReturnType<typeof cornerOf>; disabled?: boolean }) {
+  return corner.map(([key, send]) => (
+    <Control
+      key={key}
+      icon={LOOK[key].icon}
+      label={LOOK[key].label}
+      disabled={disabled}
+      onPress={() => {
+        haptic('selection')
+        send()
+      }}
+    />
+  ))
+}
+
+// The round pad, and minus, mute and plus beside it.
+export function RemoteKeys({ sendOf, muted }: { sendOf: Reach; muted: boolean }) {
   return (
-    <Panel
-      env={env}
-      config={{ ...config, icon: config.icon ?? 'ph:television' }}
-      entity={entity}
-      state={known ? formatState(hass, entity) : 'Unknown remote, set its commands'}
-      className="dio-remote"
-      onTap={null}
-      controls={
-        (corner.length > 0 || turn) && (
-          <>
-            {corner.map(([key, send]) => (
-              <Control
-                key={key}
-                icon={LOOK[key].icon}
-                label={LOOK[key].label}
-                disabled={off}
-                onPress={() => {
-                  haptic('selection')
-                  send()
-                }}
-              />
-            ))}
-            {turn && (
-              <Control
-                icon="ph:power-bold"
-                label={off ? 'Turn on' : power.armed ? 'Press again to turn off' : 'Turn off'}
-                className={power.className}
-                style={power.style}
-                onPress={power.press}
-              />
-            )}
-          </>
-        )
-      }
-    >
+    <>
       <Pad sendOf={sendOf} />
       <div className="dio-controls dio-volume" onPointerDown={e => e.stopPropagation()}>
         <RemoteKey name="volume_down" send={sendOf('volume_down')} repeats className="dio-control" />
@@ -276,7 +301,7 @@ export default function Remote({ env, config }: Props) {
         />
         <RemoteKey name="volume_up" send={sendOf('volume_up')} repeats className="dio-control" />
       </div>
-    </Panel>
+    </>
   )
 }
 
