@@ -656,6 +656,16 @@
 .dio-controls[data-crowded] {
   visibility: hidden;
 }
+/* With no room for both, the icon makes way for the buttons, which then
+   take the whole top. Kept in the layout, so the room it leaves is still
+   measured the same. */
+.dio-top[data-bare] > :first-child {
+  position: absolute;
+  visibility: hidden;
+}
+.dio-top[data-bare] > .dio-controls {
+  margin-left: auto;
+}
 
 /* A group left with no button in it, like Now Playing while nothing
    plays, shows nothing at all. */

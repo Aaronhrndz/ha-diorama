@@ -13,6 +13,10 @@ moves that section under the new version and uses it as the release notes.
 
 - On a phone or tablet the card draws at most 24 frames a second and without shadows, so it stays smooth and cool.
 
+### Fixed
+
+- A small tile too narrow for both its icon and its buttons, like a half width cover on a phone, now hides the icon and keeps the buttons.
+
 ## [1.8.8] - 2026-10-13
 
 ### Changed
