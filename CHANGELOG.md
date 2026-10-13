@@ -11,7 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-- More lamps cast shadows at once, ten on a computer and six on a phone or tablet, and every shadow has a softer edge.
+- More lamps cast shadows at once, ten on a computer and six on a phone or tablet, every shadow has a softer edge, and a lamp no longer casts shadows of itself with its own light.
 
 ### Fixed
 
