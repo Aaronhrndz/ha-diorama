@@ -162,8 +162,8 @@ type Props = { env: TileEnv; config: RemoteConfig }
 // on its device, so a remote or a TV picked from the list works as it is.
 // A key can be given a command of its own, and the volume can go to
 // another player, like the TV a box is plugged into. The arrows and the
-// volume repeat while held, and while the player of the volume is off they
-// cannot be pressed. Power turns it on at once, but turns it off only on a
+// volume repeat while held. While it is off only power can be pressed, and
+// while the player of the volume is off the volume cannot either. Power turns it on at once, but turns it off only on a
 // second press within a few seconds, so it is never turned off by mistake.
 // A tap on the card around the keys does nothing, and a long press opens
 // its dialog.
@@ -201,7 +201,7 @@ export default function Remote({ env, config }: Props) {
   }
 
   // What a key does, or nothing when there is no way to send it.
-  const sendOf = (key: Key): (() => void) | null => {
+  const reach = (key: Key): (() => void) | null => {
     const own = config.commands?.[key]
     if (own) {
       if (typeof own !== 'string') return () => callService(hass, own.action, own.data)
@@ -223,10 +223,13 @@ export default function Remote({ env, config }: Props) {
       return () => callService(hass, 'webostv.button', { entity_id: keys.entity, button: command })
     return () => callService(hass, 'remote.send_command', { entity_id: keys.entity, command })
   }
+  // While it is off only power can be pressed, since any other key would
+  // wake it, and with it the TV.
+  const sendOf = (key: Key) => (off ? null : reach(key))
 
   const known = !!keys || !!config.commands || !!player
   const corner = (['back', 'home'] as const).flatMap(key => {
-    const send = sendOf(key)
+    const send = reach(key)
     return send ? [[key, send] as const] : []
   })
   return (
@@ -245,6 +248,7 @@ export default function Remote({ env, config }: Props) {
                 key={key}
                 icon={LOOK[key].icon}
                 label={LOOK[key].label}
+                disabled={off}
                 onPress={() => {
                   haptic('selection')
                   send()
