@@ -335,8 +335,11 @@ const ARROWS: Arrow[] = ['up', 'right', 'down', 'left']
 // How far a finger goes on the pad before it steers that way.
 const SWIPE_PX = 28
 // How often the pad sends the way it is steered while the finger stays
-// down, after the first.
-const STEER_EVERY_MS = 180
+// down: once a second at first, like stepping through a row of videos, and
+// a little sooner each time, down to a few a second.
+const STEER_FIRST_MS = 1000
+const STEER_FASTEST_MS = 300
+const STEER_SOONER = 0.8
 
 // How long a pulse of light lasts on the pad when a key is sent.
 const PULSE_MS = 260
@@ -415,7 +418,13 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
         current.moved = true
         current.way = way
         fire(way)
-        current.timer = window.setInterval(() => fire(way), STEER_EVERY_MS)
+        const steer = (wait: number) => {
+          current.timer = window.setTimeout(() => {
+            fire(way)
+            steer(Math.max(STEER_FASTEST_MS, wait * STEER_SOONER))
+          }, wait)
+        }
+        steer(STEER_FIRST_MS)
       }}
       onPointerUp={() => {
         const current = press.current
