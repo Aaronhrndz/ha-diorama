@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.16] - 2026-10-13
+
 ### Fixed
 
 - A long title on a TV or a projection screen no longer repeats its second line.
@@ -578,7 +580,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.15...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.16...HEAD
+[1.8.16]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.15...v1.8.16
 [1.8.15]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.14...v1.8.15
 [1.8.14]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.13...v1.8.14
 [1.8.13]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.12...v1.8.13
