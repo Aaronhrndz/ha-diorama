@@ -9,6 +9,8 @@ import { Tile } from '#/tiles/Tile.tsx'
 
 type Props = { env: TileEnv; config: TileConfig }
 
+const OFF = ['off', 'standby', 'unavailable', 'unknown']
+
 // A light, a switch, a boolean helper, or anything else that is either on
 // or off, like a humidifier, a siren or an automation. A tap turns it on or
 // off. A light that is on and dims says how bright it is. Switches take the
@@ -21,12 +23,18 @@ type Props = { env: TileEnv; config: TileConfig }
 // valve with the position feature how far it is open, and a humidifier
 // with the humidity slider the humidity it holds the room at. A group,
 // like a light group, says how many of its members are on. With confirm
-// it turns on or off only on a second tap, and has no other control.
+// it turns on or off only on a second tap, and has no other control. A
+// player, like a TV's, is offered only that way.
 export default function Toggle({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
   const domain = config.entity!.split('.')[0]
   const valve = domain === 'valve'
-  const on = valve ? entity?.state === 'open' || entity?.state === 'opening' : entity?.state === 'on'
+  // A player is on whatever it is doing, playing, paused or idle.
+  const on = valve
+    ? entity?.state === 'open' || entity?.state === 'opening'
+    : domain === 'media_player'
+      ? !!entity && !OFF.includes(entity.state)
+      : entity?.state === 'on'
   const brightness = entity?.attributes.brightness
   const percentage = numberOf(entity, 'percentage')
   // A group that is on says how many of its members are.

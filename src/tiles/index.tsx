@@ -22,6 +22,7 @@ import Remote, { keysOf, type RemoteConfig } from '#/tiles/cards/Remote.tsx'
 import Todo from '#/tiles/cards/Todo.tsx'
 import Weather, { type WeatherConfig } from '#/tiles/cards/Weather.tsx'
 import { FEATURES, featuresFor, isWide } from '#/tiles/features/index.tsx'
+import { MEDIA } from '#/tiles/features/media.tsx'
 import { supports } from '#/tiles/features/parts.tsx'
 import type { HomeAssistant } from '#/types.ts'
 import type { ReactNode } from 'react'
@@ -38,6 +39,7 @@ const TOGGLE_DOMAINS = [
   'remote',
   'automation',
   'valve',
+  'media_player',
 ]
 const BUTTON_DOMAINS = ['button', 'input_button', 'script', 'scene']
 const COVER_DOMAINS = ['cover']
@@ -193,6 +195,10 @@ type Card = {
   extra?: boolean
   // Whether it can act only on a second tap.
   twice?: boolean
+  // The domains it is offered for only that way, and only for an entity
+  // that can be turned on and off, beside the card made for them, like a
+  // TV's player.
+  twiceOnly?: string[]
   // What a wide tile adds, named after with, for a tile with controls.
   controls?: string
   // The features the card picker leaves out, since they only repeat what
@@ -225,6 +231,7 @@ const CARDS: Card[] = [
     domains: TOGGLE_DOMAINS,
     name: 'Diorama Toggle',
     twice: true,
+    twiceOnly: ['media_player'],
     description: 'Light, switch, fan, valve or anything else on or off',
   },
   {
@@ -550,6 +557,10 @@ function suggestions(card: Card, hass: HomeAssistant, entityId: string): Suggest
   if (card.suggest) return card.suggest(hass, entityId)
   const config = { type: `custom:${card.type}`, entity: entityId }
   const name = shortName(card)
+  if (card.twiceOnly?.includes(entityId.split('.')[0]))
+    return supports(hass.states[entityId], MEDIA.turnOn) && supports(hass.states[entityId], MEDIA.turnOff)
+      ? [{ label: 'Double Tap', name: `Double Tap ${name}`, config: { ...config, confirm: true } }]
+      : null
   // A tile with controls comes small, with them only when they fit, and
   // wide with them.
   const base: Suggestion[] = [
@@ -600,7 +611,8 @@ export function tileOptions(hass: HomeAssistant, entityId: string): TileOption[]
   const domain = entityId.split('.')[0]
   const fits = (card: Card) =>
     card.domains === 'any' ? !SAYS_NOTHING.includes(domain) : !!card.domains?.includes(domain)
-  const made = (card: Card) => !card.extra && Array.isArray(card.domains) && card.domains.includes(domain)
+  const made = (card: Card) =>
+    !card.extra && !card.twiceOnly?.includes(domain) && Array.isArray(card.domains) && card.domains.includes(domain)
   const ranked = [...CARDS.filter(made), ...CARDS.filter(card => fits(card) && !made(card))]
   return ranked.flatMap(card => {
     const own: Suggestion[] =
