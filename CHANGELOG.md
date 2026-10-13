@@ -11,7 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-- A projector's beam reaches the corners of the picture on the projection screen it lands on, and fades out just as it gets there.
+- A projector's beam reaches the corners of the picture on the projection screen it is aimed at, even while the screen is rolled up, and fades out just as it gets there.
 
 ### Fixed
 

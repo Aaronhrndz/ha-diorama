@@ -386,7 +386,9 @@ const top = (object: Object3D) => {
  * projector that is on throws its picture at it. The projector has to face
  * the screen, from either side, near enough square on, and the middle of
  * its throw has to land on the sheet within its reach. Placed in the middle
- * of the sheet as it hangs.
+ * of the sheet as it hangs. A projector aimed at it is told where the
+ * picture will be once the sheet is all the way down, even while it is
+ * rolled up, so its beam never changes shape as the sheet comes down.
  */
 export function Projection({ w, h, open }: { w: number; h: number; open: number }) {
   // Nothing to look for, and no frames to keep coming, while no projector
@@ -415,8 +417,8 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
     }),
     [],
   )
-  // The corners of the picture, which the projector it shows is told of,
-  // so its beam reaches them.
+  // The corners of the picture with the sheet all the way down, which the
+  // projector aimed at it is told of, so its beam reaches them.
   const corners = useMemo(() => [new Vector3(), new Vector3(), new Vector3(), new Vector3()], [])
   const lit = useRef<Throw | null>(null)
   useEffect(
@@ -434,12 +436,16 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
     v.x.normalize()
     v.y.normalize()
     v.n.normalize()
-    v.c.setFromMatrixPosition(sheet.matrixWorld)
+    // The middle of the sheet as it hangs, and how far above the middle of
+    // the whole sheet that is.
+    const raised = (h * (1 - open)) / 2
+    v.c.set(0, -raised, 0).applyMatrix4(sheet.matrixWorld)
     const home = top(sheet)
     let target = 0
     let side = 1
     let shows: Showing | null = latest.current
-    let won: Throw | null = null
+    let aimed: Throw | null = null
+    let strongest = 0
     for (const t of throws) {
       const o = t.object
       if (!o || top(o) !== home) continue
@@ -451,13 +457,20 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
       const along = v.p.subVectors(v.c, v.o).dot(v.n) / facing
       if (along <= 0 || along > t.length * REACH) continue
       v.p.copy(v.o).addScaledVector(v.d, along).sub(v.c)
-      if (Math.abs(v.p.dot(v.x)) > w * 0.6 || Math.abs(v.p.dot(v.y)) > (h * open) / 2 + h * 0.1) continue
+      const x = v.p.dot(v.x)
+      const y = v.p.dot(v.y)
+      if (Math.abs(x) > w * 0.6 || Math.abs(y) > h / 2 + h * 0.1) continue
+      if (t.strength > strongest) {
+        strongest = t.strength
+        aimed = t
+      }
+      // The picture only shows on as much of the sheet as hangs down.
+      if (Math.abs(y - raised) > (h * open) / 2 + h * 0.1) continue
       if (t.strength > target) {
         target = t.strength
         // On the face the light comes from.
         side = facing < 0 ? 1 : -1
         shows = t.showing
-        won = t
       }
     }
     // Kept while the picture fades out, so it fades out as it was.
@@ -466,24 +479,23 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
       setShowing(shows)
     }
     level.current += (target - level.current) * Math.min(1, delta * 4)
-    m.visible = level.current > 0.01
+    m.visible = level.current > 0.01 && h * open > 2 * edge
     m.position.z = side * 0.003
     // Seen from the face the light comes from, so it never reads backwards.
     m.scale.x = (side * (w - 2 * edge)) / w
-    // A sheet rolled up too far to show a picture leaves the beam as it is.
-    if (h * open - 2 * edge < 0.05) won = null
-    if (lit.current !== won && lit.current?.lands === corners) lit.current.lands = null
-    lit.current = won
-    if (won) {
-      m.updateWorldMatrix(false, false)
+    if (lit.current !== aimed && lit.current?.lands === corners) lit.current.lands = null
+    lit.current = aimed
+    if (aimed) {
       corners.forEach((corner, i) =>
-        corner.set(i % 3 === 0 ? -w / 2 : w / 2, i < 2 ? -h / 2 : h / 2, 0).applyMatrix4(m.matrixWorld),
+        corner
+          .set(i % 3 === 0 ? edge - w / 2 : w / 2 - edge, (i < 2 ? edge - h / 2 : h / 2 - edge) - raised, 0)
+          .applyMatrix4(sheet.matrixWorld),
       )
-      won.lands = corners
+      aimed.lands = corners
     }
   })
   return (
-    <mesh ref={mesh} scale-y={Math.max(0, h * open - 2 * edge) / h}>
+    <mesh ref={mesh} scale-y={Math.max(0.001, h * open - 2 * edge) / h}>
       <planeGeometry args={[w, h]} />
       <ScreenMaterial
         level={level}
