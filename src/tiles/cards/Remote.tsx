@@ -150,8 +150,9 @@ function playerOf(hass: HomeAssistant, entityId: string) {
 
 type Props = { env: TileEnv; config: RemoteConfig }
 
-// A TV remote: arrows around OK on a round pad, back, home and mute in the
-// top right corner, and the volume on a tall pill beside the pad. It finds
+// A TV remote: arrows around OK on a round pad, back and home in the top
+// right corner, and the volume on a tall pill beside the pad, with mute
+// between plus and minus. It finds
 // the names of the keys from the integration of the entity, or of another
 // on its device, so a remote or a TV picked from the list works as it is.
 // A key can be given a command of its own, and the volume can go to
@@ -187,7 +188,7 @@ export default function Remote({ env, config }: Props) {
   }
 
   const known = !!keys || !!config.commands || !!player
-  const corner = (['back', 'home', 'mute'] as const).flatMap(key => {
+  const corner = (['back', 'home'] as const).flatMap(key => {
     const send = sendOf(key)
     return send ? [[key, send] as const] : []
   })
@@ -205,7 +206,6 @@ export default function Remote({ env, config }: Props) {
             key={key}
             icon={LOOK[key].icon}
             label={LOOK[key].label}
-            className={cn(key === 'mute' && muted && 'dio-remote-muted')}
             onPress={() => {
               haptic('selection')
               send()
@@ -223,7 +223,12 @@ export default function Remote({ env, config }: Props) {
         </div>
         <div className="dio-volume">
           <RemoteKey name="volume_up" send={sendOf('volume_up')} repeats />
-          <Icon icon={muted ? 'ph:speaker-x' : 'ph:speaker-high'} />
+          <RemoteKey
+            name="mute"
+            send={sendOf('mute')}
+            icon={muted ? 'ph:speaker-x' : 'ph:speaker-high'}
+            className={cn('dio-volume-mute', muted && 'dio-remote-muted')}
+          />
           <RemoteKey name="volume_down" send={sendOf('volume_down')} repeats />
         </div>
       </div>
@@ -244,11 +249,11 @@ const LOOK: Record<Key, { icon: string; label: string }> = {
   volume_down: { icon: 'ph:minus', label: 'Volume down' },
 }
 
-type KeyProps = { name: Key; send: (() => void) | null; repeats?: boolean; className?: string }
+type KeyProps = { name: Key; send: (() => void) | null; repeats?: boolean; icon?: string; className?: string }
 
 // One key, sent on press rather than on release so it feels as quick as a
 // real remote's, and again and again while held when it repeats.
-function RemoteKey({ name, send, repeats, className }: KeyProps) {
+function RemoteKey({ name, send, repeats, icon: own, className }: KeyProps) {
   const timer = useRef(0)
   const stop = () => {
     clearTimeout(timer.current)
@@ -260,7 +265,8 @@ function RemoteKey({ name, send, repeats, className }: KeyProps) {
     haptic('selection')
     send?.()
   }
-  const { label, icon } = LOOK[name]
+  const { label } = LOOK[name]
+  const icon = own ?? LOOK[name].icon
   return (
     <button
       {...insideTile}

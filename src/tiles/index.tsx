@@ -159,7 +159,12 @@ function panelCard<C extends TileConfig>(
 class RemoteCard extends panelCard<RemoteConfig>(
   ['remote', 'media_player'],
   Remote,
-  { columns: 'full', rows: 'auto' },
+  // Four rows tall, or five half as wide, where the keys go above the name.
+  config => {
+    const columns = config?.grid_options?.columns
+    const half = typeof columns === 'number' && columns <= 6
+    return { columns: 'full', rows: half ? 5 : 4, min_columns: 6, min_rows: half ? 5 : 4 }
+  },
   4,
   ['remote'],
 ) {
@@ -347,11 +352,11 @@ const CARDS: Card[] = [
     element: panelCard<MediaControlConfig>(
       MEDIA_DOMAINS,
       MediaControl,
-      // Half as wide it is as tall as a tile, whatever it shows.
+      // Three rows tall, or two half as wide, whatever it shows.
       config => {
         const columns = config?.grid_options?.columns
         const half = typeof columns === 'number' && columns <= 6
-        return { columns: 'full', rows: half ? 2 : 'auto', min_columns: 6, min_rows: 2 }
+        return { columns: 'full', rows: half ? 2 : 3, min_columns: 6, min_rows: 2 }
       },
       4,
       ['art'],

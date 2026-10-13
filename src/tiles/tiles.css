@@ -1847,8 +1847,8 @@
 
 .dio-pad {
   position: relative;
-  width: 176px;
-  height: 176px;
+  width: 156px;
+  height: 156px;
   border-radius: 999px;
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
@@ -1898,31 +1898,31 @@
 .dio-pad > .dio-pad-up {
   clip-path: polygon(0 0, 100% 0, 50% 50%);
   align-items: start;
-  padding-top: 16px;
+  padding-top: 12px;
 }
 
 .dio-pad > .dio-pad-down {
   clip-path: polygon(0 100%, 100% 100%, 50% 50%);
   align-items: end;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
 }
 
 .dio-pad > .dio-pad-left {
   clip-path: polygon(0 0, 0 100%, 50% 50%);
   justify-items: start;
-  padding-left: 16px;
+  padding-left: 12px;
 }
 
 .dio-pad > .dio-pad-right {
   clip-path: polygon(100% 0, 100% 100%, 50% 50%);
   justify-items: end;
-  padding-right: 16px;
+  padding-right: 12px;
 }
 
 .dio-pad > .dio-pad-ok {
   inset: 50% auto auto 50%;
-  width: 76px;
-  height: 76px;
+  width: 68px;
+  height: 68px;
   transform: translate(-50%, -50%);
   background: color-mix(in srgb, currentColor 14%, transparent);
   font-size: 17px;
@@ -1947,7 +1947,6 @@
   }
 }
 
-/* Mute stays pressed while the player is muted. */
 .dio-remote .dio-remote-muted {
   background: color-mix(in srgb, currentColor 18%, transparent);
 }
@@ -1956,8 +1955,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 60px;
-  height: 176px;
+  width: 56px;
+  height: 156px;
   border-radius: 999px;
   background: color-mix(in srgb, currentColor 10%, transparent);
   overflow: hidden;
@@ -1968,11 +1967,19 @@
   width: 100%;
 }
 
-.dio-volume > .dio-icon {
+/* Mute sits between plus and minus, a little smaller, and stays pressed
+   while the player is muted. */
+.dio-volume > .dio-volume-mute {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+}
+
+.dio-volume > .dio-volume-mute > .dio-icon {
   width: 18px;
   height: 18px;
   --mdc-icon-size: 18px;
-  opacity: var(--_secondary);
 }
 
 /* A link like button, for Clear. */
@@ -2791,7 +2798,7 @@
 }
 
 .dio-media-control > .dio-tile {
-  min-height: 168px;
+  min-height: max(168px, 100%);
   isolation: isolate;
 }
 
@@ -2803,7 +2810,9 @@
    the cover art in place of the icon only as wide as it is tall, so the
    buttons have the rest. */
 .dio-media-compact > .dio-tile {
+  height: 100%;
   min-height: 0;
+  gap: 0;
 }
 
 .dio-media-compact.dio-media-cover > .dio-tile {
