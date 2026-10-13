@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.11] - 2026-10-13
+
 ### Added
 
 - A TV or a projector bound to a player shows what plays like its card does, the cover or the app's colors with its logo and the title, and lights the room in that color. A cover drifts slowly in and out.
@@ -535,7 +537,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.10...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.11...HEAD
+[1.8.11]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.10...v1.8.11
 [1.8.10]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.9...v1.8.10
 [1.8.9]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.8...v1.8.9
 [1.8.8]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.7...v1.8.8
