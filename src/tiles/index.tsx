@@ -18,6 +18,7 @@ import Gauge, { type GaugeConfig } from '#/tiles/cards/Gauge.tsx'
 import Graph, { isNumeric, type GraphConfig } from '#/tiles/cards/Graph.tsx'
 import MapCard, { type MapConfig } from '#/tiles/cards/Map.tsx'
 import MediaControl, { type MediaControlConfig } from '#/tiles/cards/MediaControl.tsx'
+import Remote, { keysOf, type RemoteConfig } from '#/tiles/cards/Remote.tsx'
 import Todo from '#/tiles/cards/Todo.tsx'
 import Weather, { type WeatherConfig } from '#/tiles/cards/Weather.tsx'
 import { FEATURES, featuresFor, isWide } from '#/tiles/features/index.tsx'
@@ -125,12 +126,13 @@ class CameraCard extends entityCard<CameraConfig>(CAMERA_DOMAINS, Camera, ['came
 
 class WeatherCard extends entityCard<WeatherConfig>(WEATHER_DOMAINS, Weather, ['forecast']) {
   getCardSize() {
-    return this._config?.size === 'large' ? 6 : 3
+    const size = this._config?.size
+    return size === 'large' ? 6 : size === 'small' ? 2 : 3
   }
 
   getGridOptions(): GridOptions {
     const size = this._config?.size
-    return { columns: size === 'small' ? 6 : 'full', rows: size === 'large' ? 6 : 3 }
+    return { columns: size === 'small' ? 6 : 'full', rows: size === 'large' ? 6 : size === 'small' ? 2 : 3 }
   }
 }
 
@@ -151,6 +153,29 @@ function panelCard<C extends TileConfig>(
     getGridOptions(): GridOptions {
       return typeof grid === 'function' ? grid(this._config) : grid
     }
+  }
+}
+
+// The remote, offered for one whose keys it knows, the remote itself first.
+class RemoteCard extends panelCard<RemoteConfig>(
+  ['remote', 'media_player'],
+  Remote,
+  // Four rows across the whole width, or six half as wide, where its keys
+  // stand one over the other.
+  config => {
+    const columns = config?.grid_options?.columns
+    const half = typeof columns === 'number' && columns <= 6
+    return half
+      ? { columns: 6, rows: 6, min_columns: 6, min_rows: 6 }
+      : { columns: 'full', rows: 4, min_columns: 12, min_rows: 4 }
+  },
+  4,
+  ['remote'],
+) {
+  static getStubConfig(hass?: HomeAssistant) {
+    const ids = Object.keys(hass?.states ?? {}).sort((a, b) => +b.startsWith('remote.') - +a.startsWith('remote.'))
+    const found = ids.map(id => keysOf(hass!, id)).find(Boolean)
+    return found ? { entity: found.entity } : super.getStubConfig(hass)
   }
 }
 
@@ -286,14 +311,10 @@ const CARDS: Card[] = [
       // A large tile lists the days, under the hours when there are any.
       const sized =
         features & 1
-          ? [
-              small,
-              { label: 'Large', name: 'Large Weather', config: { ...config, size: 'large' } },
-            ]
+          ? [small, { label: 'Large', name: 'Large Weather', config: { ...config, size: 'large' } }]
           : [small]
       // Both forecasts offered, one suggestion each, the hours first.
-      if (!(features & 1) || !(features & 2))
-        return [{ config }, ...sized]
+      if (!(features & 1) || !(features & 2)) return [{ config }, ...sized]
       return [
         { label: 'Hourly', name: 'Hourly Weather', config: { ...config, forecast_type: 'hourly' } },
         { label: 'Daily', name: 'Daily Weather', config: { ...config, forecast_type: 'daily' } },
@@ -310,7 +331,7 @@ const CARDS: Card[] = [
   },
   {
     type: 'dio-alarm-panel',
-    element: panelCard(['alarm_control_panel'], AlarmPanel, { columns: 'full', rows: 'auto' }, 7),
+    element: panelCard(['alarm_control_panel'], AlarmPanel, { columns: 'full', rows: 5 }, 5),
     extra: true,
     domains: ['alarm_control_panel'],
     name: 'Diorama Alarm Keypad',
@@ -318,7 +339,14 @@ const CARDS: Card[] = [
   },
   {
     type: 'dio-dial',
-    element: panelCard(DIAL_DOMAINS, Dial, { columns: 12, rows: 'auto' }, 6),
+    element: panelCard<TileConfig>(
+      DIAL_DOMAINS,
+      Dial,
+      // A light has nothing in the top right corner, so its ring reaches up
+      // there and the card is a row shorter.
+      config => ({ columns: 12, rows: config?.entity?.startsWith('light.') ? 4 : 5 }),
+      5,
+    ),
     extra: true,
     domains: DIAL_DOMAINS,
     name: 'Diorama Big Dial',
@@ -335,11 +363,11 @@ const CARDS: Card[] = [
     element: panelCard<MediaControlConfig>(
       MEDIA_DOMAINS,
       MediaControl,
-      // Half as wide it is as tall as a tile, whatever it shows.
+      // Four rows tall, or two half as wide, whatever it shows.
       config => {
         const columns = config?.grid_options?.columns
         const half = typeof columns === 'number' && columns <= 6
-        return { columns: 'full', rows: half ? 2 : 'auto', min_columns: 6, min_rows: 2 }
+        return { columns: 'full', rows: half ? 2 : 4, min_columns: 6, min_rows: 2 }
       },
       4,
       ['art'],
@@ -364,8 +392,20 @@ const CARDS: Card[] = [
           ],
   },
   {
+    type: 'dio-remote',
+    element: RemoteCard,
+    extra: true,
+    domains: ['remote', 'media_player'],
+    name: 'Diorama TV Remote',
+    description: 'Arrows, OK, back, home, mute and volume for a TV or a streaming box',
+    // Only for a TV or a box whose keys it knows, by its own integration or
+    // another on the same device.
+    suggest: (hass, entityId) =>
+      keysOf(hass, entityId) ? [{ config: { type: 'custom:dio-remote', entity: entityId } }] : [],
+  },
+  {
     type: 'dio-calendar',
-    element: panelCard<CalendarConfig>(['calendar'], Calendar, { columns: 'full', rows: 7 }, 7, ['calendar']),
+    element: panelCard<CalendarConfig>(['calendar'], Calendar, { columns: 'full', rows: 6 }, 6, ['calendar']),
     extra: true,
     domains: ['calendar'],
     name: 'Diorama Calendar',
@@ -399,22 +439,20 @@ const CARDS: Card[] = [
       const daily = numeric && typeof entity?.attributes.state_class === 'string'
       return [
         // A strip of on and off needs less height than a line.
-        { config: numeric ? config : { ...config, grid_options: { columns: 12, rows: 3 } } },
+        { config: numeric ? config : { ...config, grid_options: { columns: 12, rows: 2 } } },
         ...(daily ? [{ label: 'Daily Bars', name: 'Daily Bar Graph', config: { ...config, chart: 'bar' } }] : []),
       ]
     },
   },
   {
     type: 'dio-gauge',
-    element: panelCard<GaugeConfig>(GAUGE_DOMAINS, Gauge, { columns: 6, rows: 3 }, 3, ['gauge']),
+    element: panelCard<GaugeConfig>(GAUGE_DOMAINS, Gauge, { columns: 6, rows: 2 }, 2, ['gauge']),
     extra: true,
     domains: GAUGE_DOMAINS,
     name: 'Diorama Ring Gauge',
     description: 'A reading on a ring',
     suggest: (hass, entityId) =>
-      isNumeric(hass.states[entityId])
-        ? [{ config: { type: 'custom:dio-gauge', entity: entityId } }]
-        : null,
+      isNumeric(hass.states[entityId]) ? [{ config: { type: 'custom:dio-gauge', entity: entityId } }] : null,
   },
   {
     type: 'dio-map',
@@ -462,8 +500,7 @@ function variantNames(card: Card): string[] {
   const features = card.extra
     ? []
     : FEATURES.filter(
-        feature =>
-          !card.repeats?.includes(feature.id) && feature.domains.some(domain => shows(card, `${domain}.any`)),
+        feature => !card.repeats?.includes(feature.id) && feature.domains.some(domain => shows(card, `${domain}.any`)),
       )
   return [
     ...new Set([
@@ -479,7 +516,10 @@ function variantNames(card: Card): string[] {
 // but picking it adds the card itself, set up that way for the first entity
 // that can be, so nothing but the card's own name ever reaches the YAML.
 function registerVariant(card: Card, name: string) {
-  const type = `${card.type}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '')}`
+  const type = `${card.type}-${name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-$/, '')}`
   if (customElements.get(type)) return
   const element = card.element as CustomElementConstructor & {
     getStubConfig?: (hass?: HomeAssistant) => Record<string, unknown>

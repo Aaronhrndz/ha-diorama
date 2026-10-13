@@ -1,3 +1,4 @@
+import { cn } from '#/lib/utils.ts'
 import { entityName, moreInfo, runAction, type TileEnv } from '#/tiles/actions.ts'
 import { addsRow, besideIcon, Feature, featureState, isWide } from '#/tiles/features/index.tsx'
 import type { Preview } from '#/tiles/features/parts.tsx'
@@ -31,6 +32,9 @@ type Props = {
   tint?: string
   // A picture in place of the icon, like the cover of what is playing.
   picture?: string
+  // An app's logo in place of the icon, as it reads on a light card and on
+  // a dark one, or in a single color made to read on either.
+  logo?: { light: string; dark: string; mono?: boolean }
   state: ReactNode
   // What a tap does when the config sets no tap_action.
   onTap?: () => void
@@ -93,6 +97,7 @@ export function Tile({
   glowFrom = 'corner',
   tint,
   picture,
+  logo,
   state,
   onTap,
   role = 'button',
@@ -159,6 +164,8 @@ export function Tile({
       <div className="dio-top">
         {picture ? (
           <img className="dio-picture" src={picture} alt="" draggable={false} />
+        ) : logo ? (
+          <Logo {...logo} />
         ) : (
           <Icon
             icon={
@@ -197,5 +204,31 @@ export function Tile({
         </div>
       )}
     </div>
+  )
+}
+
+// How tall a logo stands. One over twice as wide as it is tall stands
+// lower, so that a long wordmark weighs about what a square mark does.
+const LOGO_PX = 30
+
+// An app's logo, the one for the card's theme shown and the other hidden.
+function Logo({ light, dark, mono }: NonNullable<Props['logo']>) {
+  const [ratio, setRatio] = useState(3)
+  const height = LOGO_PX * Math.min(1, (ratio / 2) ** -0.5)
+  const measure = (event: { currentTarget: HTMLImageElement }) => {
+    const { naturalWidth, naturalHeight } = event.currentTarget
+    if (naturalWidth && naturalHeight) setRatio(naturalWidth / naturalHeight)
+  }
+  return (
+    <span className={cn('dio-logo', mono && 'dio-logo-mono')} style={{ height }}>
+      {light === dark ? (
+        <img src={light} alt="" draggable={false} onLoad={measure} />
+      ) : (
+        <>
+          <img className="dio-logo-light" src={light} alt="" draggable={false} onLoad={measure} />
+          <img className="dio-logo-dark" src={dark} alt="" draggable={false} />
+        </>
+      )}
+    </span>
   )
 }

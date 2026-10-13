@@ -1,4 +1,5 @@
 import { cn } from '#/lib/utils.ts'
+import { appOf, PACKAGE } from '#/tiles/apps.ts'
 import { callService, entityName, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { MEDIA, VolumeSlider } from '#/tiles/features/media.tsx'
@@ -16,8 +17,9 @@ import {
 } from 'react'
 
 const OFF = ['off', 'standby', 'unavailable', 'unknown']
-// An app's package id, words joined by dots with no spaces.
-const PACKAGE = /^[\w-]+(\.[\w-]+)+$/
+// The colors of the light behind a card that plays from an app it does
+// not know, or that tells of none.
+const NEUTRAL = ['var(--_accent-media)', '#7c8aa5', '#5b6b8c']
 // What a player puts in the title when it has none.
 const PLACEHOLDER = /^not provided$/i
 // How far a finger goes sideways before the press is a drag along the song.
@@ -70,6 +72,9 @@ export type MediaControlConfig = TileConfig & {
 // card fills from the left as far into the song as it is, faintly, and a
 // drag sideways anywhere on it moves along the song when the player can.
 // A tap plays or pauses it, or opens the player's dialog while it is off.
+// Playing from a known app with no cover art, the app's logo takes the
+// place of the icon, and a soft light in the app's colors drifts behind
+// the card, or in quieter colors for any other app.
 // Made two rows tall or half as wide, it leaves out the volume, shuffle and
 // repeat, and keeps the buttons and how far in it is. Half as wide it also
 // leaves out the power button, which its dialog still has.
@@ -89,10 +94,17 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   // the air, says so in the title, which then goes under the player's name.
   const blank = said !== null && PLACEHOLDER.test(said.trim())
   const title = blank ? null : said
-  // An app is named only by a name of its own, never by a package id like
-  // com.example.app, which is all some players know of an app they have no
-  // name for.
-  const app = typeof attributes.app_name === 'string' && !PACKAGE.test(attributes.app_name) ? attributes.app_name : null
+  // A known app goes by its own name, with its logo in place of the icon.
+  // Any other is named only by a name of its own, never by a package id
+  // like com.example.app, which is all some players know of an app they
+  // have no name for.
+  const known = off ? null : appOf(attributes.app_name, attributes.app_id)
+  const app =
+    known?.name ??
+    (typeof attributes.app_name === 'string' && !PACKAGE.test(attributes.app_name) ? attributes.app_name : null)
+  // With no cover art behind it, a card that is on has a soft light behind
+  // it in the colors of its app, which drifts while it plays.
+  const glow = !off && !(picture && !square) ? (known?.colors ?? NEUTRAL) : null
   const artist = [attributes.media_artist, attributes.media_album_name, app].find(
     part => typeof part === 'string' && part,
   ) as string | undefined
@@ -229,11 +241,22 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
         }
         accent="var(--_accent-media)"
         onTap={!off && has(playing ? MEDIA.pause : MEDIA.play) ? run('media_play_pause') : undefined}
-        className={cn('dio-media-control', cover && 'dio-media-cover', compact && 'dio-media-compact')}
+        className={cn(
+          'dio-media-control',
+          cover && 'dio-media-cover',
+          compact && 'dio-media-compact',
+          glow && !playing && 'dio-media-still',
+        )}
         picture={cover ?? undefined}
+        // Over the cover art, which is darkened, the logo is the one for a
+        // dark card whatever the theme.
+        logo={known && picture && !square ? { ...known.logo, light: known.logo.dark } : known?.logo}
         style={
           {
             '--_art': picture && !square ? `url("${picture}")` : undefined,
+            '--_glow-a': glow?.[0],
+            '--_glow-b': glow?.[1],
+            '--_glow-c': glow?.[2],
             '--_progress': timed ? `${share * 100}%` : undefined,
             '--_holes': timed ? mask : undefined,
           } as CSSProperties
