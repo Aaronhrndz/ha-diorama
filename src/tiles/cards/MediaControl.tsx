@@ -101,8 +101,9 @@ export type MediaControlConfig = TileConfig & {
 // from the title its volume, with shuffle and repeat to its right. The
 // card fills from the left as far into the song as it is, faintly, and a
 // drag sideways anywhere on it moves along the song when the player can.
-// A tap plays or pauses it, or turns it on while it is off, and a long
-// press opens the player's dialog.
+// A tap plays or pauses it, and a long press opens the player's dialog.
+// It only plays what is on, so it has no power button and a tap on it
+// while it is off does nothing.
 // A player that cannot tell what plays in it takes that from another of a
 // device with the same name, like the one a TV box casts from, which also
 // says which buttons the app takes.
@@ -110,8 +111,7 @@ export type MediaControlConfig = TileConfig & {
 // place of the icon, and a soft light in the app's colors drifts behind
 // the card, or in quieter colors for any other app.
 // Made two rows tall or half as wide, it leaves out the volume, shuffle and
-// repeat, and keeps the buttons and how far in it is. Half as wide it also
-// leaves out the power button, which its dialog still has.
+// repeat, and keeps the buttons and how far in it is.
 export default function MediaControl({ env, config }: { env: TileEnv; config: MediaControlConfig }) {
   const entity = env.hass.states[config.entity!]
   const attributes = entity?.attributes ?? {}
@@ -145,9 +145,8 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
   // With no cover art behind it, a card that is on has a soft light behind
   // it in the colors of its app, which drifts while it plays.
   const glow = !off && !(picture && !square) ? (known?.colors ?? NEUTRAL) : null
-  const artist = [told.media_artist, told.media_album_name, app].find(
-    part => typeof part === 'string' && part,
-  ) as string | undefined
+  const artist = [told.media_artist, told.media_album_name, app].find(part => typeof part === 'string' && part) as
+    string | undefined
   const duration = numberOf(media, 'media_duration')
   const position = numberOf(media, 'media_position')
   const updated = typeof told.media_position_updated_at === 'string' ? told.media_position_updated_at : null
@@ -159,9 +158,11 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
     () =>
       callService(env.hass, `media_player.${service}`, { entity_id: entityId })
   const has = (bit: number) => supports(entity, bit)
-  // What the player of what plays can do, and doing it there.
+  // What the player of what plays can do. A button goes to the player
+  // itself when it can take it, as a box's own keys work in any app even
+  // with nothing open yet, and to the player of what plays otherwise.
   const can = (bit: number) => supports(media, bit)
-  const play = (service: string) => run(service, media?.entity_id)
+  const play = (service: string, bit: number) => run(service, has(bit) ? config.entity : media?.entity_id)
   const name = entityName(config, entity)
   const timed = !off && duration !== null && duration > 0 && at !== null
   const seekable = timed && can(MEDIA.seek)
@@ -287,13 +288,9 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
         }
         accent="var(--_accent-media)"
         onTap={
-          off
-            ? entity && has(MEDIA.turnOn)
-              ? run('turn_on')
-              : null
-            : can(playing ? MEDIA.pause : MEDIA.play)
-              ? play('media_play_pause')
-              : null
+          !off && can(playing ? MEDIA.pause : MEDIA.play)
+            ? play('media_play_pause', playing ? MEDIA.pause : MEDIA.play)
+            : null
         }
         className={cn(
           'dio-media-control',
@@ -321,24 +318,21 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
               {time}
               <div className="dio-media-buttons">
                 {!off && can(MEDIA.previous) && (
-                  <Control icon="ph:skip-back" label="Previous" onPress={play('media_previous_track')} />
+                  <Control
+                    icon="ph:skip-back"
+                    label="Previous"
+                    onPress={play('media_previous_track', MEDIA.previous)}
+                  />
                 )}
                 {!off && can(playing ? MEDIA.pause : MEDIA.play) && (
                   <Control
                     icon={playing ? 'ph:pause' : unsure ? 'ph:play-pause' : 'ph:play'}
                     label={playing ? 'Pause' : unsure ? 'Play or pause' : 'Play'}
-                    onPress={play('media_play_pause')}
+                    onPress={play('media_play_pause', playing ? MEDIA.pause : MEDIA.play)}
                   />
                 )}
                 {!off && can(MEDIA.next) && (
-                  <Control icon="ph:skip-forward" label="Next" onPress={play('media_next_track')} />
-                )}
-                {!narrow && has(off ? MEDIA.turnOn : MEDIA.turnOff) && (
-                  <Control
-                    icon="ph:power-bold"
-                    label={off ? 'Turn on' : 'Turn off'}
-                    onPress={run(off ? 'turn_on' : 'turn_off')}
-                  />
+                  <Control icon="ph:skip-forward" label="Next" onPress={play('media_next_track', MEDIA.next)} />
                 )}
               </div>
             </>

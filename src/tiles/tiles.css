@@ -2085,6 +2085,38 @@
   background: color-mix(in srgb, currentColor 18%, transparent);
 }
 
+/* Power after one press, waiting for the second that turns it off: filled,
+   with a ring around it that runs out until it stops waiting. */
+@property --_armed {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.dio-remote .dio-remote-armed {
+  position: relative;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.dio-remote .dio-remote-armed::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(currentColor var(--_armed), transparent 0);
+  content: '';
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  animation: dio-remote-armed var(--_armed-ms) linear forwards;
+}
+
+@keyframes dio-remote-armed {
+  from {
+    --_armed: 360deg;
+  }
+  to {
+    --_armed: 0deg;
+  }
+}
+
 /* A link like button, for Clear. */
 .dio-link {
   padding: 4px 8px;

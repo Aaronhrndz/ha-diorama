@@ -8,7 +8,7 @@ import type { TileConfig } from '#/tiles/host.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
 import type { HomeAssistant } from '#/types.ts'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 export type Key = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'home' | 'mute' | 'volume_up' | 'volume_down'
 
@@ -117,6 +117,10 @@ const VOLUME: Key[] = ['mute', 'volume_up', 'volume_down']
 // How long a key is held before it repeats, and how often it does then.
 const REPEAT_AFTER_MS = 400
 const REPEAT_EVERY_MS = 120
+// How long the power key waits for the second press that turns it off.
+const ARMED_MS = 3000
+
+const OFF = ['off', 'standby', 'unavailable', 'unknown']
 
 type Target = { entity: string; platform: string }
 
@@ -150,7 +154,7 @@ function playerOf(hass: HomeAssistant, entityId: string) {
 
 type Props = { env: TileEnv; config: RemoteConfig }
 
-// A TV remote: back and home in the top right corner, minus, mute and
+// A TV remote: back, home and power in the top right corner, minus, mute and
 // plus just left of them, and arrows around OK on a round pad under them.
 // Half as wide, back and home stay in the corner, and the pad and then the
 // volume stand under them, in the middle. It finds
@@ -158,14 +162,43 @@ type Props = { env: TileEnv; config: RemoteConfig }
 // on its device, so a remote or a TV picked from the list works as it is.
 // A key can be given a command of its own, and the volume can go to
 // another player, like the TV a box is plugged into. The arrows and the
-// volume repeat while held. A tap on the card around the keys does
-// nothing, and a long press opens its dialog.
+// volume repeat while held, and while the player of the volume is off they
+// cannot be pressed. Power turns it on at once, but turns it off only on a
+// second press within a few seconds, so it is never turned off by mistake.
+// A tap on the card around the keys does nothing, and a long press opens
+// its dialog.
 export default function Remote({ env, config }: Props) {
   const { hass } = env
   const entity = hass.states[config.entity!]
   const keys = config.entity ? keysOf(hass, config.entity) : null
   const player = config.volume_entity ?? (keys ? undefined : config.entity && playerOf(hass, config.entity))
   const muted = player ? hass.states[player]?.attributes.is_volume_muted === true : false
+  const off = !entity || OFF.includes(entity.state)
+  // Power waits for a second press to turn it off until this runs out.
+  const [waiting, setArmed] = useState(false)
+  const armed = waiting && !off
+  const disarm = useRef(0)
+  useEffect(() => () => clearTimeout(disarm.current), [])
+  // The service that turns it on or off, when it has one.
+  const domain = config.entity?.split('.')[0]
+  const powerOf = (on: boolean) =>
+    domain === 'remote' || (domain === 'media_player' && supports(entity, on ? MEDIA.turnOn : MEDIA.turnOff))
+      ? () => callService(hass, `${domain}.turn_${on ? 'on' : 'off'}`, { entity_id: config.entity })
+      : null
+  const turn = powerOf(off)
+  const power = () => {
+    if (!turn) return
+    clearTimeout(disarm.current)
+    if (off || armed) {
+      haptic(off ? 'selection' : 'medium')
+      setArmed(false)
+      turn()
+      return
+    }
+    haptic('selection')
+    setArmed(true)
+    disarm.current = window.setTimeout(() => setArmed(false), ARMED_MS)
+  }
 
   // What a key does, or nothing when there is no way to send it.
   const sendOf = (key: Key): (() => void) | null => {
@@ -178,6 +211,8 @@ export default function Remote({ env, config }: Props) {
     }
     const toPlayer = VOLUME.includes(key) && (config.volume_entity || !keys) ? player : undefined
     if (toPlayer) {
+      // A player that is off takes no volume.
+      if (OFF.includes(hass.states[toPlayer]?.state ?? 'unavailable')) return null
       if (key === 'mute')
         return () => callService(hass, 'media_player.volume_mute', { entity_id: toPlayer, is_volume_muted: !muted })
       return () => callService(hass, `media_player.${key}`, { entity_id: toPlayer })
@@ -203,18 +238,30 @@ export default function Remote({ env, config }: Props) {
       className="dio-remote"
       onTap={null}
       controls={
-        corner.length > 0 &&
-        corner.map(([key, send]) => (
-          <Control
-            key={key}
-            icon={LOOK[key].icon}
-            label={LOOK[key].label}
-            onPress={() => {
-              haptic('selection')
-              send()
-            }}
-          />
-        ))
+        (corner.length > 0 || turn) && (
+          <>
+            {corner.map(([key, send]) => (
+              <Control
+                key={key}
+                icon={LOOK[key].icon}
+                label={LOOK[key].label}
+                onPress={() => {
+                  haptic('selection')
+                  send()
+                }}
+              />
+            ))}
+            {turn && (
+              <Control
+                icon="ph:power-bold"
+                label={off ? 'Turn on' : armed ? 'Press again to turn off' : 'Turn off'}
+                className={cn(armed && 'dio-remote-armed')}
+                style={{ '--_armed-ms': `${ARMED_MS}ms` } as CSSProperties}
+                onPress={power}
+              />
+            )}
+          </>
+        )
       }
     >
       <div className="dio-pad" onPointerDown={e => e.stopPropagation()}>

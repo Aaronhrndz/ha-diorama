@@ -9,6 +9,18 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- The TV Remote has a power key beside back and home, which turns it on at once but turns it off only on a second press within three seconds.
+
+### Changed
+
+- Now Playing has no power button any more, and a tap on it while the player is off does nothing.
+
+### Fixed
+
+- Play, pause, previous and next on Now Playing for a TV box work again before anything plays, and the TV Remote greys out its volume while the TV it changes is off.
+
 ## [1.8.1] - 2026-10-13
 
 ### Changed
