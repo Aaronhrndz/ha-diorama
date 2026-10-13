@@ -42,6 +42,7 @@ export type HomeAssistant = {
     service: string,
     data?: Record<string, unknown>,
     target?: Record<string, unknown>,
+    notifyOnError?: boolean,
   ) => Promise<unknown>
   themes: { darkMode: boolean }
   locale?: { language: string }

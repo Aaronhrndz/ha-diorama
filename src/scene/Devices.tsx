@@ -229,7 +229,7 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
     }
     // A call Home Assistant refuses must not surface as an unhandled
     // rejection in the dashboard. Its own toast already says what went wrong.
-    hass.callService(action.domain, action.service, { entity_id: entityId }).catch(() => {})
+    hass.callService(action.domain, action.service, { entity_id: entityId }, undefined, false).catch(() => {})
   }
 
   // What a press on each piece does. The models are only drawn again when

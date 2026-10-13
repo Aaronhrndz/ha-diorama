@@ -32,9 +32,11 @@ export function haptic(kind: 'light' | 'medium' | 'selection' = 'light') {
   window.dispatchEvent(new CustomEvent('haptic', { detail: kind }))
 }
 
+// A failure is only logged, not shown as an error toast, since a device that
+// misses one press, like a TV still waking up, is no news to whoever pressed.
 export function callService(hass: HomeAssistant, action: string, data?: Record<string, unknown>) {
   const [domain, service] = action.split('.', 2)
-  return hass.callService(domain, service, data).catch(error => console.error(`Diorama tiles: ${action}`, error))
+  return hass.callService(domain, service, data, undefined, false).catch(error => console.error(`Diorama tiles: ${action}`, error))
 }
 
 function navigate(path: string, replace = false) {

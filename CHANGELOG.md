@@ -9,6 +9,17 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- The volume on the wide TV Remote sits on the left of the arrows, centered on them, away from the icon.
+- A press on a card that a device fails to take, like a TV still waking up, no longer shows a red error at the bottom of the screen.
+
+### Fixed
+
+- A card with no buttons to show, like Now Playing while nothing plays, no longer shows an empty pill in its top right corner.
+- The TV Remote greys out every key but power while the TV is off, so pressing an arrow, OK or the volume no longer turns it on.
+- Now Playing on a TV box shows a play or pause button for an app that never says it is paused, like Netflix, instead of a pause button that never changes.
+
 ## [1.8.2] - 2026-10-13
 
 ### Added
