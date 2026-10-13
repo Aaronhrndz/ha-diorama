@@ -183,7 +183,7 @@ function drawOver(
     context.fillRect(0, canvas.height - rise, canvas.width, rise)
     context.fillStyle = '#ffffff'
     // A black outline round each letter, as subtitles have.
-    context.strokeStyle = '#000000'
+    context.strokeStyle = 'rgba(0, 0, 0, 0.55)'
     context.lineWidth = size * 0.16
     context.lineJoin = 'round'
     lines.forEach((text, i) => {
