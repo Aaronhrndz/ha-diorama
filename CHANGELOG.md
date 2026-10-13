@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A TV or speaker whose state Home Assistant does not know yet no longer shows as on in the model.
+
 ## [1.8.13] - 2026-10-13
 
 ### Fixed
