@@ -2016,9 +2016,16 @@
   width: calc(var(--_pad) * 0.42);
   height: calc(var(--_pad) * 0.42);
   transform: translate(-50%, -50%);
-  background: color-mix(in srgb, currentColor 14%, transparent);
   font-size: 17px;
   font-weight: 600;
+}
+
+/* The way the pad is steered by a swipe, lit while it keeps sending it. */
+.dio-pad[data-steer='up'] > .dio-pad-up,
+.dio-pad[data-steer='down'] > .dio-pad-down,
+.dio-pad[data-steer='left'] > .dio-pad-left,
+.dio-pad[data-steer='right'] > .dio-pad-right {
+  background: color-mix(in srgb, currentColor 22%, transparent);
 }
 
 /* Four rows tall and the whole width. Back and home in the top right, the
@@ -3115,6 +3122,23 @@
   gap: 4px;
   padding: 3px;
   background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* The buttons that play it over the volume, both across, left of the pad
+   and centered on it. */
+.dio-media-remote .dio-remote-side {
+  grid-area: 3 / 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  margin-right: 8px;
+}
+
+.dio-media-remote .dio-remote-side > .dio-controls.dio-volume {
+  flex-direction: row;
+  margin: 0;
 }
 
 /* What plays is cut short with an ellipsis, never run over the pad. */

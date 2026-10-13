@@ -124,8 +124,8 @@ export type MediaControlConfig = TileConfig & {
 // repeat, and keeps the buttons and how far in it is. Half as wide, it
 // also leaves out the icon, so the buttons fit across the top.
 // With `remote`, it is the media card with the remote: two rows across the
-// whole width while it is off, with only its name, its state and power,
-// which turns it on at once. Once on, it grows to show the remote's pad and
+// whole width while it is off, with only its icon, its name and its state,
+// and turned on by the double tap. Once on, it grows to show the remote's pad and
 // volume under what plays, and has back, home and power in a group of their
 // own beside the buttons that play it. Power turns it off on a second press.
 export default function MediaControl({
@@ -295,20 +295,6 @@ export default function MediaControl({
   // While it waits for the second tap, and once that is sent until it is on.
   const waking = confirm.waiting ? 'Tap again to turn on' : confirm.step === 2 || leaving ? 'Turning on' : null
   const looks = cn('dio-media-control', compact && 'dio-media-compact', narrow && 'dio-media-narrow')
-  // Power while it is off, on the card with the remote, which turns it on
-  // at once.
-  const wake = wakeUp && (
-    <div className="dio-media-buttons">
-      <Control
-        icon="ph:power-bold"
-        label="Turn on"
-        onPress={() => {
-          haptic('selection')
-          wakeUp()
-        }}
-      />
-    </div>
-  )
   const powerOff = turnOff && (
     <Control
       icon="ph:power-bold"
@@ -317,6 +303,27 @@ export default function MediaControl({
       style={power.style}
       onPress={power.press}
     />
+  )
+  // The buttons that play it, in the top right, or beside the remote's pad
+  // above its volume while the pad shows.
+  const buttons = (
+    <div className="dio-media-buttons">
+      {!off && can(MEDIA.previous) && (
+        <Control icon="ph:skip-back" label="Previous" onPress={play('media_previous_track', MEDIA.previous)} />
+      )}
+      {off && <Control icon="ph:play" label="Play" disabled onPress={() => {}} />}
+      {!off && can(playing ? MEDIA.pause : MEDIA.play) && (
+        <Control
+          icon={unsure ? 'ph:play-pause' : playing ? 'ph:pause' : 'ph:play'}
+          label={unsure ? 'Play or pause' : playing ? 'Pause' : 'Play'}
+          onPress={play('media_play_pause', playing ? MEDIA.pause : MEDIA.play)}
+        />
+      )}
+      {!off && can(MEDIA.next) && (
+        <Control icon="ph:skip-forward" label="Next" onPress={play('media_next_track', MEDIA.next)} />
+      )}
+      {!remote && powerOff}
+    </div>
   )
   const time = timed && <span className="dio-media-time">{clock(share * duration)}</span>
   const shuffle = !off && can(MEDIA.shuffle) && (
@@ -409,32 +416,10 @@ export default function MediaControl({
         }
         controls={
           entity &&
-          (remote && off ? (
-            wake
-          ) : (
+          (remote && off ? null : (
             <>
               {!remote && time}
-              <div className="dio-media-buttons">
-                {!off && can(MEDIA.previous) && (
-                  <Control
-                    icon="ph:skip-back"
-                    label="Previous"
-                    onPress={play('media_previous_track', MEDIA.previous)}
-                  />
-                )}
-                {off && <Control icon="ph:play" label="Play" disabled onPress={() => {}} />}
-                {!off && can(playing ? MEDIA.pause : MEDIA.play) && (
-                  <Control
-                    icon={unsure ? 'ph:play-pause' : playing ? 'ph:pause' : 'ph:play'}
-                    label={unsure ? 'Play or pause' : playing ? 'Pause' : 'Play'}
-                    onPress={play('media_play_pause', playing ? MEDIA.pause : MEDIA.play)}
-                  />
-                )}
-                {!off && can(MEDIA.next) && (
-                  <Control icon="ph:skip-forward" label="Next" onPress={play('media_next_track', MEDIA.next)} />
-                )}
-                {!remote && powerOff}
-              </div>
+              {!pad && buttons}
               {remote && (keys || powerOff) && (
                 <div className="dio-media-buttons">
                   {keys && <CornerKeys corner={cornerOf(keys.reach)} />}
@@ -445,7 +430,7 @@ export default function MediaControl({
           ))
         }
       >
-        {pad && keys && <RemoteKeys sendOf={keys.reach} muted={keys.muted} />}
+        {pad && keys && <RemoteKeys sendOf={keys.reach} muted={keys.muted} above={buttons} />}
         {!compact && !remote && (shuffle || repeat || volume) && (
           <div className="dio-media-row">
             {volume}
@@ -469,9 +454,7 @@ export default function MediaControl({
             onTap={null}
             className={looks}
             controls={
-              remote ? (
-                wake
-              ) : (
+              !remote && (
                 <div className="dio-media-buttons">
                   <Control icon="ph:play" label="Play" disabled onPress={() => {}} />
                 </div>

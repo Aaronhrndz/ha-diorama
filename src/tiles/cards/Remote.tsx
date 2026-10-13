@@ -9,7 +9,7 @@ import type { TileConfig } from '#/tiles/host.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
 import type { HomeAssistant } from '#/types.ts'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 export type Key = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'home' | 'mute' | 'volume_up' | 'volume_down'
 
@@ -286,21 +286,32 @@ export function CornerKeys({ corner, disabled }: { corner: ReturnType<typeof cor
   ))
 }
 
-// The round pad, and minus, mute and plus beside it.
-export function RemoteKeys({ sendOf, muted }: { sendOf: Reach; muted: boolean }) {
+// The round pad, and minus, mute and plus beside it, with what goes above
+// them, if anything, in a column of its own.
+export function RemoteKeys({ sendOf, muted, above }: { sendOf: Reach; muted: boolean; above?: ReactNode }) {
+  const volume = (
+    <div className="dio-controls dio-volume" onPointerDown={e => e.stopPropagation()}>
+      <RemoteKey name="volume_down" send={sendOf('volume_down')} repeats className="dio-control" />
+      <RemoteKey
+        name="mute"
+        send={sendOf('mute')}
+        icon={muted ? 'ph:speaker-x' : 'ph:speaker-high'}
+        className={cn('dio-control', muted && 'dio-remote-muted')}
+      />
+      <RemoteKey name="volume_up" send={sendOf('volume_up')} repeats className="dio-control" />
+    </div>
+  )
   return (
     <>
       <Pad sendOf={sendOf} />
-      <div className="dio-controls dio-volume" onPointerDown={e => e.stopPropagation()}>
-        <RemoteKey name="volume_down" send={sendOf('volume_down')} repeats className="dio-control" />
-        <RemoteKey
-          name="mute"
-          send={sendOf('mute')}
-          icon={muted ? 'ph:speaker-x' : 'ph:speaker-high'}
-          className={cn('dio-control', muted && 'dio-remote-muted')}
-        />
-        <RemoteKey name="volume_up" send={sendOf('volume_up')} repeats className="dio-control" />
-      </div>
+      {above ? (
+        <div className="dio-remote-side">
+          {above}
+          {volume}
+        </div>
+      ) : (
+        volume
+      )}
     </>
   )
 }
@@ -321,14 +332,31 @@ const LOOK: Record<Key, { icon: string; label: string }> = {
 type Arrow = 'up' | 'right' | 'down' | 'left'
 const ARROWS: Arrow[] = ['up', 'right', 'down', 'left']
 
-// How far a finger goes on the pad for each step of a swipe.
+// How far a finger goes on the pad before it steers that way.
 const SWIPE_PX = 28
+// How often the pad sends the way it is steered while the finger stays
+// down, after the first.
+const STEER_EVERY_MS = 180
 
-// The arrows around OK. A key is sent when the finger lifts, so a press
-// that turns into a swipe sends only the swipe's steps, or after a moment
-// held, when an arrow then repeats as long as it stays down.
+const wayOf = (dx: number, dy: number): Arrow =>
+  Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up'
+
+// The arrows around OK, and a stick: a finger that goes far enough one way
+// steers that way, and the pad sends that arrow at once, then again and
+// again while the finger stays down, even still. Moved far enough another
+// way without lifting, it steers that way instead. A key that is pressed
+// and not swiped is sent when the finger lifts, or after a moment held,
+// when an arrow then repeats as long as it stays down.
 function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
-  const press = useRef<{ key: Key | null; x: number; y: number; moved: boolean; timer: number } | null>(null)
+  const pad = useRef<HTMLDivElement>(null)
+  const press = useRef<{
+    key: Key | null
+    x: number
+    y: number
+    moved: boolean
+    way: Arrow | null
+    timer: number
+  } | null>(null)
   const fire = (key: Key) => {
     const send = sendOf(key)
     if (!send) return
@@ -337,6 +365,7 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
   }
   const end = () => {
     const current = press.current
+    if (pad.current) delete pad.current.dataset.steer
     if (!current) return
     clearTimeout(current.timer)
     clearInterval(current.timer)
@@ -345,6 +374,7 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
   useEffect(() => end, [])
   return (
     <div
+      ref={pad}
       className="dio-pad"
       onPointerDown={e => {
         e.stopPropagation()
@@ -352,7 +382,7 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
         end()
         const key = ((e.target as HTMLElement).closest('[data-key]')?.getAttribute('data-key') as Key | null) ?? null
         e.currentTarget.setPointerCapture(e.pointerId)
-        const current = { key, x: e.clientX, y: e.clientY, moved: false, timer: 0 }
+        const current = { key, x: e.clientX, y: e.clientY, moved: false, way: null, timer: 0 }
         press.current = current
         if (!key || !ARROWS.includes(key as Arrow)) return
         current.timer = window.setTimeout(() => {
@@ -367,12 +397,19 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
         const dx = e.clientX - current.x
         const dy = e.clientY - current.y
         if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_PX) return
-        if (!current.moved) clearTimeout(current.timer)
-        clearInterval(current.timer)
-        current.moved = true
+        // Measured again from here, so the next turn is told from where the
+        // finger is now.
         current.x = e.clientX
         current.y = e.clientY
-        fire(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up')
+        const way = wayOf(dx, dy)
+        if (way === current.way) return
+        clearTimeout(current.timer)
+        clearInterval(current.timer)
+        current.moved = true
+        current.way = way
+        if (pad.current) pad.current.dataset.steer = way
+        fire(way)
+        current.timer = window.setInterval(() => fire(way), STEER_EVERY_MS)
       }}
       onPointerUp={() => {
         const current = press.current
