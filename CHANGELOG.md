@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.7] - 2026-10-13
+
 ### Added
 
 - The card's settings end with its name and version.
@@ -490,7 +492,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.6...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.7...HEAD
+[1.8.7]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.6...v1.8.7
 [1.8.6]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.5...v1.8.6
 [1.8.5]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.4...v1.8.5
 [1.8.4]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.3...v1.8.4
