@@ -1,6 +1,6 @@
-import { LIVE_FPS } from '#/constants.ts'
+import { LIVE_FPS, LIVE_REST_MS } from '#/constants.ts'
 import { useThree } from '@react-three/fiber'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Mesh, type Object3D } from 'three'
 
 // The card draws a frame only when something in it has changed: a light
@@ -16,35 +16,96 @@ import { Mesh, type Object3D } from 'three'
 // light fading, still asks for every frame, and what plays here moves on
 // each of those too. The first frame is asked for when it turns on, and the
 // last one when it turns off, so what it leaves behind is drawn too.
+// It rests after LIVE_REST_MS with no change to its device, which is when
+// the model calling this draws again, and with no touch on the card. It
+// stops where it is until either comes.
 export function useLive(active: boolean) {
   const invalidate = useThree(state => state.invalidate)
+  const canvas = useThree(state => state.gl.domElement)
+  const user = useRef<User | null>(null)
   useEffect(() => {
     invalidate()
     if (!active) return
-    return beat(invalidate)
-  }, [active, invalidate])
+    const u: User = { awake: false, timer: undefined }
+    user.current = u
+    const leave = beat(invalidate, canvas, u)
+    return () => {
+      user.current = null
+      leave()
+    }
+  }, [active, invalidate, canvas])
+  // A model draws again only when what it shows of its device changes, so
+  // each time it does, what moves in it wakes for a while.
+  useEffect(() => {
+    const u = user.current
+    if (u) wake(invalidate, u)
+  })
 }
 
-// One timer for every live thing in a card, kept while any of them is.
-// Keyed by the card's `invalidate`.
-const beats = new Map<() => void, { users: number; id: ReturnType<typeof setInterval> }>()
+type User = { awake: boolean; timer: ReturnType<typeof setTimeout> | undefined }
+
+// What moves on its own in one card: who is in it, and the timer that asks
+// for its frames while any of them is awake. Keyed by the card's
+// `invalidate`.
+type Card = {
+  users: Set<User>
+  id: ReturnType<typeof setInterval> | undefined
+  stop: () => void
+}
+const cards = new Map<() => void, Card>()
 
 // Whether the card is drawing a few times a second for what moves on its
 // own, so a gap that long between frames is that pace and not a slow frame.
-export const beating = (invalidate: () => void) => beats.has(invalidate)
+export const beating = (invalidate: () => void) => cards.get(invalidate)?.id !== undefined
 
-function beat(invalidate: () => void) {
-  let b = beats.get(invalidate)
-  if (!b) {
-    b = { users: 0, id: setInterval(invalidate, 1000 / LIVE_FPS) }
-    beats.set(invalidate, b)
+function beat(invalidate: () => void, canvas: HTMLElement, user: User) {
+  let card = cards.get(invalidate)
+  if (!card) {
+    const c: Card = { users: new Set(), id: undefined, stop: () => {} }
+    // A touch on the card, or the pointer over it, wakes everything in it.
+    const touched = () => c.users.forEach(u => wake(invalidate, u))
+    const events = ['pointerdown', 'pointermove', 'wheel'] as const
+    events.forEach(e => canvas.addEventListener(e, touched, { passive: true }))
+    c.stop = () => events.forEach(e => canvas.removeEventListener(e, touched))
+    cards.set(invalidate, c)
+    card = c
   }
-  b.users++
+  const c = card
+  c.users.add(user)
+  wake(invalidate, user)
   return () => {
-    b.users--
-    if (b.users > 0) return
-    clearInterval(b.id)
-    beats.delete(invalidate)
+    clearTimeout(user.timer)
+    c.users.delete(user)
+    pace(invalidate, c)
+    if (c.users.size > 0) return
+    c.stop()
+    cards.delete(invalidate)
+  }
+}
+
+function wake(invalidate: () => void, user: User) {
+  const card = cards.get(invalidate)
+  if (!card) return
+  clearTimeout(user.timer)
+  user.timer = setTimeout(() => {
+    user.awake = false
+    pace(invalidate, card)
+  }, LIVE_REST_MS)
+  if (user.awake) return
+  user.awake = true
+  pace(invalidate, card)
+}
+
+// Starts the timer when the first one wakes and stops it when the last one
+// rests.
+function pace(invalidate: () => void, card: Card) {
+  const any = [...card.users].some(u => u.awake)
+  if (any && card.id === undefined) {
+    invalidate()
+    card.id = setInterval(invalidate, 1000 / LIVE_FPS)
+  } else if (!any && card.id !== undefined) {
+    clearInterval(card.id)
+    card.id = undefined
   }
 }
 

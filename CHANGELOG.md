@@ -9,6 +9,15 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A long title on a TV or a projection screen no longer repeats its second line.
+
+### Changed
+
+- Under the title of what plays, a TV or a projection screen shows the artist, the album or the app in a smaller line, as its card does.
+- A fan, a screen, a flame or anything else that moves on its own stops after two minutes with no change to its device, so a card left alone draws nothing, and moves again as soon as the card is touched or the device changes.
+
 ## [1.8.15] - 2026-10-13
 
 ### Fixed

@@ -75,6 +75,10 @@ export const MAX_SHADOW_LAMPS_TOUCH = 6
 // nothing else is moving. Enough to read as motion, at a quarter of the work.
 // A camera moving or a light fading still draws at the full rate.
 export const LIVE_FPS = 16
+// How long what moves on its own keeps moving after its device last changed,
+// or after the card was last touched. Then it stops where it is, and a card
+// where nothing else moves draws no frames at all.
+export const LIVE_REST_MS = 2 * 60 * 1000
 // The most frames a second, and in performance mode, on a phone or tablet.
 export const MAX_FPS = 60
 export const PERFORMANCE_MAX_FPS = 24
