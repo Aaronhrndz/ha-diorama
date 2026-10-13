@@ -2020,11 +2020,16 @@
   font-weight: 600;
 }
 
-/* The way the pad is steered by a swipe, lit while it keeps sending it. */
-.dio-pad[data-steer='up'] > .dio-pad-up,
-.dio-pad[data-steer='down'] > .dio-pad-down,
-.dio-pad[data-steer='left'] > .dio-pad-left,
-.dio-pad[data-steer='right'] > .dio-pad-right {
+/* The way the pad is steered by a swipe, lit while it keeps sending it,
+   and only that way, not the key the finger first pressed. */
+.dio-pad[data-steer] > .dio-remote-key:active:not(:disabled) {
+  background: transparent;
+}
+
+.dio-pad[data-steer='up'] > .dio-pad-up.dio-remote-key:not(:disabled),
+.dio-pad[data-steer='down'] > .dio-pad-down.dio-remote-key:not(:disabled),
+.dio-pad[data-steer='left'] > .dio-pad-left.dio-remote-key:not(:disabled),
+.dio-pad[data-steer='right'] > .dio-pad-right.dio-remote-key:not(:disabled) {
   background: color-mix(in srgb, currentColor 22%, transparent);
 }
 
@@ -3122,6 +3127,32 @@
   gap: 4px;
   padding: 3px;
   background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* Grown at once when it is turned on, its buttons come in slowly, and what
+   plays fades in behind them once the player tells it. */
+.dio-media-seek[data-remote][data-on] :is(.dio-pad, .dio-remote-side, .dio-media-buttons, .dio-top > .dio-controls) {
+  animation: dio-media-rise 900ms ease 150ms both;
+}
+
+.dio-media-seek[data-remote] .dio-media-control[style*='--_art'] > .dio-tile::before {
+  animation: dio-media-rise 1400ms ease both;
+}
+
+.dio-media-seek[data-remote] .dio-media-control[style*='--_glow-a'] > .dio-tile::before {
+  animation:
+    dio-media-drift 24s ease-in-out infinite alternate,
+    dio-media-rise 1400ms ease both;
+}
+
+.dio-media-seek[data-remote] .dio-media-still > .dio-tile::before {
+  animation-play-state: paused, running;
+}
+
+@keyframes dio-media-rise {
+  from {
+    opacity: 0;
+  }
 }
 
 /* The buttons that play it over the volume, both across, left of the pad

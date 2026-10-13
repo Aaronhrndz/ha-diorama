@@ -29,6 +29,9 @@ const PLACEHOLDER = /^not provided$/i
 const SLOP_PX = 8
 // How long the lit card takes to fade into what plays once it is on.
 const WAKE_FADE_MS = 700
+// How long the card with the remote shows as on or off before the player
+// says so, at most.
+const GOING_MS = 20000
 // Where a tap on the card can turn it on from.
 const ASLEEP = ['off', 'standby']
 
@@ -153,21 +156,48 @@ export default function MediaControl({
   }
   const wakeUp = turnOf(true)
   const wakes = !!entity && ASLEEP.includes(entity.state) && !!wakeUp
-  const confirm = useConfirm(!off, () => wakeUp?.())
-  const { lit } = confirm
-  // The lit card, filled by the second tap, fades out once it is on.
+  // With the remote, the card does not wait for the player to say it is on
+  // or off, which can take a few seconds: it grows or shrinks at once, and
+  // what plays comes in once the player tells it.
+  const [going, setGoing] = useState<'on' | 'off' | null>(null)
   const [wasOff, setWasOff] = useState(off)
   const [leaving, setLeaving] = useState(false)
+  const confirm = useConfirm(!off, () => {
+    if (remote) {
+      setGoing('on')
+      setLeaving(true)
+    }
+    wakeUp?.()
+  })
+  const { lit } = confirm
+  // The lit card, filled by the second tap, fades out once it is on, or at
+  // once with the remote, as the card grows.
   if (wasOff !== off) {
     setWasOff(off)
-    setLeaving(!off && confirm.step === 2)
+    setLeaving(!off && confirm.step === 2 && !remote)
   }
+  if (going && (going === 'on') !== off) setGoing(null)
+  useEffect(() => {
+    if (!going) return
+    const timer = setTimeout(() => setGoing(null), GOING_MS)
+    return () => clearTimeout(timer)
+  }, [going])
+  // Whether the lit card shows, filled by the taps that turn it on.
+  const lighting = (wakes && going !== 'on') || leaving
+  // Whether the card with the remote shows as on.
+  const shownOn = going ? going === 'on' : !off
   useEffect(() => {
     if (!leaving) return
     const timer = setTimeout(() => setLeaving(false), WAKE_FADE_MS)
     return () => clearTimeout(timer)
   }, [leaving])
-  const turnOff = off ? null : turnOf(false)
+  const sendOff = off ? null : turnOf(false)
+  const turnOff =
+    sendOff &&
+    (() => {
+      if (remote) setGoing('off')
+      sendOff()
+    })
   const power = useArmed(off, turnOff)
   // Where what plays is told, and where the buttons that play it go.
   const media = entity && !off ? (twinOf(env.hass, config.entity!, entity) ?? entity) : entity
@@ -188,7 +218,7 @@ export default function MediaControl({
   const narrow = !remote && typeof columns === 'number' && columns <= 6
   const compact = !remote && (narrow || (typeof rows === 'number' && rows <= 2))
   // The remote's pad and volume show under what plays while it is on.
-  const pad = !!keys && !off
+  const pad = !!keys && shownOn
   const cover = square && !off ? picture : null
   const said = typeof told.media_title === 'string' ? told.media_title : null
   // A player with nothing to tell, like a speaker playing from a phone over
@@ -205,7 +235,7 @@ export default function MediaControl({
     (typeof attributes.app_name === 'string' && !PACKAGE.test(attributes.app_name) ? attributes.app_name : null)
   // With no cover art behind it, a card that is on has a soft light behind
   // it in the colors of its app, which drifts while it plays.
-  const glow = !off && !(picture && !square) ? (known?.colors ?? NEUTRAL) : null
+  const glow = !off && going !== 'off' && !(picture && !square) ? (known?.colors ?? NEUTRAL) : null
   const artist = [told.media_artist, told.media_album_name, app].find(part => typeof part === 'string' && part) as
     string | undefined
   const duration = numberOf(media, 'media_duration')
@@ -293,7 +323,13 @@ export default function MediaControl({
     start.current = { x: e.clientX, y: e.clientY, from: share, dragging: false }
   }
   // While it waits for the second tap, and once that is sent until it is on.
-  const waking = confirm.waiting ? 'Tap again to turn on' : confirm.step === 2 || leaving ? 'Turning on' : null
+  const waking = confirm.waiting
+    ? 'Tap again to turn on'
+    : confirm.step === 2 || leaving || going === 'on'
+      ? 'Turning on'
+      : going === 'off'
+        ? 'Turning off'
+        : null
   const looks = cn('dio-media-control', compact && 'dio-media-compact', narrow && 'dio-media-narrow')
   const powerOff = turnOff && (
     <Control
@@ -364,22 +400,22 @@ export default function MediaControl({
   return (
     <div
       ref={box}
-      className={cn('dio-media-seek', (wakes || leaving) && 'dio-fill dio-confirm dio-media-wake')}
+      className={cn('dio-media-seek', lighting && 'dio-fill dio-confirm dio-media-wake')}
       data-seekable={seekable || undefined}
       data-dragging={drag !== null || undefined}
-      data-step={wakes || leaving ? confirm.step : undefined}
+      data-step={lighting ? confirm.step : undefined}
       data-leaving={leaving || undefined}
       data-remote={remote || undefined}
-      data-on={(remote && !off) || undefined}
+      data-on={(remote && shownOn) || undefined}
       style={{ '--_wake-ms': `${WAKE_FADE_MS}ms` } as CSSProperties}
       onPointerDownCapture={down}
     >
       <Panel
         env={env}
-        config={{ ...config, name: off ? name : (title ?? name) }}
+        config={{ ...config, name: off || going ? name : (title ?? name) }}
         entity={entity}
         state={
-          (off ? waking : null) ??
+          (off || going ? waking : null) ??
           (off
             ? formatState(env.hass, entity)
             : blank
@@ -406,7 +442,7 @@ export default function MediaControl({
         logo={known && ((picture && !square) || glow) ? { ...known.logo, light: known.logo.dark } : known?.logo}
         style={
           {
-            '--_art': picture && !square ? `url("${picture}")` : undefined,
+            '--_art': picture && !square && going !== 'off' ? `url("${picture}")` : undefined,
             '--_glow-a': glow?.[0],
             '--_glow-b': glow?.[1],
             '--_glow-c': glow?.[2],
@@ -416,7 +452,7 @@ export default function MediaControl({
         }
         controls={
           entity &&
-          (remote && off ? null : (
+          (remote && !shownOn ? null : (
             <>
               {!remote && time}
               {!pad && buttons}
@@ -439,7 +475,7 @@ export default function MediaControl({
           </div>
         )}
       </Panel>
-      {(wakes || leaving) && (
+      {lighting && (
         // A lit copy of the card as it was while off, cut off where the
         // light ends. It starts cut off, so it never shows before it is
         // placed.
