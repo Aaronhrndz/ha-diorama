@@ -109,7 +109,7 @@ export function Tile({
   const unavailable = !entity || entity.state === 'unavailable' || (unknownIsUnavailable && entity.state === 'unknown')
   const { pressed, handlers } = useTileGestures({
     haptics: config.haptic !== false,
-    onTap: unavailable ? undefined : () => runAction(env, config.tap_action, () => onTap?.()),
+    onTap: unavailable || (!onTap && !config.tap_action) ? undefined : () => runAction(env, config.tap_action, () => onTap?.()),
     onHold: () => runAction(env, config.hold_action, () => moreInfo(env.host, config.entity)),
   })
   // Where a feature beside the icon is being moved to, shown on the tile

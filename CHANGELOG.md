@@ -9,6 +9,11 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- A tap on Now Playing turns the player on while it is off, and a tap on the TV Remote around its keys does nothing, so both open their dialog only on a long press.
+- Now Playing on a TV box that cannot tell what plays in it, like one driven as a remote, takes what plays, whether it is paused, and which buttons the app takes from the box's casting player, so an app that never skips shows no previous or next.
+
 ## [1.8.0] - 2026-10-13
 
 ### Added

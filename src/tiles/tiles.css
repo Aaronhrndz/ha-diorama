@@ -1966,6 +1966,11 @@
   border-radius: 999px;
 }
 
+/* An arrow lights up only around OK, never under it. */
+.dio-pad > .dio-remote-key:not(.dio-pad-ok) {
+  mask: radial-gradient(circle, transparent calc(var(--_pad) * 0.21), #000 calc(var(--_pad) * 0.21 + 0.5px));
+}
+
 .dio-pad > .dio-pad-up {
   clip-path: polygon(0 0, 100% 0, 50% 50%);
   align-items: start;
