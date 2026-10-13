@@ -2052,6 +2052,17 @@
   grid-area: 1 / 1;
 }
 
+/* On a remote, every button answers the finger like its keys do: at once
+   when pointed at or pressed, with the same wash, so back, home, power and
+   the buttons that play feel the same as the volume. */
+.dio-remote .dio-control {
+  transition: background-color 120ms ease;
+}
+
+.dio-remote .dio-control:active:not(:disabled) {
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
 /* Four rows tall and the whole width. Back and home in the top right, the
    pad under them on the right with the volume standing on its left,
    centered on it, plus on top, and the icon and the name on the left. */
