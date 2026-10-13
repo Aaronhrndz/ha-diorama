@@ -1,12 +1,14 @@
 import { DEFAULT_ASPECT_RATIO_MOBILE } from '#/constants.ts'
 import { aspectRatioCss } from '#/lib/aspect.ts'
 import { useBackToHome } from '#/lib/backButton.ts'
+import { useDevSettings } from '#/lib/devSettings.ts'
 import { cn } from '#/lib/utils.ts'
 import { EDGE_FADE_MASK } from '#/theme.ts'
 import { useEditorOpen } from '#/lib/editorOpen.ts'
 import { useEmptyClick } from '#/lib/emptyClick.ts'
 import { usePreviewRoom } from '#/lib/previewRoom.ts'
 import { useRoomFilter } from '#/lib/roomFilter.ts'
+import { FpsBadge, type FpsTicks } from '#/scene/FpsMeter.tsx'
 import Scene, { type CameraHandle } from '#/scene/Scene.tsx'
 import type { CameraView, CardConfig, HomeAssistant } from '#/types.ts'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
@@ -37,6 +39,8 @@ export default function Card({ hass, config, panel = false, preview = false }: P
   // Whether the camera has left the view the card opened with. While it
   // has, a click on nothing takes it back.
   const [away, setAway] = useState(false)
+  const { fps } = useDevSettings()
+  const [fpsTicks] = useState<FpsTicks>(() => [])
   // A click on a room's floor takes the camera to the view saved for it. A
   // second click on that floor takes it back to the opening one, however
   // the camera has been turned, panned or zoomed since. The saved view is
@@ -171,8 +175,10 @@ export default function Card({ hass, config, panel = false, preview = false }: P
                   focus={focused}
                   roomFirst={roomFirst}
                   wheelZoom={panel}
+                  fpsTicks={fps ? fpsTicks : undefined}
                 />
               </div>
+              {fps && <FpsBadge ticks={fpsTicks} />}
             </>
           ) : (
             <div className="font-montserrat flex h-full flex-col items-center justify-center gap-1 p-4 text-center">

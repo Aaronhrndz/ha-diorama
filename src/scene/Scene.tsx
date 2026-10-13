@@ -21,6 +21,7 @@ import Room from '#/scene/Room.tsx'
 import Shadows from '#/scene/shadows.tsx'
 import Sky, { type SkyMode } from '#/scene/Sky.tsx'
 import type { TryStates } from '#/editor/tryState.ts'
+import { FpsTicker, type FpsTicks } from '#/scene/FpsMeter.tsx'
 import type { CardConfig, HomeAssistant } from '#/types.ts'
 import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
@@ -65,6 +66,8 @@ type Props = {
   // Asked before a click acts on a device, with the room its piece stands
   // in. True means the click went to the room instead.
   roomFirst?: (room: string) => boolean
+  // Filled with when each frame is drawn, for counting them.
+  fpsTicks?: FpsTicks
 }
 
 export default function Scene({
@@ -83,6 +86,7 @@ export default function Scene({
   onCameraAway,
   focus,
   roomFirst,
+  fpsTicks,
 }: Props) {
   const rooms = config.rooms ?? []
   const radius = config.radius ?? ROOM_CORNER_RADIUS_M
@@ -138,6 +142,7 @@ export default function Scene({
         <Shadows />
         <Cleanup />
         <Adaptive />
+        {fpsTicks && <FpsTicker ticks={fpsTicks} />}
         <CameraRig
           rooms={rooms}
           decorations={config.decorations ?? []}

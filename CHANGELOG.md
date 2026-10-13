@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- The card's settings end with its name and version.
+
 ## [1.8.6] - 2026-10-13
 
 ### Changed

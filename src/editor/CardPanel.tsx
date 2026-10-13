@@ -1,5 +1,6 @@
 import { aspectRatioNumber } from '#/lib/aspect.ts'
 import { BACKGROUNDS, DEFAULT_BACKGROUND, PLAIN_SWATCH, THEME_BACKGROUND } from '#/lib/background.ts'
+import { setDevSettings, useDevSettings } from '#/lib/devSettings.ts'
 import { setPreviewRoom } from '#/lib/previewRoom.ts'
 import { cn } from '#/lib/utils.ts'
 import { group } from '#/editor/look.ts'
@@ -491,7 +492,67 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
           <ControlsGuide className="justify-start" />
         </div>
       </Section>
+
+      <Footer />
     </div>
+  )
+}
+
+// How many taps on the version, each soon after the last, open or close the
+// developer settings.
+const DEV_TAPS = 6
+const DEV_TAP_GAP_MS = 1000
+
+// The card's name and version at the foot of the settings. Tapping the
+// version six times shows the developer settings below it, and six more
+// hide them again.
+function Footer() {
+  const dev = useDevSettings()
+  const taps = useRef({ count: 0, last: 0 })
+  const tap = () => {
+    const now = performance.now()
+    const t = taps.current
+    t.count = now - t.last < DEV_TAP_GAP_MS ? t.count + 1 : 1
+    t.last = now
+    if (t.count < DEV_TAPS) return
+    t.count = 0
+    setDevSettings({ open: !dev.open })
+  }
+  return (
+    <footer className="flex flex-col gap-6 pt-2">
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="text-label-2 text-[13px] font-semibold">Diorama</span>
+        <button
+          type="button"
+          onClick={tap}
+          className="text-label-2 cursor-default text-xs tabular-nums select-none"
+        >
+          v{__CARD_VERSION__}
+        </button>
+      </div>
+      {dev.open && (
+        <div className="dio-rise">
+          <Section title="Developer settings">
+            <div className={cn(group, 'gap-0 py-0')}>
+              <label className="flex cursor-pointer items-center justify-between gap-4 py-2.5">
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-[13px]">Frames per second</span>
+                  <span className="text-label-2 text-xs">
+                    How many frames the card draws each second, in its top right corner, on this browser
+                  </span>
+                </span>
+                <Switch
+                  checked={dev.fps}
+                  accent={EDITOR_TINT_COLOR}
+                  label="Frames per second"
+                  onChange={fps => setDevSettings({ fps })}
+                />
+              </label>
+            </div>
+          </Section>
+        </div>
+      )}
+    </footer>
   )
 }
 

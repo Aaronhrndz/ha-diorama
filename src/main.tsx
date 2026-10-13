@@ -10,9 +10,6 @@ import WithSidePanel from '#/tiles/WithSidePanel.tsx'
 import pickerPicture from '#/assets/picker.jpg?inline'
 import type { BackgroundConfig, CardConfig, TileChoice, TileChoices } from '#/types.ts'
 
-// Baked in by the build from package.json.
-declare const __CARD_VERSION__: string
-
 const CARD_TYPE = 'diorama-card'
 const EDITOR_TYPE = `${CARD_TYPE}-editor`
 // The name the card had before it was renamed.
