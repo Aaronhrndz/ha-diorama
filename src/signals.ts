@@ -145,7 +145,7 @@ export function signalValues(hass: HomeAssistant, entityId: string): SignalValue
       }
     case 'media_player':
       return {
-        on: state !== 'off' && state !== 'unavailable' && state !== 'standby',
+        on: !['off', 'standby', 'unavailable', 'unknown'].includes(state),
         level: typeof attrs.volume_level === 'number' ? attrs.volume_level : undefined,
         state,
       }
