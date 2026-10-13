@@ -9,6 +9,14 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- The volume on the wide TV Remote sits on the left of the arrows, centered on them, away from the icon.
+
+### Fixed
+
+- A card with no buttons to show, like Now Playing while nothing plays, no longer shows an empty pill in its top right corner.
+
 ## [1.8.2] - 2026-10-13
 
 ### Added

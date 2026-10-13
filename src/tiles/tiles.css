@@ -657,6 +657,12 @@
   visibility: hidden;
 }
 
+/* A group left with no button in it, like Now Playing while nothing
+   plays, shows nothing at all. */
+.dio-controls:not(:has(button, input, select)) {
+  display: none;
+}
+
 .dio-control {
   display: grid;
   width: 44px;
@@ -2005,9 +2011,9 @@
   font-weight: 600;
 }
 
-/* Four rows tall and the whole width. The volume just left of back and
-   home along the top right, the pad under them on the right, and the
-   icon and the name on the left. */
+/* Four rows tall and the whole width. Back and home in the top right, the
+   pad under them on the right with the volume on its left, centered on it,
+   and the icon and the name on the left. */
 .dio-remote {
   container-type: inline-size;
 }
@@ -2016,7 +2022,7 @@
   --_pad: 154px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr var(--_pad);
   gap: 8px;
 }
 
@@ -2034,16 +2040,18 @@
 }
 
 .dio-remote .dio-controls.dio-volume {
-  grid-area: 1 / 2;
-  margin-right: 0;
+  grid-area: 3 / 2;
+  align-self: center;
+  margin: 0;
 }
 
 .dio-remote .dio-text {
   grid-area: 3 / 1;
+  align-self: end;
 }
 
 .dio-remote .dio-pad {
-  grid-area: 2 / 2 / 4 / 4;
+  grid-area: 3 / 3;
   align-self: end;
   justify-self: end;
   margin-right: -4px;
