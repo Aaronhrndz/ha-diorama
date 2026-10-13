@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.15] - 2026-10-13
+
 ### Fixed
 
 - A projector now shows the logo and the title of what it plays on its screen, as its card does, instead of only the colors.
@@ -567,7 +569,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.14...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.15...HEAD
+[1.8.15]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.14...v1.8.15
 [1.8.14]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.13...v1.8.14
 [1.8.13]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.12...v1.8.13
 [1.8.12]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.11...v1.8.12
