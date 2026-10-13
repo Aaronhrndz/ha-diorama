@@ -158,7 +158,8 @@ type Props = { env: TileEnv; config: RemoteConfig }
 // on its device, so a remote or a TV picked from the list works as it is.
 // A key can be given a command of its own, and the volume can go to
 // another player, like the TV a box is plugged into. The arrows and the
-// volume repeat while held.
+// volume repeat while held. A tap on the card around the keys does
+// nothing, and a long press opens its dialog.
 export default function Remote({ env, config }: Props) {
   const { hass } = env
   const entity = hass.states[config.entity!]
@@ -200,6 +201,7 @@ export default function Remote({ env, config }: Props) {
       entity={entity}
       state={known ? formatState(hass, entity) : 'Unknown remote, set its commands'}
       className="dio-remote"
+      onTap={null}
       controls={
         corner.length > 0 &&
         corner.map(([key, send]) => (

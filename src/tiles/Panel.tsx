@@ -19,8 +19,8 @@ type Props = {
   picture?: string
   logo?: ComponentProps<typeof Tile>['logo']
   // What a tap does when the config sets no tap_action, its dialog unless
-  // set.
-  onTap?: () => void
+  // set, or nothing when null.
+  onTap?: (() => void) | null
   toggles?: boolean
   // Buttons and selectors in the top right corner.
   controls?: ReactNode
@@ -40,7 +40,7 @@ export function Panel({ env, config, onTap, children, className, style, ...tile 
       <Tile
         env={env}
         config={{ ...config, size: 'wide' }}
-        onTap={onTap ?? (() => moreInfo(env.host, config.entity))}
+        onTap={onTap === undefined ? () => moreInfo(env.host, config.entity) : (onTap ?? undefined)}
         aside={children}
         unknownIsUnavailable={false}
         {...tile}
