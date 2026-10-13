@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.6] - 2026-10-13
+
 ### Changed
 
 - More lamps cast shadows at once, ten on a computer and six on a phone or tablet, every shadow has a softer edge, and a lamp no longer casts shadows of itself with its own light.
@@ -480,7 +482,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.5...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.6...HEAD
+[1.8.6]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.5...v1.8.6
 [1.8.5]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.4...v1.8.5
 [1.8.4]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.3...v1.8.4
 [1.8.3]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.2...v1.8.3
