@@ -2012,8 +2012,8 @@
 }
 
 /* Four rows tall and the whole width. Back and home in the top right, the
-   pad under them on the right with the volume on its left, centered on it,
-   and the icon and the name on the left. */
+   pad under them on the right with the volume standing on its left,
+   centered on it, plus on top, and the icon and the name on the left. */
 .dio-remote {
   container-type: inline-size;
 }
@@ -2041,13 +2041,27 @@
 
 .dio-remote .dio-controls.dio-volume {
   grid-area: 3 / 2;
+  flex-direction: column-reverse;
   align-self: center;
-  margin: 0;
+  /* As far from the pad as the pad is from back and home above it. */
+  margin: 0 8px 0 0;
 }
 
+/* The name and the state are never cut short: they run over the volume
+   and the pad when there is no room, drawn above them. */
 .dio-remote .dio-text {
   grid-area: 3 / 1;
   align-self: end;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.dio-remote .dio-text :is(.dio-name, .dio-state) {
+  display: block;
+  overflow: visible;
+  white-space: nowrap;
+  text-overflow: clip;
 }
 
 .dio-remote .dio-pad {
@@ -2079,6 +2093,7 @@
 
   .dio-remote .dio-controls.dio-volume {
     grid-area: 4 / 1 / 5 / 3;
+    flex-direction: row;
     justify-self: center;
     margin: 8px 0 0;
   }
@@ -2941,6 +2956,23 @@
   height: 100%;
   min-height: 0;
   gap: 0;
+}
+
+/* Half as wide, the icon or the art gives its place to the buttons. */
+.dio-media-narrow .dio-top > :not(.dio-controls),
+.dio-media-narrow.dio-media-cover .dio-picture {
+  display: none;
+}
+
+.dio-media-narrow .dio-top {
+  justify-content: flex-end;
+}
+
+/* The title takes one line at most, cut short with an ellipsis. */
+.dio-media-control .dio-name {
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .dio-media-compact.dio-media-cover > .dio-tile {

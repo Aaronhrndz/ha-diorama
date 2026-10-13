@@ -111,7 +111,8 @@ export type MediaControlConfig = TileConfig & {
 // place of the icon, and a soft light in the app's colors drifts behind
 // the card, or in quieter colors for any other app.
 // Made two rows tall or half as wide, it leaves out the volume, shuffle and
-// repeat, and keeps the buttons and how far in it is.
+// repeat, and keeps the buttons and how far in it is. Half as wide, it
+// also leaves out the icon, so the buttons fit across the top.
 export default function MediaControl({ env, config }: { env: TileEnv; config: MediaControlConfig }) {
   const entity = env.hass.states[config.entity!]
   const attributes = entity?.attributes ?? {}
@@ -302,6 +303,7 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
           'dio-media-control',
           cover && 'dio-media-cover',
           compact && 'dio-media-compact',
+          narrow && 'dio-media-narrow',
           glow && !playing && 'dio-media-still',
         )}
         picture={cover ?? undefined}

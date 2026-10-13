@@ -9,6 +9,19 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- A swipe across the TV remote's round pad moves that way, wherever the finger starts.
+
+### Changed
+
+- Now Playing shows the title on a single line, and at half width it leaves out the icon so its buttons fit.
+- The TV remote's volume stands upright beside the round pad, and the name and the state are never cut short.
+
+### Fixed
+
+- The TV remote's volume keys work while the TV still says it is off right after being turned on.
+
 ## [1.8.3] - 2026-10-13
 
 ### Changed

@@ -162,9 +162,13 @@ type Props = { env: TileEnv; config: RemoteConfig }
 // on its device, so a remote or a TV picked from the list works as it is.
 // A key can be given a command of its own, and the volume can go to
 // another player, like the TV a box is plugged into. The arrows and the
-// volume repeat while held. While it is off only power can be pressed, and
-// while the player of the volume is off the volume cannot either. Power turns it on at once, but turns it off only on a
-// second press within a few seconds, so it is never turned off by mistake.
+// volume repeat while held. A swipe across the pad, from wherever it
+// starts, moves that way, one step for every stretch the finger goes.
+// While it is off only power can be pressed. The volume still goes to its
+// player when that says it is off, as a TV that was just woken says so for
+// a while before it takes the volume. Power turns it on at once, but turns
+// it off only on a second press within a few seconds, so it is never turned
+// off by mistake.
 // A tap on the card around the keys does nothing, and a long press opens
 // its dialog.
 export default function Remote({ env, config }: Props) {
@@ -211,8 +215,6 @@ export default function Remote({ env, config }: Props) {
     }
     const toPlayer = VOLUME.includes(key) && (config.volume_entity || !keys) ? player : undefined
     if (toPlayer) {
-      // A player that is off takes no volume.
-      if (OFF.includes(hass.states[toPlayer]?.state ?? 'unavailable')) return null
       if (key === 'mute')
         return () => callService(hass, 'media_player.volume_mute', { entity_id: toPlayer, is_volume_muted: !muted })
       return () => callService(hass, `media_player.${key}`, { entity_id: toPlayer })
@@ -268,12 +270,7 @@ export default function Remote({ env, config }: Props) {
         )
       }
     >
-      <div className="dio-pad" onPointerDown={e => e.stopPropagation()}>
-        {(['up', 'right', 'down', 'left'] as const).map(key => (
-          <RemoteKey key={key} name={key} send={sendOf(key)} repeats className={`dio-pad-${key}`} />
-        ))}
-        <RemoteKey name="ok" send={sendOf('ok')} className="dio-pad-ok" />
-      </div>
+      <Pad sendOf={sendOf} />
       <div className="dio-controls dio-volume" onPointerDown={e => e.stopPropagation()}>
         <RemoteKey name="volume_down" send={sendOf('volume_down')} repeats className="dio-control" />
         <RemoteKey
@@ -299,6 +296,96 @@ const LOOK: Record<Key, { icon: string; label: string }> = {
   mute: { icon: 'ph:speaker-x', label: 'Mute' },
   volume_up: { icon: 'ph:plus', label: 'Volume up' },
   volume_down: { icon: 'ph:minus', label: 'Volume down' },
+}
+
+type Arrow = 'up' | 'right' | 'down' | 'left'
+const ARROWS: Arrow[] = ['up', 'right', 'down', 'left']
+
+// How far a finger goes on the pad for each step of a swipe.
+const SWIPE_PX = 28
+
+// The arrows around OK. A key is sent when the finger lifts, so a press
+// that turns into a swipe sends only the swipe's steps, or after a moment
+// held, when an arrow then repeats as long as it stays down.
+function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
+  const press = useRef<{ key: Key | null; x: number; y: number; moved: boolean; timer: number } | null>(null)
+  const fire = (key: Key) => {
+    const send = sendOf(key)
+    if (!send) return
+    haptic('selection')
+    send()
+  }
+  const end = () => {
+    const current = press.current
+    if (!current) return
+    clearTimeout(current.timer)
+    clearInterval(current.timer)
+    press.current = null
+  }
+  useEffect(() => end, [])
+  return (
+    <div
+      className="dio-pad"
+      onPointerDown={e => {
+        e.stopPropagation()
+        if (e.button !== 0) return
+        end()
+        const key = ((e.target as HTMLElement).closest('[data-key]')?.getAttribute('data-key') as Key | null) ?? null
+        e.currentTarget.setPointerCapture(e.pointerId)
+        const current = { key, x: e.clientX, y: e.clientY, moved: false, timer: 0 }
+        press.current = current
+        if (!key || !ARROWS.includes(key as Arrow)) return
+        current.timer = window.setTimeout(() => {
+          current.moved = true
+          fire(key)
+          current.timer = window.setInterval(() => fire(key), REPEAT_EVERY_MS)
+        }, REPEAT_AFTER_MS)
+      }}
+      onPointerMove={e => {
+        const current = press.current
+        if (!current) return
+        const dx = e.clientX - current.x
+        const dy = e.clientY - current.y
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_PX) return
+        if (!current.moved) clearTimeout(current.timer)
+        clearInterval(current.timer)
+        current.moved = true
+        current.x = e.clientX
+        current.y = e.clientY
+        fire(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up')
+      }}
+      onPointerUp={() => {
+        const current = press.current
+        if (current && !current.moved && current.key) fire(current.key)
+        end()
+      }}
+      onPointerCancel={end}
+    >
+      {[...ARROWS, 'ok' as const].map(key => {
+        const { label, icon } = LOOK[key]
+        return (
+          <button
+            key={key}
+            type="button"
+            data-key={key}
+            aria-label={label}
+            title={label}
+            disabled={!sendOf(key)}
+            className={cn('dio-remote-key', `dio-pad-${key}`)}
+            onKeyDown={insideTile.onKeyDown}
+            onContextMenu={e => e.preventDefault()}
+            // A press by the keyboard, which has no pointer down before it.
+            onClick={e => {
+              e.stopPropagation()
+              if (e.detail === 0) fire(key)
+            }}
+          >
+            {icon ? <Icon icon={icon} /> : <span>{label}</span>}
+          </button>
+        )
+      })}
+    </div>
+  )
 }
 
 type KeyProps = { name: Key; send: (() => void) | null; repeats?: boolean; icon?: string; className?: string }

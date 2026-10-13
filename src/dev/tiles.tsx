@@ -191,6 +191,8 @@ const sections: { title: Record<string, unknown>; cards: Record<string, unknown>
       { type: 'dio-climate', entity: 'water_heater.tank', size: 'wide' },
       { type: 'dio-climate', entity: 'climate.living' },
       { type: 'dio-media', entity: 'media_player.living', size: 'wide' },
+      { type: 'dio-media-control', entity: 'media_player.living', grid_options: { columns: 6, rows: 2 } },
+      { type: 'dio-media-control', entity: 'media_player.tv_panel', grid_options: { columns: 6, rows: 2 } },
       {
         type: 'dio-remote',
         entity: 'remote.tv_box',
