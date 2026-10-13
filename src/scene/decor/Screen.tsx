@@ -105,8 +105,8 @@ const rgbOf = (hex: string, out: Vector3) =>
 // How wide a card is, in its own pixels, for a TV to show what plays in
 // the same proportions. A projection is bigger and seen from further, so
 // its logo and its words take less of it.
-export const TV_CARD_PX = 270
-export const PROJECTION_CARD_PX = 300
+export const TV_CARD_PX = 245
+export const PROJECTION_CARD_PX = 340
 // The logo, the title and the space round them on a card, in its pixels.
 const PADDING_PX = 18
 const LOGO_PX = 30
