@@ -2020,10 +2020,36 @@
   font-weight: 600;
 }
 
-/* Nothing on the wheel lights up: a tap anywhere is OK and a swipe steers
-   it, whatever is under the finger. */
+/* Nothing on the wheel lights up under the finger: a tap anywhere is OK
+   and a swipe steers it. What is sent pulses instead, the whole wheel for
+   OK and a round behind the arrow for each step. */
 .dio-pad > .dio-remote-key:active:not(:disabled) {
   background: transparent;
+}
+
+.dio-pad-glow {
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dio-pad > .dio-pad-glow {
+  position: absolute;
+  inset: 0;
+}
+
+/* As big as the icon to be laid out, so it sits wherever the icon does,
+   and grown around it. */
+.dio-pad .dio-remote-key > .dio-pad-glow {
+  grid-area: 1 / 1;
+  width: 40px;
+  height: 40px;
+  margin: -9px;
+}
+
+.dio-pad .dio-remote-key > .dio-icon {
+  grid-area: 1 / 1;
 }
 
 /* Four rows tall and the whole width. Back and home in the top right, the

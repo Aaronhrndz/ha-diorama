@@ -338,6 +338,9 @@ const SWIPE_PX = 28
 // down, after the first.
 const STEER_EVERY_MS = 180
 
+// How long a pulse of light lasts on the pad when a key is sent.
+const PULSE_MS = 260
+
 const wayOf = (dx: number, dy: number): Arrow =>
   Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up'
 
@@ -346,7 +349,20 @@ const wayOf = (dx: number, dy: number): Arrow =>
 // again while the finger stays down, even still. Moved far enough another
 // way without lifting, it steers that way instead. A tap anywhere on it,
 // not swiped, is OK, sent when the finger lifts.
+// Lights a glow up and down again each time its key is sent, from wherever
+// the last pulse left it, so pulses sent quickly run on into each other.
+const pulse = (glow: HTMLElement | null | undefined) => {
+  if (!glow) return
+  const from = getComputedStyle(glow).opacity
+  for (const running of glow.getAnimations()) running.cancel()
+  glow.animate([{ opacity: from }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], {
+    duration: PULSE_MS,
+    easing: 'ease-in-out',
+  })
+}
+
 function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
+  const pad = useRef<HTMLDivElement>(null)
   const press = useRef<{
     x: number
     y: number
@@ -359,6 +375,7 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
     if (!send) return
     haptic('selection')
     send()
+    pulse(pad.current?.querySelector<HTMLElement>(`[data-glow='${key}']`))
   }
   const end = () => {
     const current = press.current
@@ -370,6 +387,7 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
   useEffect(() => end, [])
   return (
     <div
+      ref={pad}
       className="dio-pad"
       onPointerDown={e => {
         e.stopPropagation()
@@ -406,6 +424,7 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
       }}
       onPointerCancel={end}
     >
+      <span className="dio-pad-glow" data-glow="ok" />
       {[...ARROWS, 'ok' as const].map(key => {
         const { label, icon } = LOOK[key]
         return (
@@ -425,6 +444,7 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
               if (e.detail === 0) fire(key)
             }}
           >
+            {key !== 'ok' && <span className="dio-pad-glow" data-glow={key} />}
             {icon ? <Icon icon={icon} /> : <span>{label}</span>}
           </button>
         )
