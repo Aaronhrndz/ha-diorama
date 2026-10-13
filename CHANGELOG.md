@@ -12,6 +12,7 @@ moves that section under the new version and uses it as the release notes.
 ### Added
 
 - The TV Remote has a power key beside back and home, which turns it on at once but turns it off only on a second press within three seconds.
+- A TV, or any media player that turns on and off, can be a Double Tap Toggle, offered among its widgets.
 
 ### Changed
 

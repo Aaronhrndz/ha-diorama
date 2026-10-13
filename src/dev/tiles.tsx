@@ -86,7 +86,7 @@ for (const s of [
     supported_features: 1 | 16 | 32 | 16384,
   }),
   state('remote.tv_box', 'on', { friendly_name: 'TV Box' }),
-  state('media_player.tv_panel', 'off', { friendly_name: 'TV Panel', supported_features: 4 | 8 | 1024 }),
+  state('media_player.tv_panel', 'off', { friendly_name: 'TV Panel', supported_features: 4 | 8 | 128 | 256 | 1024 }),
   state('lock.front', 'locked', { friendly_name: 'Front Door' }),
   state('sensor.living_temperature', '21.4', {
     friendly_name: 'Temperature',
@@ -197,6 +197,7 @@ const sections: { title: Record<string, unknown>; cards: Record<string, unknown>
         volume_entity: 'media_player.tv_panel',
         grid_options: { columns: 12, rows: 4 },
       },
+      { type: 'dio-toggle', entity: 'media_player.tv_panel', confirm: true },
       { type: 'dio-lock', entity: 'lock.front' },
       { type: 'dio-entity', entity: 'sensor.living_temperature' },
       { type: 'dio-entity', entity: 'binary_sensor.living_motion' },
