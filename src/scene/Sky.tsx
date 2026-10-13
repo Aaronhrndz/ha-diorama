@@ -1,4 +1,4 @@
-import { DAYLIGHT_EASE_S, SUN_DIRECTION_DEG, SUN_ELEVATION_DEG, SUN_SHADOW_MAP_PX } from '#/constants.ts'
+import { DAYLIGHT_EASE_S, SUN_DIRECTION_DEG, SUN_ELEVATION_DEG, SUN_SHADOW_MAP_PX, SUN_SHADOW_RADIUS } from '#/constants.ts'
 import { backdropLightness } from '#/scene/backdrop.ts'
 import { daylight, sunElevation } from '#/scene/daylight.ts'
 import { planBounds } from '#/scene/framing.ts'
@@ -173,6 +173,7 @@ export default function Sky({
         // what softens daylight: a piece gets a soft pool under it rather
         // than a hard outline of itself.
         shadow-mapSize={[SUN_SHADOW_MAP_PX, SUN_SHADOW_MAP_PX]}
+        shadow-radius={SUN_SHADOW_RADIUS}
         shadow-bias={-0.0004}
         shadow-normalBias={0.02}
         shadow-camera-left={-extent}

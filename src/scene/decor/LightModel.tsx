@@ -8,7 +8,7 @@ import TableLamp from '#/scene/decor/TableLamps.tsx'
 import { TABLE_LAMPS } from '#/scene/decor/tableLampSpecs.ts'
 import WallLamp from '#/scene/decor/WallLamps.tsx'
 import { WALL_LAMPS } from '#/scene/decor/wallLampSpecs.ts'
-import { LAMP_SHADOW_MAP_PX } from '#/constants.ts'
+import { LAMP_SHADOW_MAP_PX, LAMP_SHADOW_RADIUS } from '#/constants.ts'
 import { CEILING_HEIGHT_M, LAMP_KEY_SHARE, LAMP_OUTPUT, LAMP_THROUGH_SHARE, LIGHT_POINT_INTENSITY } from '#/theme.ts'
 import type { DecorationConfig } from '#/types.ts'
 
@@ -114,6 +114,7 @@ function Glow({
         visible={shown}
         userData={{ rank }}
         shadow-mapSize={[LAMP_SHADOW_MAP_PX, LAMP_SHADOW_MAP_PX]}
+        shadow-radius={LAMP_SHADOW_RADIUS}
         // Small offsets: a big one pushes the sample past a thin top or
         // panel and lets the light through the middle of it.
         shadow-bias={-0.0012}

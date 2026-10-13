@@ -58,13 +58,19 @@ export const SUN_ELEVATION_DEG = 50
 // What one press of that button turns the sun by.
 export const SUN_DIRECTION_STEP_DEG = 45
 export const SUN_SHADOW_MAP_PX = 1024
+// How far each shadow's edge is spread, in texels of its map. A little past
+// one softens the edge without washing out the shape of what casts it.
+export const SUN_SHADOW_RADIUS = 2.5
 // A lamp lights the room around it and casts shadows from what it stands
 // among. Each one costs six shadow renders, so only the first few get them.
 export const LAMP_SHADOW_MAP_PX = 512
-export const MAX_SHADOW_LAMPS = 8
+export const LAMP_SHADOW_RADIUS = 2
 // Every shadowed lamp is looked up in every pixel drawn, which a phone or
-// a tablet can afford fewer of.
-export const MAX_SHADOW_LAMPS_TOUCH = 4
+// a tablet can afford fewer of. Each one also takes a texture slot, and a
+// pixel has sixteen: with the sun, a surface's two maps and the two the
+// light strips need, ten lamps leave one to spare.
+export const MAX_SHADOW_LAMPS = 10
+export const MAX_SHADOW_LAMPS_TOUCH = 6
 // The hour the editor lights its preview at, and the one its N key flips to.
 export const EDITOR_HOUR = 13
 export const EDITOR_NIGHT_HOUR = 23
