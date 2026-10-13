@@ -344,11 +344,9 @@ const wayOf = (dx: number, dy: number): Arrow =>
 // The arrows around OK, and a stick: a finger that goes far enough one way
 // steers that way, and the pad sends that arrow at once, then again and
 // again while the finger stays down, even still. Moved far enough another
-// way without lifting, it steers that way instead. A key that is pressed
-// and not swiped is sent when the finger lifts, or after a moment held,
-// when an arrow then repeats as long as it stays down.
+// way without lifting, it steers that way instead. A tap anywhere on it,
+// not swiped, is OK, sent when the finger lifts.
 function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
-  const pad = useRef<HTMLDivElement>(null)
   const press = useRef<{
     x: number
     y: number
@@ -364,7 +362,6 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
   }
   const end = () => {
     const current = press.current
-    if (pad.current) delete pad.current.dataset.steer
     if (!current) return
     clearTimeout(current.timer)
     clearInterval(current.timer)
@@ -373,7 +370,6 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
   useEffect(() => end, [])
   return (
     <div
-      ref={pad}
       className="dio-pad"
       onPointerDown={e => {
         e.stopPropagation()
@@ -383,7 +379,6 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
         // finger never has to find a key.
         e.currentTarget.setPointerCapture(e.pointerId)
         press.current = { x: e.clientX, y: e.clientY, moved: false, way: null, timer: 0 }
-        if (sendOf('ok')) e.currentTarget.dataset.steer = 'ok'
       }}
       onPointerMove={e => {
         const current = press.current
@@ -401,7 +396,6 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
         clearInterval(current.timer)
         current.moved = true
         current.way = way
-        if (pad.current) pad.current.dataset.steer = way
         fire(way)
         current.timer = window.setInterval(() => fire(way), STEER_EVERY_MS)
       }}

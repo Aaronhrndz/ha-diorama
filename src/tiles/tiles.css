@@ -1982,9 +1982,9 @@
   border-radius: 999px;
 }
 
-/* An arrow lights up only around OK, never under it. */
-.dio-pad > .dio-remote-key:not(.dio-pad-ok) {
-  mask: radial-gradient(circle, transparent calc(var(--_pad) * 0.21), #000 calc(var(--_pad) * 0.21 + 0.5px));
+/* The arrows are only a hint that the pad is swiped, dimmer than OK. */
+.dio-pad > .dio-remote-key:not(.dio-pad-ok) > .dio-icon {
+  opacity: 0.45;
 }
 
 .dio-pad > .dio-pad-up {
@@ -2020,19 +2020,10 @@
   font-weight: 600;
 }
 
-/* A tap anywhere on the wheel is OK, lit while it is held, and a swipe
-   lights the way it steers while it keeps sending it, never the key under
-   the finger. */
+/* Nothing on the wheel lights up: a tap anywhere is OK and a swipe steers
+   it, whatever is under the finger. */
 .dio-pad > .dio-remote-key:active:not(:disabled) {
   background: transparent;
-}
-
-.dio-pad[data-steer='up'] > .dio-pad-up.dio-remote-key:not(:disabled),
-.dio-pad[data-steer='down'] > .dio-pad-down.dio-remote-key:not(:disabled),
-.dio-pad[data-steer='left'] > .dio-pad-left.dio-remote-key:not(:disabled),
-.dio-pad[data-steer='right'] > .dio-pad-right.dio-remote-key:not(:disabled),
-.dio-pad[data-steer='ok'] > .dio-pad-ok.dio-remote-key:not(:disabled) {
-  background: color-mix(in srgb, currentColor 22%, transparent);
 }
 
 /* Four rows tall and the whole width. Back and home in the top right, the
