@@ -20,6 +20,9 @@ export type RemoteConfig = TileConfig & {
   // The player whose volume the volume keys and mute change, like the TV
   // when the remote is a box plugged into it.
   volume_entity?: string
+  // False leaves out the power key, as the side panel does when a toggle
+  // for the same entity is already there.
+  power?: boolean
   commands?: Partial<Record<Key, Command>>
 }
 
@@ -168,7 +171,7 @@ type Props = { env: TileEnv; config: RemoteConfig }
 // player when that says it is off, as a TV that was just woken says so for
 // a while before it takes the volume. Power turns it on at once, but turns
 // it off only on a second press within a few seconds, so it is never turned
-// off by mistake.
+// off by mistake. It has no power key when its config says so.
 // A tap on the card around the keys does nothing, and a long press opens
 // its dialog.
 export default function Remote({ env, config }: Props) {
@@ -189,7 +192,7 @@ export default function Remote({ env, config }: Props) {
     domain === 'remote' || (domain === 'media_player' && supports(entity, on ? MEDIA.turnOn : MEDIA.turnOff))
       ? () => callService(hass, `${domain}.turn_${on ? 'on' : 'off'}`, { entity_id: config.entity })
       : null
-  const turn = powerOf(off)
+  const turn = config.power === false ? null : powerOf(off)
   const power = () => {
     if (!turn) return
     clearTimeout(disarm.current)
