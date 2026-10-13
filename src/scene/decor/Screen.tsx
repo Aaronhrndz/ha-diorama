@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { throws, useThrown } from '#/scene/decor/throw.ts'
+import { throws, useThrown, type Throw } from '#/scene/decor/throw.ts'
 import { screenTint, showingTint } from '#/scene/decor/tint.ts'
 import { useEased } from '#/scene/decor/ease.ts'
 import { useLive } from '#/scene/live.ts'
@@ -71,7 +71,7 @@ void main() {
     // The cover art, darkened a little so the words over it read, and
     // softened only a hint, so it shows almost as sharp as it is. It drifts
     // slowly in and out, easing at each end, so the picture is never still.
-    float zoom = 1.0 - 0.08 * (0.5 - 0.5 * cos(uTime * 0.25));
+    float zoom = 1.0 - 0.18 * (0.5 - 0.5 * cos(uTime * 0.45));
     vec3 art = texture2D(uArt, (p - 0.5) * uFit * zoom + 0.5, 0.3).rgb;
     float grey = dot(art, vec3(0.299, 0.587, 0.114));
     col = mix(vec3(grey), art, 1.2) * 0.8;
@@ -105,8 +105,8 @@ const rgbOf = (hex: string, out: Vector3) =>
 // How wide a card is, in its own pixels, for a TV to show what plays in
 // the same proportions. A projection is bigger and seen from further, so
 // its logo and its words take less of it.
-export const TV_CARD_PX = 270
-export const PROJECTION_CARD_PX = 300
+export const TV_CARD_PX = 245
+export const PROJECTION_CARD_PX = 340
 // The logo, the title and the space round them on a card, in its pixels.
 const PADDING_PX = 18
 const LOGO_PX = 30
@@ -386,7 +386,9 @@ const top = (object: Object3D) => {
  * projector that is on throws its picture at it. The projector has to face
  * the screen, from either side, near enough square on, and the middle of
  * its throw has to land on the sheet within its reach. Placed in the middle
- * of the sheet as it hangs.
+ * of the sheet as it hangs. A projector aimed at it is told where the
+ * picture will be once the sheet is all the way down, even while it is
+ * rolled up, so its beam never changes shape as the sheet comes down.
  */
 export function Projection({ w, h, open }: { w: number; h: number; open: number }) {
   // Nothing to look for, and no frames to keep coming, while no projector
@@ -415,6 +417,16 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
     }),
     [],
   )
+  // The corners of the picture with the sheet all the way down, which the
+  // projector aimed at it is told of, so its beam reaches them.
+  const corners = useMemo(() => [new Vector3(), new Vector3(), new Vector3(), new Vector3()], [])
+  const lit = useRef<Throw | null>(null)
+  useEffect(
+    () => () => {
+      if (lit.current?.lands === corners) lit.current.lands = null
+    },
+    [corners],
+  )
   useFrame((_, delta) => {
     const m = mesh.current
     const sheet = m?.parent
@@ -424,11 +436,16 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
     v.x.normalize()
     v.y.normalize()
     v.n.normalize()
-    v.c.setFromMatrixPosition(sheet.matrixWorld)
+    // The middle of the sheet as it hangs, and how far above the middle of
+    // the whole sheet that is.
+    const raised = (h * (1 - open)) / 2
+    v.c.set(0, -raised, 0).applyMatrix4(sheet.matrixWorld)
     const home = top(sheet)
     let target = 0
     let side = 1
     let shows: Showing | null = latest.current
+    let aimed: Throw | null = null
+    let strongest = 0
     for (const t of throws) {
       const o = t.object
       if (!o || top(o) !== home) continue
@@ -440,7 +457,15 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
       const along = v.p.subVectors(v.c, v.o).dot(v.n) / facing
       if (along <= 0 || along > t.length * REACH) continue
       v.p.copy(v.o).addScaledVector(v.d, along).sub(v.c)
-      if (Math.abs(v.p.dot(v.x)) > w * 0.6 || Math.abs(v.p.dot(v.y)) > (h * open) / 2 + h * 0.1) continue
+      const x = v.p.dot(v.x)
+      const y = v.p.dot(v.y)
+      if (Math.abs(x) > w * 0.6 || Math.abs(y) > h / 2 + h * 0.1) continue
+      if (t.strength > strongest) {
+        strongest = t.strength
+        aimed = t
+      }
+      // The picture only shows on as much of the sheet as hangs down.
+      if (Math.abs(y - raised) > (h * open) / 2 + h * 0.1) continue
       if (t.strength > target) {
         target = t.strength
         // On the face the light comes from.
@@ -454,11 +479,23 @@ function Picture({ w, h, open }: { w: number; h: number; open: number }) {
       setShowing(shows)
     }
     level.current += (target - level.current) * Math.min(1, delta * 4)
-    m.visible = level.current > 0.01
+    m.visible = level.current > 0.01 && h * open > 2 * edge
     m.position.z = side * 0.003
+    // Seen from the face the light comes from, so it never reads backwards.
+    m.scale.x = (side * (w - 2 * edge)) / w
+    if (lit.current !== aimed && lit.current?.lands === corners) lit.current.lands = null
+    lit.current = aimed
+    if (aimed) {
+      corners.forEach((corner, i) =>
+        corner
+          .set(i % 3 === 0 ? edge - w / 2 : w / 2 - edge, (i < 2 ? edge - h / 2 : h / 2 - edge) - raised, 0)
+          .applyMatrix4(sheet.matrixWorld),
+      )
+      aimed.lands = corners
+    }
   })
   return (
-    <mesh ref={mesh} scale={[(w - 2 * edge) / w, Math.max(0, h * open - 2 * edge) / h, 1]}>
+    <mesh ref={mesh} scale-y={Math.max(0.001, h * open - 2 * edge) / h}>
       <planeGeometry args={[w, h]} />
       <ScreenMaterial
         level={level}

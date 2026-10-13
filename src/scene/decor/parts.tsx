@@ -585,7 +585,8 @@ export function Rod({ from, to, r, children }: { from: Vector3; to: Vector3; r: 
 }
 
 // Clear glass, for windows and glazed doors. Never tinted by a surface
-// texture: glass is glass.
+// texture: glass is glass. It leaves the depth alone, so a beam or a
+// glow behind it, drawn after it, still shows through.
 export function Glass({ color, opacity = 0.22 }: { color: string; opacity?: number }) {
   return (
     <meshPhysicalMaterial
@@ -595,6 +596,7 @@ export function Glass({ color, opacity = 0.22 }: { color: string; opacity?: numb
       roughness={0.05}
       metalness={0}
       side={DoubleSide}
+      depthWrite={false}
     />
   )
 }

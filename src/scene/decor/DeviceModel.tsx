@@ -288,7 +288,7 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
     case 'soundbar': {
       // A fabric wrapped bar with hard end caps and a control strip on top.
       // The sound spreads in rings from a driver near each end, laid flat
-      // at the top of the bar, so they never cut into what it stands on.
+      // just above the bar, so they never cut into it or what it stands on.
       const w = p('width')
       const h = p('height')
       const d = 0.1
@@ -299,7 +299,7 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
             <Waves
               key={side}
               on={sounding}
-              position={[side * (w / 2 - Math.min(0.12, w * 0.15)), h * 0.92, 0]}
+              position={[side * (w / 2 - Math.min(0.12, w * 0.15)), h + 0.015, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
               from={across / 2 + 0.02}
               reach={Math.max(0.18, h * 2.4)}
@@ -1256,20 +1256,22 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
           <Slab size={[w + 0.12, caseH, 0.11]} radius={0.03} position={[0, -caseH, 0]}>
             <Material color={c('case')} material={m('case')} />
           </Slab>
+          {/* The picture stays even while the sheet is rolled up, so a
+              projector aimed at it knows where it will land. */}
+          <group position={[0, -caseH - drop / 2, 0]}>
+            {drop > 0.01 && (
+              <mesh scale={[1, openAmount, 1]}>
+                <planeGeometry args={[w, h]} />
+                <meshStandardMaterial color={c('screen')} roughness={0.9} side={DoubleSide} />
+              </mesh>
+            )}
+            <Projection w={w} h={h} open={openAmount} />
+          </group>
           {drop > 0.01 && (
-            <>
-              <group position={[0, -caseH - drop / 2, 0]}>
-                <mesh scale={[1, openAmount, 1]}>
-                  <planeGeometry args={[w, h]} />
-                  <meshStandardMaterial color={c('screen')} roughness={0.9} side={DoubleSide} />
-                </mesh>
-                <Projection w={w} h={h} open={openAmount} />
-              </group>
-              {/* The weighted bar along the bottom edge keeps its own size. */}
-              <Slab size={[w, 0.03, 0.03]} radius={0.008} position={[0, -caseH - drop, 0]}>
-                <Material color={c('case')} material={m('case')} />
-              </Slab>
-            </>
+            // The weighted bar along the bottom edge keeps its own size.
+            <Slab size={[w, 0.03, 0.03]} radius={0.008} position={[0, -caseH - drop, 0]}>
+              <Material color={c('case')} material={m('case')} />
+            </Slab>
           )}
         </group>
       )

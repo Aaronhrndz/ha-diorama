@@ -8,13 +8,16 @@ import {
   AdditiveBlending,
   type Group,
   BufferGeometry,
+  type BufferAttribute,
   DoubleSide,
   ExtrudeGeometry,
   Float32BufferAttribute,
   LatheGeometry,
   Shape,
   Vector2,
+  Vector3,
 } from 'three'
+import { useFrame } from '@react-three/fiber'
 
 // The speakers, the game consoles and the projector's beam, each in the
 // styles the catalog gives it. `paint` gives the material for a slot, and
@@ -32,9 +35,20 @@ export type Look = {
 // and never hides the room. The fade rides in the vertex alpha, not the
 // color: on the card's see through canvas the alpha a pixel gains darkens
 // the page behind it, so it must fall away with the light or the faint far
-// end shows as a dark box.
+// end shows as a dark box. Thrown onto a projection screen, it reaches
+// the corners of the picture there instead, and fades out just as it gets
+// to them.
 // How far along the throw the beam is drawn before it has faded away.
 const BEAM_REACH = 0.85
+// The rings along the beam, how wide the lens is, and its corners in turn.
+const ROWS = 24
+const LENS = 0.012
+const CORNERS = [
+  [-1, -1],
+  [1, -1],
+  [1, 1],
+  [-1, 1],
+] as const
 
 // `showing` is what a player behind the projector plays, which the beam
 // takes the color of and a projection screen it lands on shows.
@@ -49,33 +63,28 @@ export function Beam({
   strength: number
   showing?: Showing | null
 }) {
-  const material = useBeamScene(0.28 * strength, useShowingColor(showing))
+  const material = useBeamScene(0.2 * strength, useShowingColor(showing))
   const from = useRef<Group>(null)
-  useThrow(from, length, strength, showing)
+  const thrown = useThrow(from, length, strength, showing)
   const geometry = useMemo(() => {
-    const rows = 24
-    const lens = 0.012
     const positions: number[] = []
     const colors: number[] = []
     const index: number[] = []
-    for (let i = 0; i <= rows; i++) {
-      const t = i / rows
+    for (let i = 0; i <= ROWS; i++) {
+      const t = i / ROWS
       const along = t * BEAM_REACH
-      const hx = lens + (width / 2 - lens) * along
-      const hy = lens + (width / 2 / (16 / 9) - lens) * along
+      const hx = LENS + (width / 2 - LENS) * along
+      const hy = LENS + (width / 2 / (16 / 9) - LENS) * along
       // Brightest just out of the lens, gone by the end of what is drawn.
       const fade = Math.pow(1 - t, 1.8) * Math.min(1, t * 5 + 0.2)
-      for (const [x, y] of [
-        [-hx, -hy],
-        [hx, -hy],
-        [hx, hy],
-        [-hx, hy],
-      ]) {
+      for (const [sx, sy] of CORNERS) {
+        const x = sx * hx
+        const y = sy * hy
         positions.push(x, y, along * length)
         colors.push(1, 1, 1, fade)
       }
     }
-    for (let i = 0; i < rows; i++) {
+    for (let i = 0; i < ROWS; i++) {
       for (let k = 0; k < 4; k++) {
         const a = i * 4 + k
         const b = i * 4 + ((k + 1) % 4)
@@ -88,6 +97,44 @@ export function Beam({
     g.setIndex(index)
     return g
   }, [length, width])
+  // The beam as it is drawn into the air, to go back to once it no longer
+  // lands on a screen.
+  const free = useMemo(() => (geometry.getAttribute('position').array as Float32Array).slice(), [geometry])
+  const landed = useRef(false)
+  const local = useMemo(() => [new Vector3(), new Vector3(), new Vector3(), new Vector3()], [])
+  useFrame(() => {
+    const group = from.current
+    const position = geometry.getAttribute('position') as BufferAttribute
+    const array = position.array as Float32Array
+    const lands = thrown.lands
+    if (!group || !lands) {
+      if (landed.current) {
+        array.set(free)
+        position.needsUpdate = true
+        geometry.computeBoundingSphere()
+        landed.current = false
+      }
+      return
+    }
+    landed.current = true
+    group.updateWorldMatrix(true, false)
+    lands.forEach((corner, i) => group.worldToLocal(local[i].copy(corner)))
+    // Each corner of the lens goes to the corner of the picture on its own
+    // side, whichever face of the screen it lands on.
+    CORNERS.forEach(([sx, sy], k) => {
+      let to = local[0]
+      for (const corner of local) if (sx * corner.x + sy * corner.y > sx * to.x + sy * to.y) to = corner
+      for (let i = 0; i <= ROWS; i++) {
+        const t = i / ROWS
+        const at = (i * 4 + k) * 3
+        array[at] = sx * LENS * (1 - t) + to.x * t
+        array[at + 1] = sy * LENS * (1 - t) + to.y * t
+        array[at + 2] = to.z * t
+      }
+    })
+    position.needsUpdate = true
+    geometry.computeBoundingSphere()
+  })
   return (
     <group ref={from}>
       {strength >= 0.01 && (
@@ -97,7 +144,7 @@ export function Beam({
             color="#eef3ff"
             vertexColors
             transparent
-            opacity={0.28 * strength}
+            opacity={0.2 * strength}
             blending={AdditiveBlending}
             depthWrite={false}
             side={DoubleSide}
