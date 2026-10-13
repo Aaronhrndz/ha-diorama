@@ -1,5 +1,6 @@
 import { cn } from '#/lib/utils.ts'
 import { callService, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
+import { useArmed } from '#/tiles/twice.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { MEDIA } from '#/tiles/features/media.tsx'
 import { supports } from '#/tiles/features/parts.tsx'
@@ -8,7 +9,7 @@ import type { TileConfig } from '#/tiles/host.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
 import type { HomeAssistant } from '#/types.ts'
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef } from 'react'
 
 export type Key = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'home' | 'mute' | 'volume_up' | 'volume_down'
 
@@ -23,6 +24,9 @@ export type RemoteConfig = TileConfig & {
   // False leaves out the power key, as the side panel does when a toggle
   // for the same entity is already there.
   power?: boolean
+  // Entities whose cards beside it already turn things on and off, set by
+  // the side panel. The power key is left out when one is of its device.
+  power_beside?: string[]
   commands?: Partial<Record<Key, Command>>
 }
 
@@ -120,9 +124,6 @@ const VOLUME: Key[] = ['mute', 'volume_up', 'volume_down']
 // How long a key is held before it repeats, and how often it does then.
 const REPEAT_AFTER_MS = 400
 const REPEAT_EVERY_MS = 120
-// How long the power key waits for the second press that turns it off.
-const ARMED_MS = 3000
-
 const OFF = ['off', 'standby', 'unavailable', 'unknown']
 
 type Target = { entity: string; platform: string }
@@ -157,6 +158,13 @@ function playerOf(hass: HomeAssistant, entityId: string) {
 
 type Props = { env: TileEnv; config: RemoteConfig }
 
+// Whether a card beside it already turns its device on and off.
+function besideOf(hass: HomeAssistant, config: RemoteConfig) {
+  const registry = hass.entities ?? {}
+  const own = config.entity && registry[config.entity]?.device_id
+  return !!config.power_beside?.some(id => id === config.entity || (!!own && registry[id]?.device_id === own))
+}
+
 // A TV remote: back, home and power in the top right corner, minus, mute and
 // plus just left of them, and arrows around OK on a round pad under them.
 // Half as wide, back and home stay in the corner, and the pad and then the
@@ -171,7 +179,8 @@ type Props = { env: TileEnv; config: RemoteConfig }
 // player when that says it is off, as a TV that was just woken says so for
 // a while before it takes the volume. Power turns it on at once, but turns
 // it off only on a second press within a few seconds, so it is never turned
-// off by mistake. It has no power key when its config says so.
+// off by mistake. It has no power key when its config says so, or when a
+// toggle or what plays on its device is beside it to turn it on and off.
 // A tap on the card around the keys does nothing, and a long press opens
 // its dialog.
 export default function Remote({ env, config }: Props) {
@@ -181,31 +190,14 @@ export default function Remote({ env, config }: Props) {
   const player = config.volume_entity ?? (keys ? undefined : config.entity && playerOf(hass, config.entity))
   const muted = player ? hass.states[player]?.attributes.is_volume_muted === true : false
   const off = !entity || OFF.includes(entity.state)
-  // Power waits for a second press to turn it off until this runs out.
-  const [waiting, setArmed] = useState(false)
-  const armed = waiting && !off
-  const disarm = useRef(0)
-  useEffect(() => () => clearTimeout(disarm.current), [])
   // The service that turns it on or off, when it has one.
   const domain = config.entity?.split('.')[0]
   const powerOf = (on: boolean) =>
     domain === 'remote' || (domain === 'media_player' && supports(entity, on ? MEDIA.turnOn : MEDIA.turnOff))
       ? () => callService(hass, `${domain}.turn_${on ? 'on' : 'off'}`, { entity_id: config.entity })
       : null
-  const turn = config.power === false ? null : powerOf(off)
-  const power = () => {
-    if (!turn) return
-    clearTimeout(disarm.current)
-    if (off || armed) {
-      haptic(off ? 'selection' : 'medium')
-      setArmed(false)
-      turn()
-      return
-    }
-    haptic('selection')
-    setArmed(true)
-    disarm.current = window.setTimeout(() => setArmed(false), ARMED_MS)
-  }
+  const turn = config.power === false || besideOf(hass, config) ? null : powerOf(off)
+  const power = useArmed(off, turn)
 
   // What a key does, or nothing when there is no way to send it.
   const reach = (key: Key): (() => void) | null => {
@@ -263,10 +255,10 @@ export default function Remote({ env, config }: Props) {
             {turn && (
               <Control
                 icon="ph:power-bold"
-                label={off ? 'Turn on' : armed ? 'Press again to turn off' : 'Turn off'}
-                className={cn(armed && 'dio-remote-armed')}
-                style={{ '--_armed-ms': `${ARMED_MS}ms` } as CSSProperties}
-                onPress={power}
+                label={off ? 'Turn on' : power.armed ? 'Press again to turn off' : 'Turn off'}
+                className={power.className}
+                style={power.style}
+                onPress={power.press}
               />
             )}
           </>

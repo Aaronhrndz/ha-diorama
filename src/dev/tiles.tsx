@@ -164,8 +164,9 @@ hass = {
       update(id, data!.operation_mode as string, { operation_mode: data!.operation_mode })
     for (const key of ['fan_mode', 'preset_mode', 'swing_mode'])
       if (service === `set_${key}`) update(id, s.state, { [key]: data![key] })
+    // A TV takes a moment to wake.
     if ((domain === 'remote' || domain === 'media_player') && service.startsWith('turn_'))
-      update(id, service === 'turn_on' ? 'on' : 'off')
+      setTimeout(() => update(id, service === 'turn_on' ? 'on' : 'off'), domain === 'media_player' ? 1500 : 0)
     if (domain === 'media_player' && service === 'media_play_pause')
       update(id, s.state === 'playing' ? 'paused' : 'playing')
   },
@@ -198,6 +199,14 @@ const sections: { title: Record<string, unknown>; cards: Record<string, unknown>
         entity: 'remote.tv_box',
         volume_entity: 'media_player.tv_panel',
         grid_options: { columns: 12, rows: 4 },
+      },
+      {
+        type: 'dio-remote',
+        entity: 'remote.tv_box',
+        name: 'No power',
+        volume_entity: 'media_player.tv_panel',
+        power: false,
+        grid_options: { columns: 6, rows: 6 },
       },
       { type: 'dio-toggle', entity: 'media_player.tv_panel', confirm: true },
       { type: 'dio-lock', entity: 'lock.front' },

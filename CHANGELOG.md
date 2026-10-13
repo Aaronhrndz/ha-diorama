@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- The now playing card turns its player on with a double tap while it is off, then fades into what plays, and has a power button that turns it off on a second press, so it needs no other card to turn it on and off. A remote beside it, or beside a toggle for the same device, leaves out its power key.
+
 ### Changed
 
 - On a phone or tablet the card draws at most 24 frames a second and without shadows, so it stays smooth and cool.
@@ -16,6 +20,7 @@ moves that section under the new version and uses it as the release notes.
 ### Fixed
 
 - A small tile too narrow for both its icon and its buttons, like a half width cover on a phone, now hides the icon and keeps the buttons.
+- A remote without its power key no longer leaves an empty space beside back and home.
 
 ## [1.8.8] - 2026-10-13
 

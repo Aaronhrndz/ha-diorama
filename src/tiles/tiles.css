@@ -2044,9 +2044,11 @@
   grid-area: 1 / 1;
 }
 
+/* Only as wide as its keys, so without power it is back and home alone. */
 .dio-remote .dio-controls {
   grid-area: 1 / 3;
   align-self: start;
+  justify-self: end;
 }
 
 .dio-remote .dio-controls.dio-volume {
@@ -2121,23 +2123,23 @@
 /* Power after one press, waiting for the second that turns it off: lit, as
    the double tap toggle is, with the light running back across it until it
    stops waiting. */
-.dio-remote .dio-remote-armed {
+.dio-armed {
   position: relative;
   isolation: isolate;
   overflow: hidden;
 }
 
-.dio-remote .dio-remote-armed::before {
+.dio-armed::before {
   position: absolute;
   z-index: -1;
   inset: 0;
   background: color-mix(in srgb, currentColor 28%, transparent);
   content: '';
   transform-origin: left;
-  animation: dio-remote-armed var(--_armed-ms) linear forwards;
+  animation: dio-armed var(--_armed-ms) linear forwards;
 }
 
-@keyframes dio-remote-armed {
+@keyframes dio-armed {
   from {
     transform: scaleX(1);
   }
@@ -3070,6 +3072,17 @@
 
 .dio-media-seek[data-dragging] .dio-tile::after {
   transition: none;
+}
+
+/* A card that was turned on from itself fades from lit into what plays. */
+.dio-media-wake[data-leaving] .dio-fill-lit {
+  animation: dio-media-wake var(--_wake-ms) ease forwards;
+}
+
+@keyframes dio-media-wake {
+  to {
+    opacity: 0;
+  }
 }
 
 /* How far in, on the left of the buttons. */
