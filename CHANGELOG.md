@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-10-13
+
 ### Changed
 
 - A tap on Now Playing turns the player on while it is off, and a tap on the TV Remote around its keys does nothing, so both open their dialog only on a long press.
@@ -419,7 +421,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.1...HEAD
+[1.8.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.6.0...v1.7.0
