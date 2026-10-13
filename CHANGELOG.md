@@ -9,6 +9,11 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- Play and pause on the media and remote card go through the remote, so they work in apps like Netflix, and a `play` command can be given for a remote on another device.
+- On a phone, the media and remote card keeps its icon, name and state whole, with the name under the volume, and scrolls into view when it grows.
+
 ## [1.8.10] - 2026-10-13
 
 ### Changed
