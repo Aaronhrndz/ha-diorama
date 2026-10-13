@@ -13,6 +13,10 @@ moves that section under the new version and uses it as the release notes.
 
 - A long title on a TV or a projection screen no longer repeats its second line.
 
+### Changed
+
+- Under the title of what plays, a TV or a projection screen shows the name of its app in a smaller line.
+
 ## [1.8.15] - 2026-10-13
 
 ### Fixed

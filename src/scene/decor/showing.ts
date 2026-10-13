@@ -13,6 +13,9 @@ export type Showing = {
   // made white.
   logo: { src: string; mono: boolean } | null
   title: string | null
+  // The app it plays from, in a smaller line under a title that is not
+  // already its name.
+  subtitle: string | null
   playing: boolean
 }
 
@@ -43,6 +46,7 @@ export function showingOf(hass: HomeAssistant, entityId: string): Showing | null
     // With nothing told of what plays, the name of the app it plays from,
     // as people know it rather than as its package.
     title: said ?? known?.name ?? named,
+    subtitle: said ? (known?.name ?? named) : null,
     playing: media.state === 'playing',
   }
 }
@@ -53,6 +57,7 @@ export function sameShowing(a: Showing | null | undefined, b: Showing | null | u
   return (
     a.art === b.art &&
     a.title === b.title &&
+    a.subtitle === b.subtitle &&
     a.playing === b.playing &&
     a.logo?.src === b.logo?.src &&
     a.colors.every((color, i) => color === b.colors[i])

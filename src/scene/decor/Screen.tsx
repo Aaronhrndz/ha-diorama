@@ -112,10 +112,12 @@ const PADDING_PX = 18
 const LOGO_PX = 30
 const LOGO_MAX_PX = 120
 const TITLE_PX = 15
+const SUBTITLE_PX = 11
 // How wide the drawing of the words and the logo is, in texture pixels.
 const OVER_PX = 2048
 
-// The logo in the top left corner and the title in the bottom left one, on
+// The logo in the top left corner and the title in the bottom left one,
+// with the app it plays from in a smaller line under it, on
 // the clear canvas of `over`, `aspect` times as wide as it is tall, as on a
 // card `card` pixels wide.
 function drawOver(
@@ -124,6 +126,7 @@ function drawOver(
   card: number,
   logo: { image: HTMLImageElement; mono: boolean } | null,
   title: string | null,
+  subtitle: string | null,
 ) {
   const canvas = over.image as HTMLCanvasElement
   const height = Math.round(OVER_PX / aspect)
@@ -180,8 +183,11 @@ function drawOver(
     }
     lines.push(line)
     if (lines.length > 2) lines.splice(1, lines.length, lines.slice(1).join(' '))
+    // The app's line, smaller and fainter, under the title.
+    const small = SUBTITLE_PX * k
+    const below = subtitle ? small * 1.5 : 0
     // Over a dark shade rising from the bottom, so it reads on a light cover.
-    const rise = lines.length * size * 1.2 + pad * 3
+    const rise = lines.length * size * 1.2 + below + pad * 3
     const shade = context.createLinearGradient(0, canvas.height, 0, canvas.height - rise)
     shade.addColorStop(0, 'rgba(0, 0, 0, 0.5)')
     shade.addColorStop(1, 'rgba(0, 0, 0, 0)')
@@ -198,10 +204,18 @@ function drawOver(
         while (shown.length > 1 && context.measureText(`${shown}…`).width > room) shown = shown.slice(0, -1)
         shown = `${shown.trimEnd()}…`
       }
-      const y = canvas.height - pad - (lines.length - 1 - i) * size * 1.2 - size * 0.25
+      const y = canvas.height - pad - below - (lines.length - 1 - i) * size * 1.2 - size * 0.25
       context.strokeText(shown, pad, y)
       context.fillText(shown, pad, y)
     })
+    if (subtitle) {
+      context.font = `500 ${small}px Inter, system-ui, sans-serif`
+      context.lineWidth = small * 0.16
+      context.fillStyle = 'rgba(255, 255, 255, 0.72)'
+      const y = canvas.height - pad - small * 0.25
+      context.strokeText(subtitle, pad, y)
+      context.fillText(subtitle, pad, y)
+    }
   }
 }
 
@@ -261,6 +275,7 @@ export default function ScreenMaterial({
   useEffect(() => () => art?.dispose(), [art])
   useEffect(() => () => over.dispose(), [over])
   const title = showing?.title ?? null
+  const subtitle = showing?.subtitle ?? null
   const mono = !!showing?.logo?.mono
   useLayoutEffect(() => {
     // The material keeps its own copy of the uniforms, so its are the ones
@@ -279,9 +294,9 @@ export default function ScreenMaterial({
     const shown = showing && (logo || title)
     u.uHasOver.value = shown ? 1 : 0
     if (shown) {
-      drawOver(over, aspect, card, logo && { image: logo.image, mono }, title)
+      drawOver(over, aspect, card, logo && { image: logo.image, mono }, title, subtitle)
     }
-  }, [uniforms, showing, art, cover, logo, mono, title, aspect, card, over])
+  }, [uniforms, showing, art, cover, logo, mono, title, subtitle, aspect, card, over])
   // Only shown while the screen is on, so it plays for as long as it is.
   // On the scene's clock, so the glow round it keeps the same color. A
   // player's colors run on a clock of their own, which stops while it is
