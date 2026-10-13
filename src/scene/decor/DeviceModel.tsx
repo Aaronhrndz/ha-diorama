@@ -287,18 +287,21 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
     }
     case 'soundbar': {
       // A fabric wrapped bar with hard end caps and a control strip on top.
-      // The sound spreads in rings from a driver near each end.
+      // The sound spreads in rings from a driver near each end, laid flat
+      // at the top of the bar, so they never cut into what it stands on.
       const w = p('width')
       const h = p('height')
       const d = 0.1
+      const across = style === 'arc' ? Math.max(d, h * 1.3) : d
       const sound = (
         <>
           {[-1, 1].map(side => (
             <Waves
               key={side}
               on={sounding}
-              position={[side * (w / 2 - Math.min(0.12, w * 0.15)), h / 2, d / 2 + 0.02]}
-              from={h * 0.5}
+              position={[side * (w / 2 - Math.min(0.12, w * 0.15)), h * 0.92, 0]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              from={across / 2 + 0.02}
               reach={Math.max(0.18, h * 2.4)}
             />
           ))}

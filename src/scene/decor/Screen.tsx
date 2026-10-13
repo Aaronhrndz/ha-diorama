@@ -69,8 +69,10 @@ void main() {
   vec3 col;
   if (uMode > 1.5) {
     // The cover art, darkened a little so the words over it read, and
-    // softened only a hint, so it shows almost as sharp as it is.
-    vec3 art = texture2D(uArt, (p - 0.5) * uFit + 0.5, 0.3).rgb;
+    // softened only a hint, so it shows almost as sharp as it is. It drifts
+    // slowly in and out, easing at each end, so the picture is never still.
+    float zoom = 1.0 - 0.08 * (0.5 - 0.5 * cos(uTime * 0.25));
+    vec3 art = texture2D(uArt, (p - 0.5) * uFit * zoom + 0.5, 0.3).rgb;
     float grey = dot(art, vec3(0.299, 0.587, 0.114));
     col = mix(vec3(grey), art, 1.2) * 0.8;
   } else if (uMode > 0.5) {
@@ -103,15 +105,15 @@ const rgbOf = (hex: string, out: Vector3) =>
 // How wide a card is, in its own pixels, for a TV to show what plays in
 // the same proportions. A projection is bigger and seen from further, so
 // its logo and its words take less of it.
-export const TV_CARD_PX = 360
-export const PROJECTION_CARD_PX = 520
+export const TV_CARD_PX = 270
+export const PROJECTION_CARD_PX = 300
 // The logo, the title and the space round them on a card, in its pixels.
 const PADDING_PX = 18
 const LOGO_PX = 30
 const LOGO_MAX_PX = 120
 const TITLE_PX = 15
 // How wide the drawing of the words and the logo is, in texture pixels.
-const OVER_PX = 1024
+const OVER_PX = 2048
 
 // The logo in the top left corner and the title in the bottom left one, on
 // a clear canvas `aspect` times as wide as it is tall, as on a card `card`
@@ -140,9 +142,16 @@ function drawOver(
       w = LOGO_MAX_PX * k
       h = w / ratio
     }
-    // On a soft shadow, so a logo in the colors of its own app, like a red
-    // one over red, still stands out of them.
-    context.filter = `${logo.mono ? 'brightness(0) invert(1) ' : ''}drop-shadow(0 0 ${6 * k}px rgba(0, 0, 0, 0.6))`
+    // Over a dark shade fading out from the corner, and on a soft shadow,
+    // so a logo in the colors of its own app, like a red one over red,
+    // still stands out of them.
+    const reach = Math.max(w, h) * 1.6 + pad
+    const shade = context.createRadialGradient(pad + w / 2, pad + h / 2, 0, pad + w / 2, pad + h / 2, reach)
+    shade.addColorStop(0, 'rgba(0, 0, 0, 0.55)')
+    shade.addColorStop(1, 'rgba(0, 0, 0, 0)')
+    context.fillStyle = shade
+    context.fillRect(0, 0, pad + w / 2 + reach, pad + h / 2 + reach)
+    context.filter = `${logo.mono ? 'brightness(0) invert(1) ' : ''}drop-shadow(0 0 ${3 * k}px rgba(0, 0, 0, 0.8))`
     context.drawImage(logo.image, pad, pad, w, h)
     context.filter = 'none'
   }
@@ -165,6 +174,14 @@ function drawOver(
     }
     lines.push(line)
     if (lines.length > 2) lines.splice(2, lines.length, lines.slice(1).join(' '))
+    // Over a dark shade rising from the bottom, so it reads on a light cover.
+    const rise = lines.length * size * 1.2 + pad * 3
+    const shade = context.createLinearGradient(0, canvas.height, 0, canvas.height - rise)
+    shade.addColorStop(0, 'rgba(0, 0, 0, 0.5)')
+    shade.addColorStop(1, 'rgba(0, 0, 0, 0)')
+    context.fillStyle = shade
+    context.fillRect(0, canvas.height - rise, canvas.width, rise)
+    context.fillStyle = '#ffffff'
     lines.forEach((text, i) => {
       let shown = text
       if (context.measureText(shown).width > room) {
@@ -201,6 +218,8 @@ export default function ScreenMaterial({
   const over = useMemo(() => {
     const texture = new CanvasTexture(document.createElement('canvas'))
     texture.colorSpace = NoColorSpace
+    // Sharp when the screen is seen from the side.
+    texture.anisotropy = 8
     return texture
   }, [])
   const uniforms = useMemo(
