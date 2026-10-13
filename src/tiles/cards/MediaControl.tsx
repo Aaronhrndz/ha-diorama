@@ -8,7 +8,7 @@ import { numberOf, supports } from '#/tiles/features/parts.tsx'
 import { useNow } from '#/tiles/history.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
-import { cornerOf, CornerKeys, remoteOf, RemoteKeys } from '#/tiles/cards/Remote.tsx'
+import { cornerOf, CornerKeys, remoteOf, RemoteKeys, type RemoteConfig } from '#/tiles/cards/Remote.tsx'
 import type { EntityState, HomeAssistant } from '#/types.ts'
 import {
   useEffect,
@@ -102,6 +102,11 @@ export type MediaControlConfig = TileConfig & {
   // Where the cover art goes: washed large and blurred behind the whole
   // card, or square in place of the icon.
   art?: 'background' | 'icon'
+  // With the remote, like the remote card: a command of its own for a key,
+  // and another player for the volume, for a player that is not on the
+  // same device as its remote.
+  commands?: RemoteConfig['commands']
+  volume_entity?: string
 }
 
 // What is playing, with the cover art washed large and blurred behind the
@@ -145,7 +150,9 @@ export default function MediaControl({
   const off = !entity || OFF.includes(entity.state)
   // The remote of the same device, for its keys and, when the player
   // cannot, to turn it on and off.
-  const keys = remote ? remoteOf(env.hass, { entity: config.entity }) : null
+  const keys = remote
+    ? remoteOf(env.hass, { entity: config.entity, commands: config.commands, volume_entity: config.volume_entity })
+    : null
   const switcher = keys?.keys?.entity.startsWith('remote.') ? keys.keys.entity : undefined
   const turnOf = (on: boolean) => {
     const turn = on ? 'turn_on' : 'turn_off'

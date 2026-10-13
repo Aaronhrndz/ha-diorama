@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- The media and remote card takes `commands` and `volume_entity` like the remote card, so it works for a player whose remote is on another device.
+
 ## [1.8.9] - 2026-10-13
 
 ### Added
