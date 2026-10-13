@@ -2478,7 +2478,7 @@
   padding: 1px 6px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--_bg-inactive) 80%, transparent);
-  opacity: 0.8;
+  opacity: 0.6;
 }
 
 .dio-graph-axis {
@@ -2860,7 +2860,7 @@
     radial-gradient(closest-side, var(--_glow-b), transparent) 100% 30% / 60% 100% no-repeat,
     radial-gradient(closest-side, var(--_glow-c), transparent) 40% 100% / 75% 90% no-repeat;
   filter: blur(16px);
-  opacity: 0.8;
+  opacity: 0.6;
   animation: dio-media-drift 24s ease-in-out infinite alternate;
 }
 
