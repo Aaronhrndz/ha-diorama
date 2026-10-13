@@ -150,9 +150,10 @@ function playerOf(hass: HomeAssistant, entityId: string) {
 
 type Props = { env: TileEnv; config: RemoteConfig }
 
-// A TV remote: arrows around OK on a round pad, back and home in the top
-// right corner, and the volume on a tall pill beside the pad, with mute
-// between plus and minus. It finds
+// A TV remote: back and home in the top right corner, minus, mute and
+// plus just left of them, and arrows around OK on a round pad under them.
+// Half as wide, back and home stay in the corner, and the pad and then the
+// volume stand under them, in the middle. It finds
 // the names of the keys from the integration of the entity, or of another
 // on its device, so a remote or a TV picked from the list works as it is.
 // A key can be given a command of its own, and the volume can go to
@@ -214,23 +215,21 @@ export default function Remote({ env, config }: Props) {
         ))
       }
     >
-      <div className="dio-remote-keys" onPointerDown={e => e.stopPropagation()}>
-        <div className="dio-pad">
-          {(['up', 'right', 'down', 'left'] as const).map(key => (
-            <RemoteKey key={key} name={key} send={sendOf(key)} repeats className={`dio-pad-${key}`} />
-          ))}
-          <RemoteKey name="ok" send={sendOf('ok')} className="dio-pad-ok" />
-        </div>
-        <div className="dio-volume">
-          <RemoteKey name="volume_up" send={sendOf('volume_up')} repeats />
-          <RemoteKey
-            name="mute"
-            send={sendOf('mute')}
-            icon={muted ? 'ph:speaker-x' : 'ph:speaker-high'}
-            className={cn('dio-volume-mute', muted && 'dio-remote-muted')}
-          />
-          <RemoteKey name="volume_down" send={sendOf('volume_down')} repeats />
-        </div>
+      <div className="dio-pad" onPointerDown={e => e.stopPropagation()}>
+        {(['up', 'right', 'down', 'left'] as const).map(key => (
+          <RemoteKey key={key} name={key} send={sendOf(key)} repeats className={`dio-pad-${key}`} />
+        ))}
+        <RemoteKey name="ok" send={sendOf('ok')} className="dio-pad-ok" />
+      </div>
+      <div className="dio-controls dio-volume" onPointerDown={e => e.stopPropagation()}>
+        <RemoteKey name="volume_down" send={sendOf('volume_down')} repeats className="dio-control" />
+        <RemoteKey
+          name="mute"
+          send={sendOf('mute')}
+          icon={muted ? 'ph:speaker-x' : 'ph:speaker-high'}
+          className={cn('dio-control', muted && 'dio-remote-muted')}
+        />
+        <RemoteKey name="volume_up" send={sendOf('volume_up')} repeats className="dio-control" />
       </div>
     </Panel>
   )

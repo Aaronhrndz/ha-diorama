@@ -126,12 +126,13 @@ class CameraCard extends entityCard<CameraConfig>(CAMERA_DOMAINS, Camera, ['came
 
 class WeatherCard extends entityCard<WeatherConfig>(WEATHER_DOMAINS, Weather, ['forecast']) {
   getCardSize() {
-    return this._config?.size === 'large' ? 6 : 3
+    const size = this._config?.size
+    return size === 'large' ? 6 : size === 'small' ? 2 : 3
   }
 
   getGridOptions(): GridOptions {
     const size = this._config?.size
-    return { columns: size === 'small' ? 6 : 'full', rows: size === 'large' ? 6 : 3 }
+    return { columns: size === 'small' ? 6 : 'full', rows: size === 'large' ? 6 : size === 'small' ? 2 : 3 }
   }
 }
 
@@ -159,11 +160,14 @@ function panelCard<C extends TileConfig>(
 class RemoteCard extends panelCard<RemoteConfig>(
   ['remote', 'media_player'],
   Remote,
-  // Four rows tall, or five half as wide, where the keys go above the name.
+  // Four rows across the whole width, or six half as wide, where its keys
+  // stand one over the other.
   config => {
     const columns = config?.grid_options?.columns
     const half = typeof columns === 'number' && columns <= 6
-    return { columns: 'full', rows: half ? 5 : 4, min_columns: 6, min_rows: half ? 5 : 4 }
+    return half
+      ? { columns: 6, rows: 6, min_columns: 6, min_rows: 6 }
+      : { columns: 'full', rows: 4, min_columns: 12, min_rows: 4 }
   },
   4,
   ['remote'],
@@ -327,7 +331,7 @@ const CARDS: Card[] = [
   },
   {
     type: 'dio-alarm-panel',
-    element: panelCard(['alarm_control_panel'], AlarmPanel, { columns: 'full', rows: 'auto' }, 7),
+    element: panelCard(['alarm_control_panel'], AlarmPanel, { columns: 'full', rows: 5 }, 5),
     extra: true,
     domains: ['alarm_control_panel'],
     name: 'Diorama Alarm Keypad',
@@ -335,7 +339,14 @@ const CARDS: Card[] = [
   },
   {
     type: 'dio-dial',
-    element: panelCard(DIAL_DOMAINS, Dial, { columns: 12, rows: 'auto' }, 6),
+    element: panelCard<TileConfig>(
+      DIAL_DOMAINS,
+      Dial,
+      // A light has nothing in the top right corner, so its ring reaches up
+      // there and the card is a row shorter.
+      config => ({ columns: 12, rows: config?.entity?.startsWith('light.') ? 4 : 5 }),
+      5,
+    ),
     extra: true,
     domains: DIAL_DOMAINS,
     name: 'Diorama Big Dial',
@@ -352,11 +363,11 @@ const CARDS: Card[] = [
     element: panelCard<MediaControlConfig>(
       MEDIA_DOMAINS,
       MediaControl,
-      // Three rows tall, or two half as wide, whatever it shows.
+      // Four rows tall, or two half as wide, whatever it shows.
       config => {
         const columns = config?.grid_options?.columns
         const half = typeof columns === 'number' && columns <= 6
-        return { columns: 'full', rows: half ? 2 : 3, min_columns: 6, min_rows: 2 }
+        return { columns: 'full', rows: half ? 2 : 4, min_columns: 6, min_rows: 2 }
       },
       4,
       ['art'],
@@ -394,7 +405,7 @@ const CARDS: Card[] = [
   },
   {
     type: 'dio-calendar',
-    element: panelCard<CalendarConfig>(['calendar'], Calendar, { columns: 'full', rows: 7 }, 7, ['calendar']),
+    element: panelCard<CalendarConfig>(['calendar'], Calendar, { columns: 'full', rows: 6 }, 6, ['calendar']),
     extra: true,
     domains: ['calendar'],
     name: 'Diorama Calendar',
@@ -428,14 +439,14 @@ const CARDS: Card[] = [
       const daily = numeric && typeof entity?.attributes.state_class === 'string'
       return [
         // A strip of on and off needs less height than a line.
-        { config: numeric ? config : { ...config, grid_options: { columns: 12, rows: 3 } } },
+        { config: numeric ? config : { ...config, grid_options: { columns: 12, rows: 2 } } },
         ...(daily ? [{ label: 'Daily Bars', name: 'Daily Bar Graph', config: { ...config, chart: 'bar' } }] : []),
       ]
     },
   },
   {
     type: 'dio-gauge',
-    element: panelCard<GaugeConfig>(GAUGE_DOMAINS, Gauge, { columns: 6, rows: 3 }, 3, ['gauge']),
+    element: panelCard<GaugeConfig>(GAUGE_DOMAINS, Gauge, { columns: 6, rows: 2 }, 2, ['gauge']),
     extra: true,
     domains: GAUGE_DOMAINS,
     name: 'Diorama Ring Gauge',

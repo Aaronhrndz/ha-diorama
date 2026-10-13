@@ -12,7 +12,12 @@ moves that section under the new version and uses it as the release notes.
 ### Added
 
 - The Now Playing widget shows the logo of the app playing, like Netflix, YouTube or Spotify, with a soft light in the app's colors drifting behind it when there is no cover art.
-- A TV Remote widget with arrows, OK, back, home, mute and volume, which works as it is with most TVs and streaming boxes and can send the volume to the TV a box is plugged into.
+- A TV Remote widget with arrows, OK, back, home, mute and volume, as wide as the section or half of it, which works as it is with most TVs and streaming boxes and can send the volume to the TV a box is plugged into.
+
+### Changed
+
+- The cards now fill whole rows of the dashboard's grid, so cards side by side line up, and a half width weather card, an on and off graph, a gauge and an empty to-do list are two rows tall.
+- The to-do list's plus now opens the field to add an item right beside it, and turns green to add what is written.
 
 ## [1.7.1] - 2026-10-13
 

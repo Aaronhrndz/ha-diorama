@@ -1002,10 +1002,18 @@
   font-weight: 600;
 }
 
-/* Small, a square: the temperature under the name, and the sky, the
-   high and the low at its foot. */
+/* Small, two rows: the temperature under the name, and the sky, the
+   high and the low beside them on the right. */
 .dio-weather-small {
+  flex-direction: row;
   justify-content: space-between;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.dio-weather-small .dio-text {
+  justify-content: space-between;
+  min-width: 0;
 }
 
 .dio-weather-small .dio-weather-temp {
@@ -1015,8 +1023,11 @@
 .dio-weather-foot {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 2px;
   min-width: 0;
+  text-align: right;
 }
 
 .dio-weather-foot .dio-icon {
@@ -1027,6 +1038,22 @@
 
 .dio-weather-foot .dio-weather-icon {
   margin-bottom: 2px;
+}
+
+/* Half as wide, the sky's icon and its word stand together at the top,
+   and the high and the low at the foot. */
+.dio-weather-small .dio-weather-foot {
+  justify-content: flex-start;
+}
+
+.dio-weather-small .dio-weather-foot .dio-icon {
+  width: 32px;
+  height: 32px;
+  --mdc-icon-size: 32px;
+}
+
+.dio-weather-small .dio-weather-range {
+  margin-top: auto;
 }
 
 .dio-weather-small .dio-weather-condition {
@@ -1662,6 +1689,30 @@
   margin: 0;
 }
 
+/* The dial card keeps to its rows, and its ring takes the height under
+   the icon and the modes, up to its full size. */
+.dio-big-dial > .dio-tile {
+  height: 100%;
+}
+
+.dio-big-dial .dio-bottom {
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+}
+
+.dio-big-dial .dio-dial {
+  --_ring: min(224px, 100cqh + 26px);
+}
+
+/* With nothing in the top right corner, as for a light, the icon floats
+   in its own corner and the ring takes the whole height beside it. */
+.dio-big-dial > .dio-tile:not(:has(> .dio-top > .dio-controls)) > .dio-top {
+  position: absolute;
+  top: var(--_padding);
+  left: var(--_padding);
+}
+
 /* Beside a dial, the name and the state are never cut short. Where they
    run longer than the room it leaves them, they go on over it, in front,
    and let a drag through to what is under them. */
@@ -1715,6 +1766,16 @@
   margin-top: calc(-1 * var(--_fade));
   padding-top: var(--_fade);
   padding-bottom: var(--_fade);
+}
+
+/* An empty to-do list takes no room, and its name tucks in under the
+   buttons' row, so the card is two rows tall like a tile. */
+.dio-todo-body[data-empty] {
+  display: none;
+}
+
+.dio-card.dio-todo .dio-bottom:has(> .dio-aside > .dio-todo-body[data-empty]) {
+  margin-top: -8px;
 }
 
 .dio-card:is(.dio-calendar, .dio-todo) .dio-bottom > .dio-text {
@@ -1819,6 +1880,22 @@
   line-height: 1.2;
 }
 
+/* The alarm card keeps to its five rows, its keys a little closer
+   together to fit in them. */
+.dio-alarm > .dio-tile {
+  height: 100%;
+}
+
+.dio-alarm .dio-keypad-compact .dio-keypad-keys {
+  grid-template-columns: repeat(3, 50px);
+  gap: 7px 12px;
+}
+
+.dio-alarm .dio-keypad-compact .dio-key {
+  width: 50px;
+  height: 50px;
+}
+
 /* The key that sends the code, in the color of what it does once there is
    a code to send, faint in it before. */
 .dio-key-go {
@@ -1835,21 +1912,14 @@
   color: inherit;
 }
 
-/* The remote: a round pad of arrows around OK and a tall pill for the
-   volume, side by side in the bottom right. Each arrow is a quarter of the
+/* The remote: a round pad of arrows around OK, and a pill for the
+   volume. Each arrow is a quarter of the
    pad, cut from its center to its edge, and lights up alone when pressed. */
-.dio-remote-keys {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  gap: 16px;
-  touch-action: none;
-}
-
 .dio-pad {
   position: relative;
-  width: 156px;
-  height: 156px;
+  touch-action: none;
+  width: var(--_pad);
+  height: var(--_pad);
   border-radius: 999px;
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
@@ -1922,65 +1992,92 @@
 
 .dio-pad > .dio-pad-ok {
   inset: 50% auto auto 50%;
-  width: 68px;
-  height: 68px;
+  width: calc(var(--_pad) * 0.42);
+  height: calc(var(--_pad) * 0.42);
   transform: translate(-50%, -50%);
   background: color-mix(in srgb, currentColor 14%, transparent);
   font-size: 17px;
   font-weight: 600;
 }
 
-/* On a card too narrow for the name beside them, the keys go above it,
-   in the middle. */
+/* Four rows tall and the whole width. The volume just left of back and
+   home along the top right, the pad under them on the right, and the
+   icon and the name on the left. */
 .dio-remote {
   container-type: inline-size;
 }
 
-@container (max-width: 420px) {
-  .dio-remote .dio-bottom {
-    flex-direction: column-reverse;
-    align-items: stretch;
-    gap: 12px;
+.dio-remote > .dio-tile {
+  --_pad: 154px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-rows: auto 1fr auto;
+  gap: 8px;
+}
+
+.dio-remote :is(.dio-top, .dio-bottom, .dio-aside) {
+  display: contents;
+}
+
+.dio-remote .dio-top > .dio-icon {
+  grid-area: 1 / 1;
+}
+
+.dio-remote .dio-controls {
+  grid-area: 1 / 3;
+  align-self: start;
+}
+
+.dio-remote .dio-controls.dio-volume {
+  grid-area: 1 / 2;
+  margin-right: 0;
+}
+
+.dio-remote .dio-text {
+  grid-area: 3 / 1;
+}
+
+.dio-remote .dio-pad {
+  grid-area: 2 / 2 / 4 / 4;
+  align-self: end;
+  justify-self: end;
+  margin-right: -4px;
+}
+
+/* Half as wide and six rows tall, one thing over the other: back and home
+   in the corner, then the pad, then the volume in a row of its own, and
+   the name at the bottom. */
+@container (max-width: 300px) {
+  .dio-remote > .dio-tile {
+    --_pad: min(154px, 100cqi - 2 * var(--_padding));
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto 1fr auto auto 1fr auto;
   }
 
-  .dio-remote .dio-aside {
-    justify-content: center;
+  .dio-remote .dio-pad {
+    grid-area: 3 / 1 / 4 / 3;
+    justify-self: center;
+    margin-right: 0;
+  }
+
+  .dio-remote .dio-controls {
+    grid-area: 1 / 2;
+  }
+
+  .dio-remote .dio-controls.dio-volume {
+    grid-area: 4 / 1 / 5 / 3;
+    justify-self: center;
+    margin: 8px 0 0;
+  }
+
+  .dio-remote .dio-text {
+    grid-area: 6 / 1 / 7 / 3;
+    align-self: end;
   }
 }
 
 .dio-remote .dio-remote-muted {
   background: color-mix(in srgb, currentColor 18%, transparent);
-}
-
-.dio-volume {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 56px;
-  height: 156px;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  overflow: hidden;
-}
-
-.dio-volume > .dio-remote-key {
-  flex: 1;
-  width: 100%;
-}
-
-/* Mute sits between plus and minus, a little smaller, and stays pressed
-   while the player is muted. */
-.dio-volume > .dio-volume-mute {
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-}
-
-.dio-volume > .dio-volume-mute > .dio-icon {
-  width: 18px;
-  height: 18px;
-  --mdc-icon-size: 18px;
 }
 
 /* A link like button, for Clear. */
@@ -2145,25 +2242,17 @@
   opacity: var(--_secondary);
 }
 
-/* The to-do list: a field to add to, then the rows, each with a round box
-   to tick. A ticked row fades and is struck through. */
-.dio-todo-add {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 3px 3px 16px;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 12%, transparent);
-}
-
+/* The to-do list: a field to add to beside the plus, then the rows, each
+   with a round box to tick. A ticked row fades and is struck through. */
 .dio-todo-field {
-  flex: 1;
+  width: 200px;
   min-width: 0;
-  height: 38px;
-  padding: 0;
+  height: 44px;
+  padding: 0 16px;
   border: none;
+  border-radius: 999px;
   outline: none;
-  background: transparent;
+  background: color-mix(in srgb, currentColor 10%, transparent);
   color: inherit;
   font: inherit;
   font-size: 15px;
@@ -2174,18 +2263,9 @@
   opacity: 0.5;
 }
 
-.dio-todo-add > .dio-control {
-  width: 38px;
-  height: 38px;
+.dio-todo-plus.dio-todo-ready {
   background: var(--_tile-accent, var(--_accent));
   color: #fff;
-}
-
-.dio-todo-add > .dio-control:disabled {
-  background: color-mix(in srgb, currentColor 14%, transparent);
-  color: inherit;
-  opacity: 0.5;
-  cursor: default;
 }
 
 .dio-todo-list {
@@ -2390,6 +2470,7 @@
 
 .dio-timeline-chart {
   justify-content: flex-end;
+  min-height: 0;
 }
 
 .dio-timeline {
@@ -2441,6 +2522,11 @@
   transition: stroke-dasharray 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* The ring reaches up beside the icon, so the gauge fits in two rows. */
+.dio-gauge .dio-aside {
+  margin-top: -24px;
+}
+
 /* A card of a set height stays that tall. */
 .dio-card:is(.dio-calendar, .dio-graph, .dio-gauge, .dio-map) > .dio-tile {
   height: 100%;
@@ -2475,7 +2561,7 @@
 }
 
 .dio-dial-ring {
-  width: 224px;
+  width: var(--_ring, 224px);
   aspect-ratio: 1;
   overflow: visible;
   touch-action: none;
@@ -2600,7 +2686,7 @@
   align-items: baseline;
   justify-content: center;
   gap: 2px;
-  font-size: 48px;
+  font-size: calc(var(--_ring, 224px) * 0.214);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.03em;
