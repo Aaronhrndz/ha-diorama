@@ -57,24 +57,38 @@ type Props = {
 // How long a sent preview waits for Home Assistant before it gives up.
 const PREVIEW_MS = 5000
 
-// Whether the buttons in a small tile's top right corner fit in the room
-// the icon leaves them, checked whenever the tile or the buttons change
-// size. The buttons give way to the icon rather than squeeze, so the room
-// is too small when they run past their own box.
+// How the buttons in a small tile's top right corner fit, checked whenever
+// the tile or the buttons change size: beside the icon, in place of it when
+// there is room for them only across the whole top, or not at all. The
+// buttons matter more than the icon, so it is the icon that makes way.
+type Fit = 'all' | 'bare' | 'none'
+// The room between the icon and the buttons, its gap and their margin.
+const ICON_GAP_PX = 16
+
 function useFits(enabled: boolean) {
   const ref = useRef<HTMLDivElement>(null)
-  const [fits, setFits] = useState(true)
+  const [fit, setFit] = useState<Fit>('all')
   useLayoutEffect(() => {
     const box = ref.current
-    const check = () => setFits(!enabled || !box || box.scrollWidth <= box.clientWidth)
+    const top = box?.parentElement
+    const icon = top?.firstElementChild
+    const check = () => {
+      if (!enabled || !box || !top || !(icon instanceof HTMLElement)) return setFit('all')
+      // The width the buttons need, which hiding the icon does not change,
+      // so the choice does not flip back and forth.
+      const need = box.scrollWidth
+      const room = top.clientWidth
+      setFit(need + icon.offsetWidth + ICON_GAP_PX <= room ? 'all' : need <= room ? 'bare' : 'none')
+    }
     check()
-    if (!enabled || !box) return
+    if (!enabled || !box || !top) return
     const observer = new ResizeObserver(check)
+    observer.observe(top)
     observer.observe(box)
     for (const button of box.children) observer.observe(button)
     return () => observer.disconnect()
   })
-  return [ref, fits] as const
+  return [ref, fit] as const
 }
 
 // The icon set for the entity in Home Assistant, in its settings or its
@@ -124,7 +138,7 @@ export function Tile({
   }, [preview])
   const beside = besideIcon(config.feature) && !unavailable
   const wide = isWide(config, entity)
-  const [corner, fits] = useFits(!wide && !beside && !!controls && !unavailable)
+  const [corner, fit] = useFits(!wide && !beside && !!controls && !unavailable)
   const said = (active && !unavailable && featureState(config.feature, entity!)) || state
   const shown = unavailable ? 'Unavailable' : preview ? preview.state : (config.state_text ?? said)
   const name = entityName(config, entity)
@@ -161,7 +175,7 @@ export function Tile({
         } as CSSProperties
       }
     >
-      <div className="dio-top">
+      <div className="dio-top" data-bare={fit === 'bare' || undefined}>
         {picture ? (
           <img className="dio-picture" src={picture} alt="" draggable={false} />
         ) : logo ? (
@@ -184,7 +198,7 @@ export function Tile({
         ) : (
           controls &&
           !unavailable && (
-            <div ref={corner} className="dio-controls" data-crowded={!fits || undefined}>
+            <div ref={corner} className="dio-controls" data-crowded={fit === 'none' || undefined}>
               {controls}
             </div>
           )

@@ -1,5 +1,6 @@
 import { cn } from '#/lib/utils.ts'
 import { callService, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
+import { useArmed } from '#/tiles/twice.ts'
 import { Control } from '#/tiles/Control.tsx'
 import { MEDIA } from '#/tiles/features/media.tsx'
 import { supports } from '#/tiles/features/parts.tsx'
@@ -8,7 +9,7 @@ import type { TileConfig } from '#/tiles/host.tsx'
 import { Icon } from '#/tiles/Icon.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
 import type { HomeAssistant } from '#/types.ts'
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 export type Key = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'home' | 'mute' | 'volume_up' | 'volume_down'
 
@@ -23,6 +24,9 @@ export type RemoteConfig = TileConfig & {
   // False leaves out the power key, as the side panel does when a toggle
   // for the same entity is already there.
   power?: boolean
+  // Entities whose cards beside it already turn things on and off, set by
+  // the side panel. The power key is left out when one is of its device.
+  power_beside?: string[]
   commands?: Partial<Record<Key, Command>>
 }
 
@@ -120,9 +124,6 @@ const VOLUME: Key[] = ['mute', 'volume_up', 'volume_down']
 // How long a key is held before it repeats, and how often it does then.
 const REPEAT_AFTER_MS = 400
 const REPEAT_EVERY_MS = 120
-// How long the power key waits for the second press that turns it off.
-const ARMED_MS = 3000
-
 const OFF = ['off', 'standby', 'unavailable', 'unknown']
 
 type Target = { entity: string; platform: string }
@@ -157,6 +158,13 @@ function playerOf(hass: HomeAssistant, entityId: string) {
 
 type Props = { env: TileEnv; config: RemoteConfig }
 
+// Whether a card beside it already turns its device on and off.
+function besideOf(hass: HomeAssistant, config: RemoteConfig) {
+  const registry = hass.entities ?? {}
+  const own = config.entity && registry[config.entity]?.device_id
+  return !!config.power_beside?.some(id => id === config.entity || (!!own && registry[id]?.device_id === own))
+}
+
 // A TV remote: back, home and power in the top right corner, minus, mute and
 // plus just left of them, and arrows around OK on a round pad under them.
 // Half as wide, back and home stay in the corner, and the pad and then the
@@ -171,43 +179,68 @@ type Props = { env: TileEnv; config: RemoteConfig }
 // player when that says it is off, as a TV that was just woken says so for
 // a while before it takes the volume. Power turns it on at once, but turns
 // it off only on a second press within a few seconds, so it is never turned
-// off by mistake. It has no power key when its config says so.
+// off by mistake. It has no power key when its config says so, or when a
+// toggle or what plays on its device is beside it to turn it on and off.
 // A tap on the card around the keys does nothing, and a long press opens
 // its dialog.
 export default function Remote({ env, config }: Props) {
   const { hass } = env
   const entity = hass.states[config.entity!]
-  const keys = config.entity ? keysOf(hass, config.entity) : null
-  const player = config.volume_entity ?? (keys ? undefined : config.entity && playerOf(hass, config.entity))
-  const muted = player ? hass.states[player]?.attributes.is_volume_muted === true : false
+  const { keys, player, muted, reach } = remoteOf(hass, config)
   const off = !entity || OFF.includes(entity.state)
-  // Power waits for a second press to turn it off until this runs out.
-  const [waiting, setArmed] = useState(false)
-  const armed = waiting && !off
-  const disarm = useRef(0)
-  useEffect(() => () => clearTimeout(disarm.current), [])
   // The service that turns it on or off, when it has one.
   const domain = config.entity?.split('.')[0]
   const powerOf = (on: boolean) =>
     domain === 'remote' || (domain === 'media_player' && supports(entity, on ? MEDIA.turnOn : MEDIA.turnOff))
       ? () => callService(hass, `${domain}.turn_${on ? 'on' : 'off'}`, { entity_id: config.entity })
       : null
-  const turn = config.power === false ? null : powerOf(off)
-  const power = () => {
-    if (!turn) return
-    clearTimeout(disarm.current)
-    if (off || armed) {
-      haptic(off ? 'selection' : 'medium')
-      setArmed(false)
-      turn()
-      return
-    }
-    haptic('selection')
-    setArmed(true)
-    disarm.current = window.setTimeout(() => setArmed(false), ARMED_MS)
-  }
+  const turn = config.power === false || besideOf(hass, config) ? null : powerOf(off)
+  const power = useArmed(off, turn)
 
-  // What a key does, or nothing when there is no way to send it.
+  // While it is off only power can be pressed, since any other key would
+  // wake it, and with it the TV.
+  const sendOf = (key: Key) => (off ? null : reach(key))
+
+  const known = !!keys || !!config.commands || !!player
+  const corner = cornerOf(reach)
+  return (
+    <Panel
+      env={env}
+      config={{ ...config, icon: config.icon ?? 'ph:television' }}
+      entity={entity}
+      state={known ? formatState(hass, entity) : 'Unknown remote, set its commands'}
+      className="dio-remote"
+      onTap={null}
+      controls={
+        (corner.length > 0 || turn) && (
+          <>
+            <CornerKeys corner={corner} disabled={off} />
+            {turn && (
+              <Control
+                icon="ph:power-bold"
+                label={off ? 'Turn on' : power.armed ? 'Press again to turn off' : 'Turn off'}
+                className={power.className}
+                style={power.style}
+                onPress={power.press}
+              />
+            )}
+          </>
+        )
+      }
+    >
+      <RemoteKeys sendOf={sendOf} muted={muted} />
+    </Panel>
+  )
+}
+
+type Reach = (key: Key) => (() => void) | null
+
+// The keys of a remote for `config.entity` and what each one does, or
+// nothing for one there is no way to send.
+export function remoteOf(hass: HomeAssistant, config: Pick<RemoteConfig, 'entity' | 'volume_entity' | 'commands'>) {
+  const keys = config.entity ? keysOf(hass, config.entity) : null
+  const player = config.volume_entity ?? (keys ? undefined : config.entity && playerOf(hass, config.entity))
+  const muted = player ? hass.states[player]?.attributes.is_volume_muted === true : false
   const reach = (key: Key): (() => void) | null => {
     const own = config.commands?.[key]
     if (own) {
@@ -228,63 +261,58 @@ export default function Remote({ env, config }: Props) {
       return () => callService(hass, 'webostv.button', { entity_id: keys.entity, button: command })
     return () => callService(hass, 'remote.send_command', { entity_id: keys.entity, command })
   }
-  // While it is off only power can be pressed, since any other key would
-  // wake it, and with it the TV.
-  const sendOf = (key: Key) => (off ? null : reach(key))
+  return { keys, player, muted, reach }
+}
 
-  const known = !!keys || !!config.commands || !!player
-  const corner = (['back', 'home'] as const).flatMap(key => {
+// Back and home, those of them there is a way to send.
+export const cornerOf = (reach: Reach) =>
+  (['back', 'home'] as const).flatMap(key => {
     const send = reach(key)
     return send ? [[key, send] as const] : []
   })
+
+export function CornerKeys({ corner, disabled }: { corner: ReturnType<typeof cornerOf>; disabled?: boolean }) {
+  return corner.map(([key, send]) => (
+    <Control
+      key={key}
+      icon={LOOK[key].icon}
+      label={LOOK[key].label}
+      disabled={disabled}
+      onPress={() => {
+        haptic('selection')
+        send()
+      }}
+    />
+  ))
+}
+
+// The round pad, and minus, mute and plus beside it, with what goes above
+// them, if anything, in a column of its own.
+export function RemoteKeys({ sendOf, muted, above }: { sendOf: Reach; muted: boolean; above?: ReactNode }) {
+  const volume = (
+    <div className="dio-controls dio-volume" onPointerDown={e => e.stopPropagation()}>
+      <RemoteKey name="volume_down" send={sendOf('volume_down')} repeats className="dio-control" />
+      <RemoteKey
+        name="mute"
+        send={sendOf('mute')}
+        icon={muted ? 'ph:speaker-x' : 'ph:speaker-high'}
+        className={cn('dio-control', muted && 'dio-remote-muted')}
+      />
+      <RemoteKey name="volume_up" send={sendOf('volume_up')} repeats className="dio-control" />
+    </div>
+  )
   return (
-    <Panel
-      env={env}
-      config={{ ...config, icon: config.icon ?? 'ph:television' }}
-      entity={entity}
-      state={known ? formatState(hass, entity) : 'Unknown remote, set its commands'}
-      className="dio-remote"
-      onTap={null}
-      controls={
-        (corner.length > 0 || turn) && (
-          <>
-            {corner.map(([key, send]) => (
-              <Control
-                key={key}
-                icon={LOOK[key].icon}
-                label={LOOK[key].label}
-                disabled={off}
-                onPress={() => {
-                  haptic('selection')
-                  send()
-                }}
-              />
-            ))}
-            {turn && (
-              <Control
-                icon="ph:power-bold"
-                label={off ? 'Turn on' : armed ? 'Press again to turn off' : 'Turn off'}
-                className={cn(armed && 'dio-remote-armed')}
-                style={{ '--_armed-ms': `${ARMED_MS}ms` } as CSSProperties}
-                onPress={power}
-              />
-            )}
-          </>
-        )
-      }
-    >
+    <>
       <Pad sendOf={sendOf} />
-      <div className="dio-controls dio-volume" onPointerDown={e => e.stopPropagation()}>
-        <RemoteKey name="volume_down" send={sendOf('volume_down')} repeats className="dio-control" />
-        <RemoteKey
-          name="mute"
-          send={sendOf('mute')}
-          icon={muted ? 'ph:speaker-x' : 'ph:speaker-high'}
-          className={cn('dio-control', muted && 'dio-remote-muted')}
-        />
-        <RemoteKey name="volume_up" send={sendOf('volume_up')} repeats className="dio-control" />
-      </div>
-    </Panel>
+      {above ? (
+        <div className="dio-remote-side">
+          {above}
+          {volume}
+        </div>
+      ) : (
+        volume
+      )}
+    </>
   )
 }
 
@@ -304,19 +332,53 @@ const LOOK: Record<Key, { icon: string; label: string }> = {
 type Arrow = 'up' | 'right' | 'down' | 'left'
 const ARROWS: Arrow[] = ['up', 'right', 'down', 'left']
 
-// How far a finger goes on the pad for each step of a swipe.
+// How far a finger goes on the pad before it steers that way.
 const SWIPE_PX = 28
+// How often the pad sends the way it is steered while the finger stays
+// down: twice a second at first, like stepping through a row of videos,
+// and a little sooner each time, up to four a second.
+const STEER_FIRST_MS = 500
+const STEER_FASTEST_MS = 250
+const STEER_SOONER = 0.85
 
-// The arrows around OK. A key is sent when the finger lifts, so a press
-// that turns into a swipe sends only the swipe's steps, or after a moment
-// held, when an arrow then repeats as long as it stays down.
+// How long a pulse of light lasts on the pad when a key is sent.
+const PULSE_MS = 260
+
+const wayOf = (dx: number, dy: number): Arrow =>
+  Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up'
+
+// The arrows around OK, and a stick: a finger that goes far enough one way
+// steers that way, and the pad sends that arrow at once, then again and
+// again while the finger stays down, even still. Moved far enough another
+// way without lifting, it steers that way instead. A tap anywhere on it,
+// not swiped, is OK, sent when the finger lifts.
+// Lights a glow up and down again each time its key is sent, from wherever
+// the last pulse left it, so pulses sent quickly run on into each other.
+const pulse = (glow: HTMLElement | null | undefined) => {
+  if (!glow) return
+  const from = getComputedStyle(glow).opacity
+  for (const running of glow.getAnimations()) running.cancel()
+  glow.animate([{ opacity: from }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], {
+    duration: PULSE_MS,
+    easing: 'ease-in-out',
+  })
+}
+
 function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
-  const press = useRef<{ key: Key | null; x: number; y: number; moved: boolean; timer: number } | null>(null)
+  const pad = useRef<HTMLDivElement>(null)
+  const press = useRef<{
+    x: number
+    y: number
+    moved: boolean
+    way: Arrow | null
+    timer: number
+  } | null>(null)
   const fire = (key: Key) => {
     const send = sendOf(key)
     if (!send) return
     haptic('selection')
     send()
+    pulse(pad.current?.querySelector<HTMLElement>(`[data-glow='${key}']`))
   }
   const end = () => {
     const current = press.current
@@ -328,21 +390,16 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
   useEffect(() => end, [])
   return (
     <div
+      ref={pad}
       className="dio-pad"
       onPointerDown={e => {
         e.stopPropagation()
         if (e.button !== 0) return
         end()
-        const key = ((e.target as HTMLElement).closest('[data-key]')?.getAttribute('data-key') as Key | null) ?? null
+        // A tap anywhere on the wheel is OK, and a swipe steers it, so the
+        // finger never has to find a key.
         e.currentTarget.setPointerCapture(e.pointerId)
-        const current = { key, x: e.clientX, y: e.clientY, moved: false, timer: 0 }
-        press.current = current
-        if (!key || !ARROWS.includes(key as Arrow)) return
-        current.timer = window.setTimeout(() => {
-          current.moved = true
-          fire(key)
-          current.timer = window.setInterval(() => fire(key), REPEAT_EVERY_MS)
-        }, REPEAT_AFTER_MS)
+        press.current = { x: e.clientX, y: e.clientY, moved: false, way: null, timer: 0 }
       }}
       onPointerMove={e => {
         const current = press.current
@@ -350,20 +407,33 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
         const dx = e.clientX - current.x
         const dy = e.clientY - current.y
         if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_PX) return
-        if (!current.moved) clearTimeout(current.timer)
-        clearInterval(current.timer)
-        current.moved = true
+        // Measured again from here, so the next turn is told from where the
+        // finger is now.
         current.x = e.clientX
         current.y = e.clientY
-        fire(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up')
+        const way = wayOf(dx, dy)
+        if (way === current.way) return
+        clearTimeout(current.timer)
+        clearInterval(current.timer)
+        current.moved = true
+        current.way = way
+        fire(way)
+        const steer = (wait: number) => {
+          current.timer = window.setTimeout(() => {
+            fire(way)
+            steer(Math.max(STEER_FASTEST_MS, wait * STEER_SOONER))
+          }, wait)
+        }
+        steer(STEER_FIRST_MS)
       }}
       onPointerUp={() => {
         const current = press.current
-        if (current && !current.moved && current.key) fire(current.key)
+        if (current && !current.moved) fire('ok')
         end()
       }}
       onPointerCancel={end}
     >
+      <span className="dio-pad-glow" data-glow="ok" />
       {[...ARROWS, 'ok' as const].map(key => {
         const { label, icon } = LOOK[key]
         return (
@@ -383,6 +453,7 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
               if (e.detail === 0) fire(key)
             }}
           >
+            {key !== 'ok' && <span className="dio-pad-glow" data-glow={key} />}
             {icon ? <Icon icon={icon} /> : <span>{label}</span>}
           </button>
         )

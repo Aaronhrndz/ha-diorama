@@ -1,5 +1,5 @@
 import { callService, formatState, type TileEnv } from '#/tiles/actions.ts'
-import { CONFIRM_FILL, CONFIRM_MS } from '#/tiles/cards/Confirm.tsx'
+import { CONFIRM_FILL, CONFIRM_MS } from '#/tiles/twice.ts'
 import { supports } from '#/tiles/features/parts.tsx'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Tile } from '#/tiles/Tile.tsx'

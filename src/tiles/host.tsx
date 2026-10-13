@@ -45,7 +45,16 @@ export type TileConfig = {
   grid_options?: GridOptions
 }
 
-export type GridOptions = { columns?: number | 'full'; rows?: number | 'auto'; min_columns?: number; min_rows?: number }
+export type GridOptions = {
+  columns?: number | 'full'
+  rows?: number | 'auto'
+  min_columns?: number
+  max_columns?: number
+  min_rows?: number
+  // Ours alone: a card that always takes the size it says, never made
+  // narrower, wider, shorter or taller in the side panel's editor.
+  fixed?: boolean
+}
 
 const FONTS_ID = 'dio-tiles-fonts'
 const FONTS_URL =

@@ -656,6 +656,16 @@
 .dio-controls[data-crowded] {
   visibility: hidden;
 }
+/* With no room for both, the icon makes way for the buttons, which then
+   take the whole top. Kept in the layout, so the room it leaves is still
+   measured the same. */
+.dio-top[data-bare] > :first-child {
+  position: absolute;
+  visibility: hidden;
+}
+.dio-top[data-bare] > .dio-controls {
+  margin-left: auto;
+}
 
 /* A group left with no button in it, like Now Playing while nothing
    plays, shows nothing at all. */
@@ -1972,9 +1982,9 @@
   border-radius: 999px;
 }
 
-/* An arrow lights up only around OK, never under it. */
-.dio-pad > .dio-remote-key:not(.dio-pad-ok) {
-  mask: radial-gradient(circle, transparent calc(var(--_pad) * 0.21), #000 calc(var(--_pad) * 0.21 + 0.5px));
+/* The arrows are only a hint that the pad is swiped, dimmer than OK. */
+.dio-pad > .dio-remote-key:not(.dio-pad-ok) > .dio-icon {
+  opacity: 0.45;
 }
 
 .dio-pad > .dio-pad-up {
@@ -2006,9 +2016,51 @@
   width: calc(var(--_pad) * 0.42);
   height: calc(var(--_pad) * 0.42);
   transform: translate(-50%, -50%);
-  background: color-mix(in srgb, currentColor 14%, transparent);
   font-size: 17px;
   font-weight: 600;
+}
+
+/* Nothing on the wheel lights up under the finger: a tap anywhere is OK
+   and a swipe steers it. What is sent pulses instead, the whole wheel for
+   OK and a round behind the arrow for each step. */
+.dio-pad > .dio-remote-key:active:not(:disabled) {
+  background: transparent;
+}
+
+.dio-pad-glow {
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dio-pad > .dio-pad-glow {
+  position: absolute;
+  inset: 0;
+}
+
+/* As big as the icon to be laid out, so it sits wherever the icon does,
+   and grown around it. */
+.dio-pad .dio-remote-key > .dio-pad-glow {
+  grid-area: 1 / 1;
+  width: 40px;
+  height: 40px;
+  margin: -9px;
+}
+
+.dio-pad .dio-remote-key > .dio-icon {
+  grid-area: 1 / 1;
+}
+
+/* On a remote, every button answers the finger like its keys do: at once
+   when pointed at or pressed, with the same wash, so back, home, power and
+   the buttons that play feel the same as the volume. */
+.dio-remote .dio-control {
+  transition: background-color 120ms ease;
+}
+
+.dio-remote .dio-control:active:not(:disabled) {
+  background: color-mix(in srgb, currentColor 22%, transparent);
 }
 
 /* Four rows tall and the whole width. Back and home in the top right, the
@@ -2034,9 +2086,11 @@
   grid-area: 1 / 1;
 }
 
+/* Only as wide as its keys, so without power it is back and home alone. */
 .dio-remote .dio-controls {
   grid-area: 1 / 3;
   align-self: start;
+  justify-self: end;
 }
 
 .dio-remote .dio-controls.dio-volume {
@@ -2111,23 +2165,23 @@
 /* Power after one press, waiting for the second that turns it off: lit, as
    the double tap toggle is, with the light running back across it until it
    stops waiting. */
-.dio-remote .dio-remote-armed {
+.dio-armed {
   position: relative;
   isolation: isolate;
   overflow: hidden;
 }
 
-.dio-remote .dio-remote-armed::before {
+.dio-armed::before {
   position: absolute;
   z-index: -1;
   inset: 0;
   background: color-mix(in srgb, currentColor 28%, transparent);
   content: '';
   transform-origin: left;
-  animation: dio-remote-armed var(--_armed-ms) linear forwards;
+  animation: dio-armed var(--_armed-ms) linear forwards;
 }
 
-@keyframes dio-remote-armed {
+@keyframes dio-armed {
   from {
     transform: scaleX(1);
   }
@@ -3062,6 +3116,98 @@
   transition: none;
 }
 
+/* A card that was turned on from itself fades from lit into what plays. */
+.dio-media-wake[data-leaving] .dio-fill-lit {
+  animation: dio-media-wake var(--_wake-ms) ease forwards;
+}
+
+@keyframes dio-media-wake {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The media card with the remote: two rows tall while it is off, and four
+   once on, with the remote's pad and volume under what plays, as the remote
+   has them, and its buttons in the top right. */
+.dio-media-seek[data-remote] {
+  --_rows-gap: var(--_gap, var(--row-gap, 8px));
+  height: calc(2 * var(--row-height, 56px) + var(--_rows-gap));
+  transition: height 300ms ease;
+}
+
+.dio-media-seek[data-remote][data-on] {
+  height: calc(4 * var(--row-height, 56px) + 3 * var(--_rows-gap));
+}
+
+.dio-media-seek[data-remote] .dio-media-control > .dio-tile {
+  height: 100%;
+  min-height: 0;
+}
+
+.dio-media-remote .dio-top > :first-child {
+  grid-area: 1 / 1;
+}
+
+.dio-media-remote .dio-top > .dio-controls {
+  grid-area: 1 / 2 / 2 / 4;
+}
+
+.dio-media-remote .dio-controls.dio-volume {
+  gap: 4px;
+  padding: 3px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* Grown at once when it is turned on, its buttons come in slowly, and what
+   plays fades in behind them once the player tells it. */
+.dio-media-seek[data-remote][data-on] :is(.dio-pad, .dio-remote-side, .dio-media-buttons, .dio-top > .dio-controls) {
+  animation: dio-media-rise 900ms ease 150ms both;
+}
+
+.dio-media-seek[data-remote] .dio-media-control[style*='--_art'] > .dio-tile::before {
+  animation: dio-media-rise 1400ms ease both;
+}
+
+.dio-media-seek[data-remote] .dio-media-control[style*='--_glow-a'] > .dio-tile::before {
+  animation:
+    dio-media-drift 24s ease-in-out infinite alternate,
+    dio-media-rise 1400ms ease both;
+}
+
+.dio-media-seek[data-remote] .dio-media-still > .dio-tile::before {
+  animation-play-state: paused, running;
+}
+
+@keyframes dio-media-rise {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The buttons that play it over the volume, both across, left of the pad
+   and centered on it. */
+.dio-media-remote .dio-remote-side {
+  grid-area: 3 / 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: center;
+  gap: 14px;
+  margin-right: 8px;
+}
+
+.dio-media-remote .dio-remote-side > .dio-controls.dio-volume {
+  flex-direction: row;
+  margin: 0;
+}
+
+/* What plays is cut short with an ellipsis, never run over the pad. */
+.dio-media-remote .dio-text :is(.dio-name, .dio-state) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* How far in, on the left of the buttons. */
 .dio-media-control .dio-controls {
   align-items: center;
@@ -3083,6 +3229,11 @@
   padding: 3px;
   border-radius: 999px;
   background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* A player that takes none of the buttons that play has no group for them. */
+.dio-media-buttons:empty {
+  display: none;
 }
 
 /* The volume across from the title, with shuffle and repeat to its

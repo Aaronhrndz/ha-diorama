@@ -86,7 +86,10 @@ for (const s of [
     supported_features: 1 | 16 | 32 | 16384,
   }),
   state('remote.tv_box', 'on', { friendly_name: 'TV Box' }),
-  state('media_player.tv_panel', 'off', { friendly_name: 'TV Panel', supported_features: 4 | 8 | 128 | 256 | 1024 }),
+  state('media_player.tv_panel', 'off', {
+    friendly_name: 'TV Panel',
+    supported_features: 1 | 4 | 8 | 16 | 32 | 128 | 256 | 1024 | 16384,
+  }),
   state('lock.front', 'locked', { friendly_name: 'Front Door' }),
   state('sensor.living_temperature', '21.4', {
     friendly_name: 'Temperature',
@@ -104,6 +107,9 @@ const entities = Object.fromEntries(
     {
       entity_id: id,
       platform: id === 'remote.tv_box' ? 'androidtv_remote' : undefined,
+      // The panel and the box are one device, so the media card with the
+      // remote finds its keys.
+      device_id: ['remote.tv_box', 'media_player.tv_panel'].includes(id) ? 'tv' : undefined,
       area_id: id.includes('office')
         ? 'office'
         : id.includes('kitchen')
@@ -164,8 +170,9 @@ hass = {
       update(id, data!.operation_mode as string, { operation_mode: data!.operation_mode })
     for (const key of ['fan_mode', 'preset_mode', 'swing_mode'])
       if (service === `set_${key}`) update(id, s.state, { [key]: data![key] })
+    // A TV takes a moment to wake.
     if ((domain === 'remote' || domain === 'media_player') && service.startsWith('turn_'))
-      update(id, service === 'turn_on' ? 'on' : 'off')
+      setTimeout(() => update(id, service === 'turn_on' ? 'on' : 'off'), domain === 'media_player' ? 1500 : 0)
     if (domain === 'media_player' && service === 'media_play_pause')
       update(id, s.state === 'playing' ? 'paused' : 'playing')
   },
@@ -199,6 +206,15 @@ const sections: { title: Record<string, unknown>; cards: Record<string, unknown>
         volume_entity: 'media_player.tv_panel',
         grid_options: { columns: 12, rows: 4 },
       },
+      {
+        type: 'dio-remote',
+        entity: 'remote.tv_box',
+        name: 'No power',
+        volume_entity: 'media_player.tv_panel',
+        power: false,
+        grid_options: { columns: 6, rows: 6 },
+      },
+      { type: 'dio-media-remote', entity: 'media_player.tv_panel' },
       { type: 'dio-toggle', entity: 'media_player.tv_panel', confirm: true },
       { type: 'dio-lock', entity: 'lock.front' },
       { type: 'dio-entity', entity: 'sensor.living_temperature' },
@@ -253,7 +269,7 @@ type Card = HTMLElement & {
 // a card hidden when it says so, and the section hidden with all its cards.
 for (const section of sections) {
   const el = document.createElement('div')
-  el.style.cssText = 'display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:56px;gap:8px'
+  el.style.cssText = 'display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:minmax(56px,auto);gap:8px'
   const cells: HTMLElement[] = []
   for (const config of [section.title, ...section.cards]) {
     const card = document.createElement(config.type as string) as Card

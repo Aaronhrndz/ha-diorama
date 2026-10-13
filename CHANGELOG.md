@@ -9,6 +9,21 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- The now playing card turns its player on with a double tap while it is off, then fades into what plays, and has a power button that turns it off on a second press, so it needs no other card to turn it on and off. A remote beside it, or beside a toggle for the same device, leaves out its power key.
+- A media and remote card, always the whole width: while the TV is off it is two rows with only its name, turned on with a double tap, and once on it grows to show what plays, with back, home and power at the top and the remote's pad beside its play buttons and volume.
+
+### Changed
+
+- A remote's pad now works like a touch surface: a tap anywhere on it is OK, and a swipe steers like a stick, moving that way while the finger stays down and turning when it moves another way.
+- On a phone or tablet the card draws at most 24 frames a second and without shadows, so it stays smooth and cool.
+
+### Fixed
+
+- A small tile too narrow for both its icon and its buttons, like a half width cover on a phone, now hides the icon and keeps the buttons.
+- A remote without its power key no longer leaves an empty space beside back and home.
+
 ## [1.8.8] - 2026-10-13
 
 ### Changed

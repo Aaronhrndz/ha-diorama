@@ -223,13 +223,17 @@ export function panelWidgets(plan: CardConfig, room: RoomConfig | null): PanelWi
 }
 
 // A remote leaves out its power key when the same list already has a toggle
-// for its entity, unless its own config says otherwise.
+// or a card of what plays for its entity or another of its device, unless
+// its own config says otherwise. Which device each is of is only known to
+// the remote, so it is given the entities of those cards.
 function sparePower(cards: AutoCard[]): AutoCard[] {
-  const toggled = new Set(cards.filter(card => card.type === 'custom:dio-toggle').map(card => card.entity))
+  const beside = cards
+    .filter(card => ['custom:dio-toggle', 'custom:dio-media-control', 'custom:dio-media-remote'].includes(card.type))
+    .map(card => card.entity)
+    .filter(entity => typeof entity === 'string')
+  if (!beside.length) return cards
   return cards.map(card =>
-    card.type === 'custom:dio-remote' && card.power === undefined && toggled.has(card.entity)
-      ? { ...card, power: false }
-      : card,
+    card.type === 'custom:dio-remote' && card.power === undefined ? { ...card, power_beside: beside } : card,
   )
 }
 
