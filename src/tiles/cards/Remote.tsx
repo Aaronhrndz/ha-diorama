@@ -11,7 +11,8 @@ import { Panel } from '#/tiles/Panel.tsx'
 import type { HomeAssistant } from '#/types.ts'
 import { useEffect, useRef, type ReactNode } from 'react'
 
-export type Key = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'home' | 'mute' | 'volume_up' | 'volume_down'
+export type Key =
+  'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'home' | 'mute' | 'volume_up' | 'volume_down' | 'play'
 
 // A command of its own for a key: the name of one the remote sends, or any
 // action, like a script.
@@ -31,8 +32,10 @@ export type RemoteConfig = TileConfig & {
 }
 
 // The names each integration gives the keys, as its remote sends them. A
-// webOS TV has no remote, so its keys go to its player as buttons.
-const PLATFORMS: Record<string, Record<Key, string>> = {
+// webOS TV has no remote, so its keys go to its player as buttons. Play,
+// which plays or pauses, is there only where the remote has one key for
+// both.
+const PLATFORMS: Record<string, Partial<Record<Key, string>>> = {
   androidtv_remote: {
     up: 'DPAD_UP',
     down: 'DPAD_DOWN',
@@ -44,6 +47,7 @@ const PLATFORMS: Record<string, Record<Key, string>> = {
     mute: 'MUTE',
     volume_up: 'VOLUME_UP',
     volume_down: 'VOLUME_DOWN',
+    play: 'MEDIA_PLAY_PAUSE',
   },
   androidtv: {
     up: 'UP',
@@ -68,6 +72,7 @@ const PLATFORMS: Record<string, Record<Key, string>> = {
     mute: 'volume_mute',
     volume_up: 'volume_up',
     volume_down: 'volume_down',
+    play: 'play',
   },
   samsungtv: {
     up: 'KEY_UP',
@@ -257,6 +262,7 @@ export function remoteOf(hass: HomeAssistant, config: Pick<RemoteConfig, 'entity
     }
     if (!keys) return null
     const command = PLATFORMS[keys.platform][key]
+    if (!command) return null
     if (keys.platform === 'webostv')
       return () => callService(hass, 'webostv.button', { entity_id: keys.entity, button: command })
     return () => callService(hass, 'remote.send_command', { entity_id: keys.entity, command })
@@ -327,6 +333,7 @@ const LOOK: Record<Key, { icon: string; label: string }> = {
   mute: { icon: 'ph:speaker-x', label: 'Mute' },
   volume_up: { icon: 'ph:plus', label: 'Volume up' },
   volume_down: { icon: 'ph:minus', label: 'Volume down' },
+  play: { icon: 'ph:play-pause', label: 'Play or pause' },
 }
 
 type Arrow = 'up' | 'right' | 'down' | 'left'
@@ -335,9 +342,9 @@ const ARROWS: Arrow[] = ['up', 'right', 'down', 'left']
 // How far a finger goes on the pad before it steers that way.
 const SWIPE_PX = 28
 // How often the pad sends the way it is steered while the finger stays
-// down: twice a second at first, like stepping through a row of videos,
-// and a little sooner each time, up to four a second.
-const STEER_FIRST_MS = 500
+// down: after three quarters of a second at first, like stepping through
+// a row of videos, and a little sooner each time, up to four a second.
+const STEER_FIRST_MS = 750
 const STEER_FASTEST_MS = 250
 const STEER_SOONER = 0.85
 

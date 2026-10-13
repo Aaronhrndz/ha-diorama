@@ -1,5 +1,6 @@
 import { cn } from '#/lib/utils.ts'
 import { appOf, PACKAGE } from '#/tiles/apps.ts'
+import { PLACEHOLDER, twinOf } from '#/tiles/playing.ts'
 import { callService, entityName, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
 import { useArmed, useConfirm } from '#/tiles/twice.ts'
 import { Control } from '#/tiles/Control.tsx'
@@ -9,7 +10,6 @@ import { useNow } from '#/tiles/history.ts'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Panel } from '#/tiles/Panel.tsx'
 import { cornerOf, CornerKeys, remoteOf, RemoteKeys, type RemoteConfig } from '#/tiles/cards/Remote.tsx'
-import type { EntityState, HomeAssistant } from '#/types.ts'
 import {
   useEffect,
   useLayoutEffect,
@@ -23,8 +23,6 @@ const OFF = ['off', 'standby', 'unavailable', 'unknown']
 // The colors of the light behind a card that plays from an app it does
 // not know, or that tells of none.
 const NEUTRAL = ['var(--_accent-media)', '#7c8aa5', '#5b6b8c']
-// What a player puts in the title when it has none.
-const PLACEHOLDER = /^not provided$/i
 // How far a finger goes sideways before the press is a drag along the song.
 const SLOP_PX = 8
 // How long the lit card takes to fade into what plays once it is on.
@@ -32,6 +30,8 @@ const WAKE_FADE_MS = 700
 // How long the card with the remote shows as on or off before the player
 // says so, at most.
 const GOING_MS = 20000
+// How long the card with the remote takes to grow, as its height eases.
+const GROW_MS = 300
 // Where a tap on the card can turn it on from.
 const ASLEEP = ['off', 'standby']
 
@@ -41,35 +41,6 @@ const clock = (seconds: number) => {
   const hours = Math.floor(minutes / 60)
   const pad = (n: number) => String(n).padStart(2, '0')
   return hours ? `${hours}:${pad(minutes % 60)}:${pad(whole % 60)}` : `${minutes}:${pad(whole % 60)}`
-}
-
-// What a player does while something is open in it.
-const SESSION = ['playing', 'paused', 'buffering']
-
-// A player that only assumes what it does, like a TV box driven as its
-// remote, cannot tell what plays in it. Another player of a device with the
-// same name, like the one the box casts from, may tell it while something
-// is open in it: whether it plays or is paused, and which buttons the app
-// takes, as some apps never skip to the next or the previous.
-function twinOf(hass: HomeAssistant, entityId: string, entity: EntityState): EntityState | undefined {
-  if (entity.attributes.assumed_state !== true) return undefined
-  const registry = hass.entities ?? {}
-  const deviceName = (id: string) => {
-    const device = hass.devices?.[registry[id]?.device_id ?? '']
-    return device?.name_by_user ?? device?.name ?? undefined
-  }
-  const own = registry[entityId]?.device_id
-  const name = deviceName(entityId)
-  if (!own || !name) return undefined
-  const id = Object.keys(registry).find(
-    id =>
-      id !== entityId &&
-      id.startsWith('media_player.') &&
-      registry[id].device_id !== own &&
-      deviceName(id) === name &&
-      SESSION.includes(hass.states[id]?.state ?? ''),
-  )
-  return id ? hass.states[id] : undefined
 }
 
 // What the progress leaves out: the boxes that hold the buttons and the
@@ -261,12 +232,25 @@ export default function MediaControl({
   // with nothing open yet, and to the player of what plays otherwise.
   const can = (bit: number) => supports(media, bit)
   const play = (service: string, bit: number) => run(service, has(bit) ? config.entity : media?.entity_id)
+  // With the remote, play and pause go as its key when it has one, which
+  // works in any app, as some apps cast to a box, like Netflix, refuse a
+  // pause sent to the player.
+  const playKey = keys?.reach('play') ?? null
+  const playable = !off && (!!playKey || can(playing ? MEDIA.pause : MEDIA.play))
+  const playPause = playKey ?? play('media_play_pause', playing ? MEDIA.pause : MEDIA.play)
   const name = entityName(config, entity)
   const timed = !off && duration !== null && duration > 0 && at !== null
   const seekable = timed && can(MEDIA.seek)
   // Where a drag along the song is, from 0 to 1, until it lets go.
   const [drag, setDrag] = useState<number | null>(null)
   const box = useRef<HTMLDivElement>(null)
+  // Turned on from the card, it scrolls into view once it has grown, so
+  // the remote under it is never left below the edge.
+  useEffect(() => {
+    if (going !== 'on') return
+    const timer = setTimeout(() => box.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), GROW_MS)
+    return () => clearTimeout(timer)
+  }, [going])
   const start = useRef<{ x: number; y: number; from: number; dragging: boolean } | null>(null)
   const share = drag ?? (timed ? Math.min(at / duration, 1) : 0)
   // The window listeners outlive a render, so they reach the latest ones
@@ -355,11 +339,11 @@ export default function MediaControl({
         <Control icon="ph:skip-back" label="Previous" onPress={play('media_previous_track', MEDIA.previous)} />
       )}
       {off && <Control icon="ph:play" label="Play" disabled onPress={() => {}} />}
-      {!off && can(playing ? MEDIA.pause : MEDIA.play) && (
+      {playable && (
         <Control
           icon={unsure ? 'ph:play-pause' : playing ? 'ph:pause' : 'ph:play'}
           label={unsure ? 'Play or pause' : playing ? 'Pause' : 'Play'}
-          onPress={play('media_play_pause', playing ? MEDIA.pause : MEDIA.play)}
+          onPress={playPause}
         />
       )}
       {!off && can(MEDIA.next) && (
@@ -430,13 +414,7 @@ export default function MediaControl({
               : (artist ?? (title ? name : formatState(env.hass, entity))))
         }
         accent="var(--_accent-media)"
-        onTap={
-          wakes
-            ? confirm.tap
-            : !off && can(playing ? MEDIA.pause : MEDIA.play)
-              ? play('media_play_pause', playing ? MEDIA.pause : MEDIA.play)
-              : null
-        }
+        onTap={wakes ? confirm.tap : playable ? playPause : null}
         className={cn(
           looks,
           cover && 'dio-media-cover',
