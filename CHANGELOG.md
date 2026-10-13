@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-10-13
+
 ### Fixed
 
 - A Now Playing widget half as wide is now as tall as the other widgets beside it, even while nothing plays.
@@ -400,7 +402,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.5.0...v1.5.1
