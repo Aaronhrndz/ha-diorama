@@ -1,4 +1,5 @@
 import { flights } from '#/scene/flights.ts'
+import { due } from '#/scene/pace.ts'
 import { coarseOnly } from '#/scene/device.ts'
 import { EDITOR_SELECTED_COLOR } from '#/theme.ts'
 import { FOCUS_FADE_S } from '#/constants.ts'
@@ -206,7 +207,7 @@ export default function Effects({ selected, focus = null }: Props) {
     [scene],
   )
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const run = pipeline.current
     if (!run) return
     if (run.outline) {
@@ -249,6 +250,12 @@ export default function Effects({ selected, focus = null }: Props) {
       // A frame after a long rest reports the whole rest as its time.
       faded.current = Math.min(1, faded.current + Math.min(delta, 0.05) / span.current)
       invalidate()
+    }
+    // A tick between two frames is left undrawn, with the next one asked
+    // for, so what changed on it is drawn on the one after.
+    if (!due(state.clock)) {
+      invalidate()
+      return
     }
     const t = faded.current
     if (t === 1) draw(to.current, 1)
