@@ -126,9 +126,13 @@ function drawOver(
   title: string | null,
 ) {
   const canvas = over.image as HTMLCanvasElement
+  const height = Math.round(OVER_PX / aspect)
+  // The graphics card keeps the size the texture was first sent at, often
+  // that of the empty canvas, so a canvas that changes size is sent anew.
+  if (canvas.width !== OVER_PX || canvas.height !== height) over.dispose()
   over.needsUpdate = true
   canvas.width = OVER_PX
-  canvas.height = Math.round(OVER_PX / aspect)
+  canvas.height = height
   const context = canvas.getContext('2d')
   if (!context) return
   const k = OVER_PX / card

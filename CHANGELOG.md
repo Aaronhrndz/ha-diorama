@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A projector now shows the logo and the title of what it plays on its screen, as its card does, instead of only the colors.
+
 ## [1.8.14] - 2026-10-13
 
 ### Fixed
