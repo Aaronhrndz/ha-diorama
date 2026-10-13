@@ -526,7 +526,7 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
           style={style}
           r={p('size') / 2}
           drop={p('drop')}
-          speed={(FAN_SPEED.fan_ceiling + runLevel * 10) * lit}
+          speed={(FAN_SPEED.fan_ceiling + runLevel * 5) * lit}
           look={look}
         />
       )
@@ -537,7 +537,7 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
           r={p('size') / 2}
           h={p('height')}
           on={on}
-          speed={(FAN_SPEED.fan_floor + runLevel * 12) * lit}
+          speed={(FAN_SPEED.fan_floor + runLevel * 6) * lit}
           look={look}
         />
       )

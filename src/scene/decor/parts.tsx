@@ -3,7 +3,7 @@ import { surfaceRoughness, type SurfaceKind } from '#/materials/textures.ts'
 import { useEased } from '#/scene/decor/ease.ts'
 import { useWarmed } from '#/scene/warm.ts'
 import { useFrame } from '@react-three/fiber'
-import { useLive } from '#/scene/live.ts'
+import { shadowless, useLive } from '#/scene/live.ts'
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { useMemo, useRef, type ReactNode } from 'react'
 import {
@@ -604,6 +604,7 @@ export function Spinner({ speed, children }: { speed: number; children: ReactNod
   const ref = useRef<Group>(null)
   useLive(speed > 0)
   useFrame((_, delta) => {
+    shadowless(ref.current)
     if (ref.current && speed > 0) ref.current.rotation.y += delta * speed
   })
   return <group ref={ref}>{children}</group>

@@ -1,4 +1,5 @@
 import { MAX_SHADOW_LAMPS, MAX_SHADOW_LAMPS_TOUCH } from '#/constants.ts'
+import { devSettings } from '#/lib/devSettings.ts'
 import { coarseOnly } from '#/scene/device.ts'
 import { Group, PointLight, RectAreaLight, type Object3D, type Scene } from 'three'
 
@@ -62,6 +63,8 @@ function of(scene: Scene): Pads {
     }
     pads.set(scene, p)
   }
+  // Performance mode, a developer setting, takes every lamp's shadow away.
+  p.budget = devSettings().performance ? 0 : coarseOnly() ? MAX_SHADOW_LAMPS_TOUCH : MAX_SHADOW_LAMPS
   // Something that emptied the scene took the group with it.
   if (p.group.parent !== scene) scene.add(p.group)
   return p

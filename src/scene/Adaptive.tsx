@@ -1,4 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
+import { LIVE_FPS } from '#/constants.ts'
+import { beating } from '#/scene/live.ts'
 import { due } from '#/scene/pace.ts'
 import { useEffect, useRef } from 'react'
 
@@ -15,8 +17,10 @@ const STEPS = [1, 1.25, 1.5, 2]
 // How many frames in a row are averaged before a step is taken.
 const WINDOW = 40
 // A gap longer than this between frames is the room standing still, not a
-// slow frame, and is not counted.
+// slow frame, and is not counted. While something moves on its own the
+// frames come at its slower pace, and a gap near that is not counted either.
 const IDLE_MS = 100
+const BEAT_MS = (0.8 * 1000) / LIVE_FPS
 // Frames are late when they take this much longer than the fastest seen,
 // and comfortable when they take at most this much longer.
 const LATE = 1.7
@@ -51,7 +55,8 @@ export default function Adaptive() {
     const now = performance.now()
     const gap = now - last.current
     last.current = now
-    if (gap > IDLE_MS || gap <= 0) {
+    const idle = beating(invalidate) ? Math.min(IDLE_MS, BEAT_MS) : IDLE_MS
+    if (gap > idle || gap <= 0) {
       times.current.length = 0
       return
     }

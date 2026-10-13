@@ -71,6 +71,13 @@ export const LAMP_SHADOW_RADIUS = 2
 // light strips need, ten lamps leave one to spare.
 export const MAX_SHADOW_LAMPS = 10
 export const MAX_SHADOW_LAMPS_TOUCH = 6
+// Frames a second for what moves on its own, a fan, a screen, a flame, while
+// nothing else is moving. Enough to read as motion, at a quarter of the work.
+// A camera moving or a light fading still draws at the full rate.
+export const LIVE_FPS = 16
+// The most frames a second, and in performance mode, a developer setting.
+export const MAX_FPS = 60
+export const PERFORMANCE_MAX_FPS = 24
 // The hour the editor lights its preview at, and the one its N key flips to.
 export const EDITOR_HOUR = 13
 export const EDITOR_NIGHT_HOUR = 23

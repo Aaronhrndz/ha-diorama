@@ -35,7 +35,7 @@ vec3 shade(float h) {
 
 void main() {
   vec2 p = vUv;
-  float t = uTime * 0.8;
+  float t = uTime * 0.45;
   float a = sin(p.x * 4.0 + t * 1.7) * 0.5 + 0.5;
   float b = sin((p.y + p.x * 0.4) * 5.0 - t * 2.1) * 0.5 + 0.5;
   float c = sin((p.y - p.x) * 3.0 + t * 1.1) * 0.5 + 0.5;
