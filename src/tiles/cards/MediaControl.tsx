@@ -103,7 +103,8 @@ export type MediaControlConfig = TileConfig & {
 // drag sideways anywhere on it moves along the song when the player can.
 // A tap plays or pauses it, and a long press opens the player's dialog.
 // It only plays what is on, so it has no power button and a tap on it
-// while it is off does nothing.
+// while it is off does nothing. While it is off, play still shows, greyed
+// out, so the card never looks like a plain toggle.
 // A player that cannot tell what plays in it takes that from another of a
 // device with the same name, like the one a TV box casts from, which also
 // says which buttons the app takes.
@@ -111,7 +112,8 @@ export type MediaControlConfig = TileConfig & {
 // place of the icon, and a soft light in the app's colors drifts behind
 // the card, or in quieter colors for any other app.
 // Made two rows tall or half as wide, it leaves out the volume, shuffle and
-// repeat, and keeps the buttons and how far in it is.
+// repeat, and keeps the buttons and how far in it is. Half as wide, it
+// also leaves out the icon, so the buttons fit across the top.
 export default function MediaControl({ env, config }: { env: TileEnv; config: MediaControlConfig }) {
   const entity = env.hass.states[config.entity!]
   const attributes = entity?.attributes ?? {}
@@ -302,12 +304,13 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
           'dio-media-control',
           cover && 'dio-media-cover',
           compact && 'dio-media-compact',
+          narrow && 'dio-media-narrow',
           glow && !playing && 'dio-media-still',
         )}
         picture={cover ?? undefined}
-        // Over the cover art, which is darkened, the logo is the one for a
-        // dark card whatever the theme.
-        logo={known && picture && !square ? { ...known.logo, light: known.logo.dark } : known?.logo}
+        // Over the cover art, which is darkened, or the dark lights of the
+        // app, the logo is the one for a dark card whatever the theme.
+        logo={known && ((picture && !square) || glow) ? { ...known.logo, light: known.logo.dark } : known?.logo}
         style={
           {
             '--_art': picture && !square ? `url("${picture}")` : undefined,
@@ -329,6 +332,9 @@ export default function MediaControl({ env, config }: { env: TileEnv; config: Me
                     label="Previous"
                     onPress={play('media_previous_track', MEDIA.previous)}
                   />
+                )}
+                {off && (
+                  <Control icon="ph:play" label="Play" disabled onPress={() => {}} />
                 )}
                 {!off && can(playing ? MEDIA.pause : MEDIA.play) && (
                   <Control

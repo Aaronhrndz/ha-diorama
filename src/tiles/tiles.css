@@ -2012,8 +2012,8 @@
 }
 
 /* Four rows tall and the whole width. Back and home in the top right, the
-   pad under them on the right with the volume on its left, centered on it,
-   and the icon and the name on the left. */
+   pad under them on the right with the volume standing on its left,
+   centered on it, plus on top, and the icon and the name on the left. */
 .dio-remote {
   container-type: inline-size;
 }
@@ -2041,13 +2041,27 @@
 
 .dio-remote .dio-controls.dio-volume {
   grid-area: 3 / 2;
+  flex-direction: column-reverse;
   align-self: center;
-  margin: 0;
+  /* As far from the pad as the pad is from back and home above it. */
+  margin: 0 8px 0 0;
 }
 
+/* The name and the state are never cut short: they run over the volume
+   and the pad when there is no room, drawn above them. */
 .dio-remote .dio-text {
   grid-area: 3 / 1;
   align-self: end;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.dio-remote .dio-text :is(.dio-name, .dio-state) {
+  display: block;
+  overflow: visible;
+  white-space: nowrap;
+  text-overflow: clip;
 }
 
 .dio-remote .dio-pad {
@@ -2079,6 +2093,7 @@
 
   .dio-remote .dio-controls.dio-volume {
     grid-area: 4 / 1 / 5 / 3;
+    flex-direction: row;
     justify-self: center;
     margin: 8px 0 0;
   }
@@ -2463,7 +2478,7 @@
   padding: 1px 6px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--_bg-inactive) 80%, transparent);
-  opacity: 0.8;
+  opacity: 0.6;
 }
 
 .dio-graph-axis {
@@ -2845,12 +2860,15 @@
     radial-gradient(closest-side, var(--_glow-b), transparent) 100% 30% / 60% 100% no-repeat,
     radial-gradient(closest-side, var(--_glow-c), transparent) 40% 100% / 75% 90% no-repeat;
   filter: blur(16px);
-  opacity: var(--_glow-strength, 0.42);
+  opacity: 0.6;
   animation: dio-media-drift 24s ease-in-out infinite alternate;
 }
 
-:host([data-light]) .dio-media-control {
-  --_glow-strength: 0.32;
+/* The lights fade into a dark shade of the app's first color rather than
+   into the plain card, so the whole card looks lit, on a light theme as
+   much as on a dark one, and its words are white as over cover art. */
+.dio-media-control[style*='--_glow-a'] > .dio-tile {
+  background: color-mix(in srgb, var(--_glow-a) 36%, #000);
 }
 
 .dio-media-still > .dio-tile::before {
@@ -2921,7 +2939,7 @@
 }
 
 :host(:not([data-light])) .dio-logo-mono > img,
-:host .dio-media-control[style*='--_art'] .dio-logo-mono > img {
+:host .dio-media-control:is([style*='--_art'], [style*='--_glow-a']) .dio-logo-mono > img {
   filter: brightness(0) invert(1);
 }
 
@@ -2930,7 +2948,7 @@
   isolation: isolate;
 }
 
-.dio-media-control[style*='--_art'] > .dio-tile {
+.dio-media-control:is([style*='--_art'], [style*='--_glow-a']) > .dio-tile {
   color: #fff;
 }
 
@@ -2941,6 +2959,23 @@
   height: 100%;
   min-height: 0;
   gap: 0;
+}
+
+/* Half as wide, the icon or the art gives its place to the buttons. */
+.dio-media-narrow .dio-top > :not(.dio-controls),
+.dio-media-narrow.dio-media-cover .dio-picture {
+  display: none;
+}
+
+.dio-media-narrow .dio-top {
+  justify-content: flex-end;
+}
+
+/* The title takes one line at most, cut short with an ellipsis. */
+.dio-media-control .dio-name {
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .dio-media-compact.dio-media-cover > .dio-tile {
@@ -3019,7 +3054,7 @@
 /* On the light glass with the art small the boxes of buttons and of the
    volume are a light grey of their own, so the shade goes darker than
    them to stand apart. */
-:host([data-light]) .dio-media-control:not([style*='--_art']) {
+:host([data-light]) .dio-media-control:not([style*='--_art'], [style*='--_glow-a']) {
   --_progress-shade: 24%;
 }
 
@@ -3058,7 +3093,7 @@
   --_volume-ink: #000;
 }
 
-:host([data-light]) .dio-media-control:not([style*='--_art']) {
+:host([data-light]) .dio-media-control:not([style*='--_art'], [style*='--_glow-a']) {
   --_volume-ink: #fff;
 }
 
