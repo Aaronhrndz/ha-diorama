@@ -139,8 +139,8 @@ export const NIGHT_SUN_COLOR = '#e6dccd'
 // Ambient and sky fill, day and night.
 export const DAY_AMBIENT_INTENSITY = 0.07
 export const DAY_HEMISPHERE_INTENSITY = 0.32
-export const NIGHT_AMBIENT_INTENSITY = 0.07
-export const NIGHT_HEMISPHERE_INTENSITY = 0.18
+export const NIGHT_AMBIENT_INTENSITY = 0.09
+export const NIGHT_HEMISPHERE_INTENSITY = 0.24
 // How much the ambient and sky fill are raised on a white dashboard, as a
 // multiple of the above. A pale dashboard sets the eye brighter than a dark
 // one, and the room lit for the dark one looks muddy on it. The raise

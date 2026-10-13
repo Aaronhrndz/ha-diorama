@@ -13,6 +13,10 @@ moves that section under the new version and uses it as the release notes.
 
 - The card's settings end with its name and version.
 
+### Changed
+
+- At night with every light off, the home is a little brighter, so it can still be made out.
+
 ## [1.8.6] - 2026-10-13
 
 ### Changed
