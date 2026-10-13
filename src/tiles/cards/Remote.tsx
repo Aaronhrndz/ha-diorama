@@ -350,7 +350,6 @@ const wayOf = (dx: number, dy: number): Arrow =>
 function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
   const pad = useRef<HTMLDivElement>(null)
   const press = useRef<{
-    key: Key | null
     x: number
     y: number
     moved: boolean
@@ -380,16 +379,11 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
         e.stopPropagation()
         if (e.button !== 0) return
         end()
-        const key = ((e.target as HTMLElement).closest('[data-key]')?.getAttribute('data-key') as Key | null) ?? null
+        // A tap anywhere on the wheel is OK, and a swipe steers it, so the
+        // finger never has to find a key.
         e.currentTarget.setPointerCapture(e.pointerId)
-        const current = { key, x: e.clientX, y: e.clientY, moved: false, way: null, timer: 0 }
-        press.current = current
-        if (!key || !ARROWS.includes(key as Arrow)) return
-        current.timer = window.setTimeout(() => {
-          current.moved = true
-          fire(key)
-          current.timer = window.setInterval(() => fire(key), REPEAT_EVERY_MS)
-        }, REPEAT_AFTER_MS)
+        press.current = { x: e.clientX, y: e.clientY, moved: false, way: null, timer: 0 }
+        if (sendOf('ok')) e.currentTarget.dataset.steer = 'ok'
       }}
       onPointerMove={e => {
         const current = press.current
@@ -413,7 +407,7 @@ function Pad({ sendOf }: { sendOf: (key: Key) => (() => void) | null }) {
       }}
       onPointerUp={() => {
         const current = press.current
-        if (current && !current.moved && current.key) fire(current.key)
+        if (current && !current.moved) fire('ok')
         end()
       }}
       onPointerCancel={end}

@@ -16,7 +16,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-- A swipe on a remote's pad now steers like a stick: it keeps moving that way while the finger stays down, and turns when the finger moves another way, and OK no longer has a ring around it.
+- A remote's pad now works like a touch surface: a tap anywhere on it is OK, and a swipe steers like a stick, moving that way while the finger stays down and turning when it moves another way.
 - On a phone or tablet the card draws at most 24 frames a second and without shadows, so it stays smooth and cool.
 
 ### Fixed

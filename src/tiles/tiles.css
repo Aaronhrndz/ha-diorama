@@ -2020,16 +2020,18 @@
   font-weight: 600;
 }
 
-/* The way the pad is steered by a swipe, lit while it keeps sending it,
-   and only that way, not the key the finger first pressed. */
-.dio-pad[data-steer] > .dio-remote-key:active:not(:disabled) {
+/* A tap anywhere on the wheel is OK, lit while it is held, and a swipe
+   lights the way it steers while it keeps sending it, never the key under
+   the finger. */
+.dio-pad > .dio-remote-key:active:not(:disabled) {
   background: transparent;
 }
 
 .dio-pad[data-steer='up'] > .dio-pad-up.dio-remote-key:not(:disabled),
 .dio-pad[data-steer='down'] > .dio-pad-down.dio-remote-key:not(:disabled),
 .dio-pad[data-steer='left'] > .dio-pad-left.dio-remote-key:not(:disabled),
-.dio-pad[data-steer='right'] > .dio-pad-right.dio-remote-key:not(:disabled) {
+.dio-pad[data-steer='right'] > .dio-pad-right.dio-remote-key:not(:disabled),
+.dio-pad[data-steer='ok'] > .dio-pad-ok.dio-remote-key:not(:disabled) {
   background: color-mix(in srgb, currentColor 22%, transparent);
 }
 
