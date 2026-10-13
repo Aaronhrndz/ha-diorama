@@ -17,6 +17,7 @@ export type Extra =
   | 'forecast'
   | 'art'
   | 'confirm'
+  | 'remote'
 
 const LABELS: Record<string, string> = {
   entity: 'Entity',
@@ -51,6 +52,7 @@ const LABELS: Record<string, string> = {
   forecast_type: 'Forecast',
   interactions: 'Interactions',
   confirm: 'Two taps',
+  volume_entity: 'Volume of',
 }
 
 const HELPERS: Record<string, string> = {
@@ -65,6 +67,7 @@ const HELPERS: Record<string, string> = {
   title: 'The area name when empty',
   feature: 'A control beside the icon. Some only fit a wide widget and make it wide',
   confirm: 'Acts only on a second tap, so a stray one does nothing',
+  volume_entity: 'The player the volume keys and mute change, like the TV a box is plugged into',
 }
 
 const NEVER_HIDE: Field = { name: 'never_hide', selector: { boolean: {} } }
@@ -85,6 +88,7 @@ const ROOM_FILTER: Field = {
 
 const EXTRAS: Record<Extra, Field[]> = {
   invert: [{ name: 'invert', selector: { boolean: {} } }],
+  remote: [{ name: 'volume_entity', selector: { entity: { filter: { domain: 'media_player' } } } }],
   // Asked with the other interactions instead.
   confirm: [],
   battery_entity: [

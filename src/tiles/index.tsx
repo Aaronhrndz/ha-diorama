@@ -18,6 +18,7 @@ import Gauge, { type GaugeConfig } from '#/tiles/cards/Gauge.tsx'
 import Graph, { isNumeric, type GraphConfig } from '#/tiles/cards/Graph.tsx'
 import MapCard, { type MapConfig } from '#/tiles/cards/Map.tsx'
 import MediaControl, { type MediaControlConfig } from '#/tiles/cards/MediaControl.tsx'
+import Remote, { keysOf, type RemoteConfig } from '#/tiles/cards/Remote.tsx'
 import Todo from '#/tiles/cards/Todo.tsx'
 import Weather, { type WeatherConfig } from '#/tiles/cards/Weather.tsx'
 import { FEATURES, featuresFor, isWide } from '#/tiles/features/index.tsx'
@@ -154,6 +155,21 @@ function panelCard<C extends TileConfig>(
   }
 }
 
+// The remote, offered for one whose keys it knows, the remote itself first.
+class RemoteCard extends panelCard<RemoteConfig>(
+  ['remote', 'media_player'],
+  Remote,
+  { columns: 'full', rows: 'auto' },
+  4,
+  ['remote'],
+) {
+  static getStubConfig(hass?: HomeAssistant) {
+    const ids = Object.keys(hass?.states ?? {}).sort((a, b) => +b.startsWith('remote.') - +a.startsWith('remote.'))
+    const found = ids.map(id => keysOf(hass!, id)).find(Boolean)
+    return found ? { entity: found.entity } : super.getStubConfig(hass)
+  }
+}
+
 type Card = {
   type: string
   element: CustomElementConstructor
@@ -286,14 +302,10 @@ const CARDS: Card[] = [
       // A large tile lists the days, under the hours when there are any.
       const sized =
         features & 1
-          ? [
-              small,
-              { label: 'Large', name: 'Large Weather', config: { ...config, size: 'large' } },
-            ]
+          ? [small, { label: 'Large', name: 'Large Weather', config: { ...config, size: 'large' } }]
           : [small]
       // Both forecasts offered, one suggestion each, the hours first.
-      if (!(features & 1) || !(features & 2))
-        return [{ config }, ...sized]
+      if (!(features & 1) || !(features & 2)) return [{ config }, ...sized]
       return [
         { label: 'Hourly', name: 'Hourly Weather', config: { ...config, forecast_type: 'hourly' } },
         { label: 'Daily', name: 'Daily Weather', config: { ...config, forecast_type: 'daily' } },
@@ -364,6 +376,18 @@ const CARDS: Card[] = [
           ],
   },
   {
+    type: 'dio-remote',
+    element: RemoteCard,
+    extra: true,
+    domains: ['remote', 'media_player'],
+    name: 'Diorama TV Remote',
+    description: 'Arrows, OK, back, home, mute and volume for a TV or a streaming box',
+    // Only for a TV or a box whose keys it knows, by its own integration or
+    // another on the same device.
+    suggest: (hass, entityId) =>
+      keysOf(hass, entityId) ? [{ config: { type: 'custom:dio-remote', entity: entityId } }] : [],
+  },
+  {
     type: 'dio-calendar',
     element: panelCard<CalendarConfig>(['calendar'], Calendar, { columns: 'full', rows: 7 }, 7, ['calendar']),
     extra: true,
@@ -412,9 +436,7 @@ const CARDS: Card[] = [
     name: 'Diorama Ring Gauge',
     description: 'A reading on a ring',
     suggest: (hass, entityId) =>
-      isNumeric(hass.states[entityId])
-        ? [{ config: { type: 'custom:dio-gauge', entity: entityId } }]
-        : null,
+      isNumeric(hass.states[entityId]) ? [{ config: { type: 'custom:dio-gauge', entity: entityId } }] : null,
   },
   {
     type: 'dio-map',
@@ -462,8 +484,7 @@ function variantNames(card: Card): string[] {
   const features = card.extra
     ? []
     : FEATURES.filter(
-        feature =>
-          !card.repeats?.includes(feature.id) && feature.domains.some(domain => shows(card, `${domain}.any`)),
+        feature => !card.repeats?.includes(feature.id) && feature.domains.some(domain => shows(card, `${domain}.any`)),
       )
   return [
     ...new Set([
@@ -479,7 +500,10 @@ function variantNames(card: Card): string[] {
 // but picking it adds the card itself, set up that way for the first entity
 // that can be, so nothing but the card's own name ever reaches the YAML.
 function registerVariant(card: Card, name: string) {
-  const type = `${card.type}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '')}`
+  const type = `${card.type}-${name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-$/, '')}`
   if (customElements.get(type)) return
   const element = card.element as CustomElementConstructor & {
     getStubConfig?: (hass?: HomeAssistant) => Record<string, unknown>

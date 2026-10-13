@@ -1835,6 +1835,146 @@
   color: inherit;
 }
 
+/* The remote: a round pad of arrows around OK and a tall pill for the
+   volume, side by side in the bottom right. Each arrow is a quarter of the
+   pad, cut from its center to its edge, and lights up alone when pressed. */
+.dio-remote-keys {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  touch-action: none;
+}
+
+.dio-pad {
+  position: relative;
+  width: 176px;
+  height: 176px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.dio-remote-key {
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 120ms ease;
+}
+
+.dio-remote-key:active:not(:disabled) {
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.dio-remote-key:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+.dio-remote-key:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.dio-remote-key > .dio-icon {
+  width: 22px;
+  height: 22px;
+  --mdc-icon-size: 22px;
+  color: inherit;
+}
+
+.dio-pad > .dio-remote-key {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+}
+
+.dio-pad > .dio-pad-up {
+  clip-path: polygon(0 0, 100% 0, 50% 50%);
+  align-items: start;
+  padding-top: 16px;
+}
+
+.dio-pad > .dio-pad-down {
+  clip-path: polygon(0 100%, 100% 100%, 50% 50%);
+  align-items: end;
+  padding-bottom: 16px;
+}
+
+.dio-pad > .dio-pad-left {
+  clip-path: polygon(0 0, 0 100%, 50% 50%);
+  justify-items: start;
+  padding-left: 16px;
+}
+
+.dio-pad > .dio-pad-right {
+  clip-path: polygon(100% 0, 100% 100%, 50% 50%);
+  justify-items: end;
+  padding-right: 16px;
+}
+
+.dio-pad > .dio-pad-ok {
+  inset: 50% auto auto 50%;
+  width: 76px;
+  height: 76px;
+  transform: translate(-50%, -50%);
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* On a card too narrow for the name beside them, the keys go above it,
+   in the middle. */
+.dio-remote {
+  container-type: inline-size;
+}
+
+@container (max-width: 420px) {
+  .dio-remote .dio-bottom {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .dio-remote .dio-aside {
+    justify-content: center;
+  }
+}
+
+/* Mute stays pressed while the player is muted. */
+.dio-remote .dio-remote-muted {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.dio-volume {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60px;
+  height: 176px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  overflow: hidden;
+}
+
+.dio-volume > .dio-remote-key {
+  flex: 1;
+  width: 100%;
+}
+
+.dio-volume > .dio-icon {
+  width: 18px;
+  height: 18px;
+  --mdc-icon-size: 18px;
+  opacity: var(--_secondary);
+}
+
 /* A link like button, for Clear. */
 .dio-link {
   padding: 4px 8px;
@@ -2557,6 +2697,99 @@
   opacity: 0.85;
 }
 
+/* With no cover art behind it, three soft lights in the colors of the app
+   it plays from, each drifting its own way while it plays and holding
+   still while it is paused. */
+.dio-media-control[style*='--_glow-a'] > .dio-tile::before {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  z-index: -1;
+  background:
+    radial-gradient(closest-side, var(--_glow-a), transparent) 0% 0% / 70% 110% no-repeat,
+    radial-gradient(closest-side, var(--_glow-b), transparent) 100% 30% / 60% 100% no-repeat,
+    radial-gradient(closest-side, var(--_glow-c), transparent) 40% 100% / 75% 90% no-repeat;
+  filter: blur(16px);
+  opacity: var(--_glow-strength, 0.42);
+  animation: dio-media-drift 24s ease-in-out infinite alternate;
+}
+
+:host([data-light]) .dio-media-control {
+  --_glow-strength: 0.32;
+}
+
+.dio-media-still > .dio-tile::before {
+  animation-play-state: paused;
+}
+
+@keyframes dio-media-drift {
+  0% {
+    background-position:
+      0% 0%,
+      100% 30%,
+      40% 100%;
+  }
+  35% {
+    background-position:
+      70% 30%,
+      20% 90%,
+      100% 50%;
+  }
+  70% {
+    background-position:
+      20% 90%,
+      80% 0%,
+      0% 30%;
+  }
+  100% {
+    background-position:
+      100% 60%,
+      0% 20%,
+      60% 0%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dio-media-control > .dio-tile::before {
+    animation: none;
+  }
+}
+
+/* The logo of the app it plays from, in place of the icon, straight on
+   the card. It is as tall as the tile sets for its shape, and as wide as
+   that makes it. */
+.dio-logo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  max-width: 120px;
+}
+
+.dio-logo > img {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left;
+  user-select: none;
+}
+
+:host([data-light]) .dio-logo-dark,
+:host(:not([data-light])) .dio-logo-light {
+  display: none;
+}
+
+/* A logo in a single color, black on a light card and white on a dark one. */
+:host([data-light]) .dio-logo-mono > img {
+  filter: brightness(0);
+}
+
+:host(:not([data-light])) .dio-logo-mono > img,
+:host .dio-media-control[style*='--_art'] .dio-logo-mono > img {
+  filter: brightness(0) invert(1);
+}
+
 .dio-media-control > .dio-tile {
   min-height: 168px;
   isolation: isolate;
@@ -2807,6 +3040,7 @@
   .dio-swatch,
   .dio-sheet,
   .dio-key,
+  .dio-remote-key,
   .dio-todo-item > .dio-check,
   .dio-bar-fill,
   .dio-gauge-fill,

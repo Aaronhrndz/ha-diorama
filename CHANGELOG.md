@@ -9,6 +9,11 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- The Now Playing widget shows the logo of the app playing, like Netflix, YouTube or Spotify, with a soft light in the app's colors drifting behind it when there is no cover art.
+- A TV Remote widget with arrows, OK, back, home, mute and volume, which works as it is with most TVs and streaming boxes and can send the volume to the TV a box is plugged into.
+
 ## [1.7.1] - 2026-10-13
 
 ### Fixed

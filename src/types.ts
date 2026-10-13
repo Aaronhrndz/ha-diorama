@@ -20,6 +20,8 @@ export type EntityRegistryEntry = {
   name?: string | null
   hidden?: boolean
   entity_category?: string | null
+  // The integration it comes from, like androidtv_remote.
+  platform?: string
 }
 
 export type DeviceRegistryEntry = {
