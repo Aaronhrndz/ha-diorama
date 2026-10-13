@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-13
+
 ### Added
 
 - The Now Playing widget shows the logo of the app playing, like Netflix, YouTube or Spotify, with a soft light in the app's colors drifting behind it when there is no cover art.
@@ -412,7 +414,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.1...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/CarlesRojas/ha-diorama/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.5.1...v1.6.0
