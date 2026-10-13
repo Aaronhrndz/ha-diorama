@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.8] - 2026-10-13
+
 ### Changed
 
 - A fan, a screen or anything else that moves on its own moves a little slower and no longer keeps the card drawing at full speed, and what spins casts no shadow, so a phone or tablet stays cool.
@@ -496,7 +498,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.7...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.8...HEAD
+[1.8.8]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.7...v1.8.8
 [1.8.7]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.6...v1.8.7
 [1.8.6]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.5...v1.8.6
 [1.8.5]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.4...v1.8.5
