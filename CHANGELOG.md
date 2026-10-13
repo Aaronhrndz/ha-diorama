@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.12] - 2026-10-13
+
 ### Changed
 
 - A projector's beam reaches the corners of the picture on the projection screen it is aimed at, even while the screen is rolled up, and fades out just as it gets there.
@@ -545,7 +547,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.11...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.12...HEAD
+[1.8.12]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.11...v1.8.12
 [1.8.11]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.10...v1.8.11
 [1.8.10]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.9...v1.8.10
 [1.8.9]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.8...v1.8.9
