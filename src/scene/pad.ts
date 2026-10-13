@@ -142,7 +142,10 @@ function hand(p: Pads, lamps: PointLight[]) {
   let moving = false
   for (const [lamp, s] of p.shade) {
     s.goal = keep.has(lamp) ? 1 : 0
-    s.level = s.goal > s.level ? Math.min(1, s.level + step) : Math.max(0, s.level - step)
+    // A shadow that has arrived stays put. Nudged down and back up, it kept
+    // the frames coming for as long as a lamp was on.
+    if (s.goal > s.level) s.level = Math.min(1, s.level + step)
+    else if (s.goal < s.level) s.level = Math.max(0, s.level - step)
     if (s.goal === 0 && s.level === 0) {
       lamp.castShadow = false
       p.shade.delete(lamp)

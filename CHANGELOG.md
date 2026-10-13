@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- The 3D home stops drawing once nothing in it moves, even with a light on, so a phone or computer with the card open no longer warms up and drains its battery.
+
 ## [1.8.5] - 2026-10-13
 
 ### Changed
