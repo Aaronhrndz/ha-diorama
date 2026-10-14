@@ -274,7 +274,9 @@
 }
 
 /* Half lit, from where it is to where the finger takes it, then to where
-   it was sent until it gets there. */
+   it was sent until it gets there. A lit stretch over the unlit tile
+   stands out more than an unlit one over the lit fill, so the first is
+   fainter and the second stronger. Its words are drawn whole over it. */
 .dio-fill-band {
   position: absolute;
   inset: 0;
@@ -285,25 +287,40 @@
     clip-path 1s linear;
 }
 
-/* A lit stretch over the unlit tile stands out more than an unlit one
-   over the lit fill, so the first is fainter and the second stronger, and
-   both read about as half lit. */
 .dio-fill-band[data-on] {
-  opacity: 0.3;
-}
-
-.dio-fill-band[data-on][data-back] {
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .dio-fill[data-dragging] .dio-fill-band {
   transition: opacity 400ms ease;
 }
 
+.dio-fill-band-tint,
+.dio-fill-band-ink {
+  position: absolute;
+  inset: 0;
+}
+
+.dio-fill-band-tint {
+  opacity: 0.3;
+}
+
+.dio-fill-band[data-back] .dio-fill-band-tint {
+  opacity: 0.85;
+}
+
+.dio-fill-band-tint .dio-tile > * {
+  visibility: hidden;
+}
+
 .dio-fill-band .dio-tile {
   box-shadow: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+.dio-fill-band-ink .dio-tile {
+  background: none;
 }
 
 /* The lit copy draws no shadow and no blur of its own, so the edge where

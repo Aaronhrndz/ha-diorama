@@ -57,8 +57,10 @@ const SEND_MS = 700
 // How long a value sent to something that travels waits for it to start
 // moving, and is kept once it stops short of it.
 const SETTLE_MS = 3000
-// How long the band fades out for once it is not needed.
+// How long the band fades out for once it is not needed, and how long it
+// waits first, while the fill glides the last of the way to it.
 const BAND_FADE_MS = 400
+const BAND_LINGER_MS = 1000
 // The smallest step that gets a tick at each stop, so a fan's few speeds
 // show and a percent at a time does not.
 const DOTS_FROM_STEP = 5
@@ -129,11 +131,20 @@ export function FillTile({
   // The band, kept where it was while it fades out.
   const aim = travels ? (drag ?? pending) : null
   const [band, setBand] = useState<number | null>(null)
+  const [fading, setFading] = useState(false)
   if (aim !== null && aim !== band) setBand(aim)
+  if (aim !== null && fading) setFading(false)
   useEffect(() => {
     if (aim !== null || band === null) return
-    const timer = setTimeout(() => setBand(null), BAND_FADE_MS)
-    return () => clearTimeout(timer)
+    const fade = setTimeout(() => setFading(true), BAND_LINGER_MS)
+    const gone = setTimeout(() => {
+      setBand(null)
+      setFading(false)
+    }, BAND_LINGER_MS + BAND_FADE_MS)
+    return () => {
+      clearTimeout(fade)
+      clearTimeout(gone)
+    }
   }, [aim, band])
 
   const shown = travels ? reported : (drag ?? value)
@@ -296,9 +307,11 @@ export function FillTile({
       </div>
       {band !== null && (
         // Over the fill where it heads back, so that stretch looks half lit.
+        // The words and the icon are drawn again over it, as on a tile that
+        // is off, so the band never dims them.
         <div
           className="dio-fill-band"
-          data-on={aim !== null || undefined}
+          data-on={!fading || undefined}
           data-back={band < shown || undefined}
           inert
           style={{
@@ -309,17 +322,31 @@ export function FillTile({
             }[from],
           }}
         >
-          <Tile
-            env={env}
-            config={config}
-            entity={entity}
-            active={band > shown || on}
-            looksOff={band < shown}
-            accent={accent}
-            glow={band > shown ? glow : undefined}
-            state={state}
-            controls={controls}
-          />
+          <div className="dio-fill-band-tint">
+            <Tile
+              env={env}
+              config={config}
+              entity={entity}
+              active={band > shown || on}
+              looksOff={band < shown}
+              accent={accent}
+              glow={band > shown ? glow : undefined}
+              state={state}
+              controls={controls}
+            />
+          </div>
+          <div className="dio-fill-band-ink">
+            <Tile
+              env={env}
+              config={config}
+              entity={entity}
+              active={false}
+              looksOff
+              accent={accent}
+              state={state}
+              controls={controls}
+            />
+          </div>
         </div>
       )}
     </div>
