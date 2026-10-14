@@ -1,5 +1,5 @@
 import { appOf, PACKAGE } from '#/tiles/apps.ts'
-import { PLACEHOLDER, twinOf } from '#/tiles/playing.ts'
+import { bylineOf, PLACEHOLDER, twinOf } from '#/tiles/playing.ts'
 import type { HomeAssistant } from '#/types.ts'
 import { useEffect, useState } from 'react'
 
@@ -34,17 +34,16 @@ export function showingOf(hass: HomeAssistant, entityId: string): Showing | null
   const told = media.attributes
   const known = appOf(entity.attributes.app_name, entity.attributes.app_id)
   const said =
-    typeof told.media_title === 'string' && !PLACEHOLDER.test(told.media_title.trim()) ? told.media_title : null
+    typeof told.media_title === 'string' && told.media_title.trim() && !PLACEHOLDER.test(told.media_title.trim())
+      ? told.media_title.trim()
+      : null
   const app =
     known?.name ??
     (typeof entity.attributes.app_name === 'string' && !PACKAGE.test(entity.attributes.app_name)
       ? entity.attributes.app_name
       : null)
-  // The line under the title, as on the card: the artist, or else the
-  // album, or else the app it plays from.
-  const artist =
-    ([told.media_artist, told.media_album_name, app].find(part => typeof part === 'string' && part) as
-      string | undefined) ?? null
+  // The line under the title, as on the card.
+  const artist = bylineOf(told, app, said)
   return {
     colors: known?.colors ?? NEUTRAL,
     art: typeof told.entity_picture === 'string' ? told.entity_picture : null,
@@ -52,7 +51,8 @@ export function showingOf(hass: HomeAssistant, entityId: string): Showing | null
     // With nothing told of what plays, that line takes its place, which is
     // the name of the app as people know it rather than as its package.
     title: said ?? artist,
-    subtitle: said ? artist : null,
+    // With nothing else to tell under a title, it says the player is on.
+    subtitle: said ? (artist ?? 'On') : null,
     playing: media.state === 'playing',
   }
 }

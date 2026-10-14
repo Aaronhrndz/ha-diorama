@@ -1,6 +1,6 @@
 import { cn } from '#/lib/utils.ts'
 import { appOf, PACKAGE } from '#/tiles/apps.ts'
-import { PLACEHOLDER, twinOf } from '#/tiles/playing.ts'
+import { bylineOf, PLACEHOLDER, twinOf } from '#/tiles/playing.ts'
 import { callService, entityName, formatState, haptic, type TileEnv } from '#/tiles/actions.ts'
 import { useArmed, useConfirm } from '#/tiles/twice.ts'
 import { Control } from '#/tiles/Control.tsx'
@@ -217,8 +217,7 @@ export default function MediaControl({
   // With no cover art behind it, a card that is on has a soft light behind
   // it in the colors of its app, which drifts while it plays.
   const glow = !off && going !== 'off' && !(picture && !square) ? (known?.colors ?? NEUTRAL) : null
-  const artist = [told.media_artist, told.media_album_name, app].find(part => typeof part === 'string' && part) as
-    string | undefined
+  const artist = bylineOf(told, app, title)
   const duration = numberOf(media, 'media_duration')
   const position = numberOf(media, 'media_position')
   const updated = typeof told.media_position_updated_at === 'string' ? told.media_position_updated_at : null
@@ -416,7 +415,7 @@ export default function MediaControl({
             ? formatState(env.hass, entity)
             : blank
               ? said
-              : (artist ?? (title ? name : formatState(env.hass, entity))))
+              : (artist ?? (title ? 'On' : formatState(env.hass, entity))))
         }
         accent="var(--_accent-media)"
         onTap={wakes ? confirm.tap : playable ? playPause : null}
