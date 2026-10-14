@@ -1,7 +1,7 @@
 import type { Between } from '#/decoration/between.ts'
 import { decorationKind, paramValue } from '#/decoration/catalog.ts'
 import { usePressActions, type PressAction } from '#/scene/decor/press.ts'
-import { DragMarks, travelOf, useDrag, type DragAction } from '#/scene/decor/drag.tsx'
+import { DragBadge, DragGhost, travelOf, useDrag, type DragAction } from '#/scene/decor/drag.tsx'
 import { standHeight } from '#/decoration/surfaces.ts'
 import ApplianceModel from '#/scene/decor/ApplianceModel.tsx'
 import DecorModel from '#/scene/decor/DecorModel.tsx'
@@ -111,11 +111,6 @@ function DecorationModel({ item, all, room, between, state, raise = 0, onClick, 
   const travel = useMemo(() => (kind && onDrag ? travelOf(kind, item) : null), [kind, item, onDrag])
   const level = state?.levels.open ?? (state?.on ? 1 : 0)
   const { frame, dragged, sent, onPointerDown: dragDown } = useDrag(travel, level, state?.text, onDrag)
-  // While a finger drags it, the piece is where the finger is.
-  if (dragged !== null && state) {
-    const open = dragged
-    state = { ...state, on: open > 0, level: open, levels: { ...state.levels, open }, dragged: true }
-  }
   if (!kind) return null
   const Model = KIND_MODELS[kind.id] ?? FAMILY_MODELS[kind.family]
   if (!Model) return null
@@ -151,7 +146,21 @@ function DecorationModel({ item, all, room, between, state, raise = 0, onClick, 
     >
       <group ref={frame} rotation={[0, outside ? Math.PI : 0, 0]}>
         <Model kind={kind} item={item} state={state} room={room} all={all} />
-        {travel && <DragMarks travel={travel} dragged={dragged} sent={sent} />}
+        {travel && state && (
+          // The ghost is where the finger takes it, with no easing.
+          <DragGhost level={dragged ?? sent}>
+            {open => (
+              <Model
+                kind={kind}
+                item={item}
+                state={{ ...state, on: open > 0, level: open, levels: { ...state.levels, open }, dragged: true }}
+                room={room}
+                all={all}
+              />
+            )}
+          </DragGhost>
+        )}
+        {travel && <DragBadge travel={travel} dragged={dragged} />}
       </group>
     </group>
   )

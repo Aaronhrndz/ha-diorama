@@ -3,9 +3,9 @@ import { dropped, held } from '#/scene/drags.ts'
 import { multiTouchSince } from '#/scene/touches.ts'
 import type { DecorationConfig } from '#/types.ts'
 import { Html } from '@react-three/drei'
-import { useThree, type ThreeEvent } from '@react-three/fiber'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Vector3, type Group } from 'three'
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { Mesh, Vector3, type Group, type Material } from 'three'
 
 type Vec3 = [number, number, number]
 
@@ -83,8 +83,9 @@ const clamp = (v: number) => Math.min(Math.max(v, 0), 1)
 // A press on a cover that runs along its travel on screen, up and down for a
 // blind, moves the cover with it, and letting go sends it there. A press
 // that runs across it, or is held still first, is left to the camera and to
-// the long press. While the cover travels to where it was sent, a mark shows
-// where it is going, and the piece shows where it really is.
+// the long press. The piece always shows where the cover really is, and a
+// ghost of it shows where the finger is taking it, then where it was sent
+// while it travels there.
 //
 // The frame is the group the piece is drawn in, which the travel is in.
 export function useDrag(travel: Travel | null, level: number, text: string | undefined, action?: DragAction) {
@@ -93,10 +94,14 @@ export function useDrag(travel: Travel | null, level: number, text: string | und
   const gl = useThree(state => state.gl)
   const [dragged, setDragged] = useState<number | null>(null)
   const [sent, setSent] = useState<number | null>(null)
-  // Read when a drag starts, so the drag starts where the cover is.
+  // Read when a drag starts, so the drag starts where the ghost is, or where
+  // the cover is when there is none.
   const latest = useRef(level)
+  const moving = text === 'opening' || text === 'closing'
+  const arrived = sent !== null && Math.abs(level - sent) < 0.015
+  const pending = sent !== null && !arrived ? sent : null
   useLayoutEffect(() => {
-    latest.current = level
+    latest.current = pending ?? level
   })
   const end = useRef<(() => void) | null>(null)
   // The pointer being followed. A press is handed to the piece once for each
@@ -104,8 +109,6 @@ export function useDrag(travel: Travel | null, level: number, text: string | und
   const following = useRef<number | null>(null)
   useEffect(() => () => end.current?.(), [])
 
-  const moving = text === 'opening' || text === 'closing'
-  const arrived = sent !== null && Math.abs(level - sent) < 0.015
   useEffect(() => {
     if (sent === null || (moving && !arrived)) return
     const timer = setTimeout(() => setSent(null), arrived ? 0 : SETTLE_MS)
@@ -197,7 +200,7 @@ export function useDrag(travel: Travel | null, level: number, text: string | und
     frame,
     dragged,
     // Where the cover was sent, until it gets there or stops short.
-    sent: sent !== null && !arrived && dragged === null ? sent : null,
+    sent: dragged === null ? pending : null,
     onPointerDown: travel && action ? onPointerDown : undefined,
   }
 }
@@ -208,41 +211,94 @@ const at = (travel: Travel, level: number): Vec3 => [
   travel.shut[2] + (travel.open[2] - travel.shut[2]) * level,
 ]
 
-const THICK = 0.014
+// How see-through the ghost is, and how long it takes to show or go.
+const GHOST_OPACITY = 0.4
+const FADE_S = 0.25
+// The ghost is a little wider and deeper than the piece and sits a little
+// in front of it, so it shows over the piece whichever way the cover goes.
+const GHOST_SCALE: Vec3 = [1.03, 1, 1.03]
+const GHOST_FORWARD = 0.015
 
-// What a drag shows on the piece: the level under the finger while it drags,
-// and a line where the cover was sent while it travels there.
-export function DragMarks({ travel, dragged, sent }: { travel: Travel; dragged: number | null; sent: number | null }) {
-  const size: Vec3 = [
-    Math.max(Math.abs(travel.span[0]) * 2, THICK),
-    Math.max(Math.abs(travel.span[1]) * 2, THICK),
-    THICK,
-  ]
+// A see-through copy of the piece at the level a finger drags it to, and
+// then at the level it was sent to until the cover gets there or stops. It
+// fades in when it shows and out when it goes. It takes no presses and casts
+// no shadow.
+export function DragGhost({ level, children }: { level: number | null; children: (level: number) => ReactNode }) {
+  // The last level it showed, kept while it fades out.
+  const [last, setLast] = useState<number | null>(null)
+  if (level !== null && level !== last) setLast(level)
+  const shown = level ?? last
+  const group = useRef<Group>(null)
+  const opacity = useRef(0)
+  // Each part's own material is copied once and the copy made see-through,
+  // so the piece and any other one sharing the material are left as they are.
+  const [copies] = useState(() => new Set<Material>())
+  useEffect(() => () => copies.forEach(m => m.dispose()), [copies])
+  const invalidate = useThree(state => state.invalidate)
+  useEffect(() => {
+    invalidate()
+  }, [level, invalidate])
+
+  useFrame((_, delta) => {
+    const ghost = group.current
+    if (!ghost) return
+    const aim = level !== null ? GHOST_OPACITY : 0
+    if (opacity.current !== aim) {
+      const step = (GHOST_OPACITY / FADE_S) * Math.min(delta, 0.1)
+      const rest = aim - opacity.current
+      opacity.current = Math.abs(rest) <= step ? aim : opacity.current + Math.sign(rest) * step
+      invalidate()
+    }
+    ghost.traverse(part => {
+      if (!(part instanceof Mesh)) return
+      if (!part.userData.ghost) {
+        part.raycast = () => {}
+        part.castShadow = false
+        part.receiveShadow = false
+      }
+      const see = (m: Material) => {
+        if (copies.has(m)) return m
+        const copy = m.clone()
+        copy.userData.opacity = m.opacity
+        copy.transparent = true
+        copy.depthWrite = false
+        copies.add(copy)
+        return copy
+      }
+      part.material = Array.isArray(part.material) ? part.material.map(see) : see(part.material)
+      part.userData.ghost = true
+      for (const m of Array.isArray(part.material) ? part.material : [part.material])
+        m.opacity = (m.userData.opacity ?? 1) * opacity.current
+    })
+    if (level === null && opacity.current === 0) setLast(null)
+  })
+
+  if (shown === null) return null
   return (
-    <>
-      {sent !== null && (
-        <mesh position={at(travel, sent)} renderOrder={1}>
-          <boxGeometry args={size} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.75} depthWrite={false} />
-        </mesh>
-      )}
-      {dragged !== null && (
-        <Html position={at(travel, dragged)} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
-          <div
-            style={{
-              padding: '2px 8px',
-              borderRadius: 999,
-              background: 'rgba(0, 0, 0, 0.65)',
-              color: '#fff',
-              font: '600 12px/1.4 Montserrat, system-ui, sans-serif',
-              whiteSpace: 'nowrap',
-              userSelect: 'none',
-            }}
-          >
-            {Math.round(dragged * 100)}%
-          </div>
-        </Html>
-      )}
-    </>
+    <group ref={group} position={[0, 0, GHOST_FORWARD]} scale={GHOST_SCALE}>
+      {children(shown)}
+    </group>
+  )
+}
+
+// The level under the finger while it drags, over the ghost.
+export function DragBadge({ travel, dragged }: { travel: Travel; dragged: number | null }) {
+  if (dragged === null) return null
+  return (
+    <Html position={at(travel, dragged)} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          padding: '2px 8px',
+          borderRadius: 999,
+          background: 'rgba(0, 0, 0, 0.65)',
+          color: '#fff',
+          font: '600 12px/1.4 Montserrat, system-ui, sans-serif',
+          whiteSpace: 'nowrap',
+          userSelect: 'none',
+        }}
+      >
+        {Math.round(dragged * 100)}%
+      </div>
+    </Html>
   )
 }

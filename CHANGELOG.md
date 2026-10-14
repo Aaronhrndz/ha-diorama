@@ -11,7 +11,11 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
-- Blinds, shutters, projector screens, garage doors, awnings and sliding doors can be dragged in the 3D view to any position, and the cover goes there when let go.
+- Blinds, shutters, projector screens, garage doors, awnings and sliding doors can be dragged in the 3D view to any position: a see-through copy follows the finger and stays where it was let go while the real one moves to meet it.
+
+### Changed
+
+- Dragging a cover's position tile leaves the fill where the cover really is and shows where it is going as a paler band, instead of jumping back and forth.
 
 ### Fixed
 

@@ -60,7 +60,7 @@ function Pair({ kind, variant, param, at }: { kind: string; variant?: string; pa
 
 const rows = Math.ceil(cases.length / COLS)
 const root = document.createElement('div')
-root.style.cssText = `width:100vw;height:100vh;background:#d9d6d0`
+root.style.cssText = `width:100vw;height:100vh;background:#2a2a2e`
 document.body.appendChild(root)
 const w = COLS * CELL
 const h = rows * CELL

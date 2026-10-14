@@ -265,6 +265,40 @@
   transition: none;
 }
 
+/* Something that travels, like a blind, fills as far as it really is
+   while a finger drags, and glides between the places it reports on the
+   way, about a second apart. */
+.dio-fill[data-travels] .dio-fill-lit,
+.dio-fill[data-travels][data-dragging] .dio-fill-lit {
+  transition: clip-path 1s linear;
+}
+
+/* Half lit, from where it is to where the finger takes it, then to where
+   it was sent until it gets there. */
+.dio-fill-band {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 400ms ease,
+    clip-path 1s linear;
+}
+
+.dio-fill-band[data-on] {
+  opacity: 0.5;
+}
+
+.dio-fill[data-dragging] .dio-fill-band {
+  transition: opacity 400ms ease;
+}
+
+.dio-fill-band .dio-tile {
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 /* The lit copy draws no shadow and no blur of its own, so the edge where
    it ends is clean. */
 .dio-fill-lit .dio-tile {

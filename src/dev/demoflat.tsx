@@ -6,7 +6,8 @@
 // Query parameters: `flip=light.bedroom,cover.kitchen_blind` starts those
 // entities on, open or unlocked; `camera=x,y,z,tx,ty,tz` overrides the
 // opening view; `sun=6` puts the sun at that elevation in degrees, so the
-// room can be shot at dusk; `dark` uses Home Assistant's dark theme colors;
+// room can be shot at dusk; `light` uses Home Assistant's light theme colors
+// over a pale page, where it opens on the dark ones over a dark gradient;
 // `editor` shows the editor instead of the card; `merge=0` draws every piece
 // on its own, to compare against the merged room; `views` gives every room
 // a view from above it, where it would have the one worked out for it;
@@ -26,7 +27,8 @@ await import('#/main.tsx')
 const params = new URLSearchParams(location.search)
 if (params.has('fps')) (await import('./fps.ts')).showFps()
 if (params.get('merge') === '0') setMerging(false)
-if (params.has('dark')) {
+const light = params.has('light')
+if (!light) {
   const dark: Record<string, string> = {
     '--primary-text-color': '#e1e1e1',
     '--secondary-text-color': '#9b9b9b',
@@ -36,7 +38,7 @@ if (params.has('dark')) {
     '--primary-background-color': '#111111',
   }
   for (const [name, value] of Object.entries(dark)) document.documentElement.style.setProperty(name, value)
-  document.body.style.background = '#111111'
+  document.body.style.background = 'linear-gradient(160deg,#2b2f3a,#151821 60%,#0e0f14) fixed'
 }
 const states = structuredClone(DEMO_STATES)
 for (const id of (params.get('flip') ?? '').split(',')) if (states[id]) flip(states[id])
@@ -94,7 +96,7 @@ const hass = (): HomeAssistant => ({
     }
     return Promise.resolve()
   },
-  themes: { darkMode: params.has('dark') },
+  themes: { darkMode: !light },
 })
 const runs = new Map<string, ReturnType<typeof setInterval>>()
 function run(id: string, to: number) {
