@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- A remote, or a player with its remote, can have its power key turn something else on and off, like a toggle that also readies the room, while it still shows whether the device itself is on.
+
 ## [1.8.16] - 2026-10-13
 
 ### Fixed

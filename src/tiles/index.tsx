@@ -407,6 +407,7 @@ const CARDS: Card[] = [
       // as tall as the remote under it makes it once on.
       { columns: 'full', rows: 'auto', min_columns: 12, max_columns: 12, fixed: true },
       2,
+      ['remote'],
     ),
     extra: true,
     domains: MEDIA_DOMAINS,

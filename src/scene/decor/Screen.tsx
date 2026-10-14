@@ -113,6 +113,8 @@ const LOGO_PX = 30
 const LOGO_MAX_PX = 120
 const TITLE_PX = 15
 const SUBTITLE_PX = 11
+// How much faster the colors of an app drift on a screen than on its card.
+const COLORS_PACE = 3
 // How wide the drawing of the words and the logo is, in texture pixels.
 const OVER_PX = 2048
 
@@ -303,13 +305,15 @@ export default function ScreenMaterial({
   // Only shown while the screen is on, so it plays for as long as it is.
   // On the scene's clock, so the glow round it keeps the same color. A
   // player's colors run on a clock of their own, which stops while it is
-  // paused.
+  // paused. Without cover art that clock runs faster than on the card, so
+  // the colors are seen to move from across the room.
   useLive(true)
   const own = useRef(0)
   const still = !!showing && !showing.playing
+  const pace = cover ? 1 : COLORS_PACE
   useFrame(({ clock }, delta) => {
     if (!ref.current) return
-    if (!still) own.current += delta
+    if (!still) own.current += delta * pace
     ref.current.uniforms.uTime.value = showing ? own.current : clock.elapsedTime
     // Copied each frame, since the material keeps its own copy of the uniforms.
     if (level) ref.current.uniforms.uLevel.value = level.current
