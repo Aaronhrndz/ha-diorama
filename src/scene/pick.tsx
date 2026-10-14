@@ -1,4 +1,5 @@
 import { roomLookedFrom, type Between } from '#/decoration/between.ts'
+import type { Grab } from '#/scene/drags.ts'
 import { useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { PICK_RADIUS_PX, PICK_RADIUS_TOUCH_PX, PICK_ROOM_AT, PICK_ROOM_AT_TOUCH } from '#/theme.ts'
@@ -86,6 +87,40 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
         if (pick) return nearby && pick.exact ? null : pick
       }
       return null
+    }
+
+    // What a press here would drag, and where it lands: the first piece
+    // under it that can be dragged, or a window that passes its drag on to
+    // the cover over it. A piece in front with nothing to drag hides it.
+    const grabAt = (x: number, y: number, nearby = false): { grab: Grab; point: Vector3 } | null => {
+      if (!ray(x, y)) return null
+      for (const hit of raycaster.intersectObjects(scene.children, true)) {
+        for (let node: Object3D | null = hit.object; node; node = node.parent) {
+          const pick = node.userData?.pick as Pick | undefined
+          if (nearby && pick?.exact) return null
+          const grab = node.userData?.drag as Grab | undefined
+          if (grab) return { grab, point: hit.point }
+          if (pick) return null
+        }
+      }
+      return null
+    }
+
+    // A press that lands on nothing, between the slats of a blind, starts
+    // the drag of what can be dragged nearby, as a click there clicks it.
+    // A press on a piece is the piece's own business.
+    const grabNear = (e: PointerEvent) => {
+      const { clientX: x, clientY: y } = e
+      if (at(x, y) || grabAt(x, y)) return
+      const reach = reachOf(e)
+      for (const step of RINGS) {
+        const radius = step * reach.radius
+        for (let i = 0; i < SAMPLES; i++) {
+          const angle = ((i + 0.5) / SAMPLES) * Math.PI * 2
+          const found = grabAt(x + Math.cos(angle) * radius, y + Math.sin(angle) * radius, true)
+          if (found) return found.grab(e, found.point)
+        }
+      }
     }
 
     // The room the first thing under the press belongs to, if any: its
@@ -177,6 +212,7 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
       if (e.button !== 0) return
       from = { x: e.clientX, y: e.clientY, at: performance.now(), reach: reachOf(e) }
       timer = setTimeout(longPress, LONG_PRESS_MS)
+      grabNear(e)
     }
 
     const onMove = (e: PointerEvent) => {

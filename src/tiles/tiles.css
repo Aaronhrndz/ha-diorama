@@ -265,6 +265,65 @@
   transition: none;
 }
 
+/* Something that travels, like a blind, fills as far as it really is
+   while a finger drags, and glides between the places it reports on the
+   way, about a second apart. */
+.dio-fill[data-travels] .dio-fill-lit,
+.dio-fill[data-travels][data-dragging] .dio-fill-lit {
+  transition: clip-path 1s linear;
+}
+
+/* Half lit, from where it is to where the finger takes it, then to where
+   it was sent until it gets there. A lit stretch over the unlit tile
+   stands out more than an unlit one over the lit fill, so the first is
+   fainter and the second stronger. Its words are drawn whole over it. */
+.dio-fill-band {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+
+.dio-fill-band[data-on] {
+  opacity: 1;
+}
+
+.dio-fill-band-tint,
+.dio-fill-band-ink {
+  position: absolute;
+  inset: 0;
+}
+
+.dio-fill-band-tint {
+  opacity: 0.15;
+}
+
+/* An unlit tile is see-through, so over the lit fill it would barely show.
+   There the band is the color of the words on a lit tile instead, dark on
+   a dark dashboard and light on a light one, faint over the fill. */
+.dio-fill-band[data-back] .dio-fill-band-tint {
+  opacity: 0.3;
+}
+
+.dio-fill-band[data-back] .dio-fill-band-tint .dio-tile {
+  background: var(--_text-active);
+}
+
+.dio-fill-band-tint .dio-tile > * {
+  visibility: hidden;
+}
+
+.dio-fill-band .dio-tile {
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.dio-fill-band-ink .dio-tile {
+  background: none;
+}
+
 /* The lit copy draws no shadow and no blur of its own, so the edge where
    it ends is clean. */
 .dio-fill-lit .dio-tile {

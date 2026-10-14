@@ -123,6 +123,7 @@ const entities = Object.fromEntries(
 
 let hass: HomeAssistant
 const tiles: HTMLElement[] = []
+const runs = new Map<string, ReturnType<typeof setInterval>>()
 function update(id: string, value: string, attributes?: Record<string, unknown>) {
   const old = states[id]
   states[id] = {
@@ -153,7 +154,20 @@ hass = {
     if (!s) return
     if (service === 'toggle' && domain !== 'cover') update(id, s.state === 'on' ? 'off' : 'on')
     if (service === 'press' || (domain === 'scene' && service === 'turn_on')) update(id, new Date().toISOString())
-    if (domain === 'cover') {
+    // A cover sent to a position runs there a tenth of its travel every
+    // half second, as a slow blind would.
+    if (service === 'set_cover_position') {
+      clearInterval(runs.get(id))
+      const to = Number(data!.position)
+      const step = () => {
+        const from = Number(states[id].attributes.current_position ?? 0)
+        const next = from < to ? Math.min(from + 10, to) : Math.max(from - 10, to)
+        const moving = next > from ? 'opening' : 'closing'
+        update(id, next === to ? (next > 0 ? 'open' : 'closed') : moving, { current_position: next })
+        if (next === to) clearInterval(runs.get(id))
+      }
+      runs.set(id, setInterval(step, 500))
+    } else if (domain === 'cover') {
       const open = service === 'open_cover' || (service === 'toggle' && s.state !== 'open')
       if (service !== 'stop_cover') update(id, open ? 'open' : 'closed')
     }
@@ -187,6 +201,7 @@ const sections: { title: Record<string, unknown>; cards: Record<string, unknown>
       { type: 'dio-cover', entity: 'cover.living_blind', size: 'wide' },
       { type: 'dio-cover', entity: 'cover.projector', size: 'wide', invert: true, icon: 'ph:projector-screen' },
       { type: 'dio-cover', entity: 'cover.bedroom' },
+      { type: 'dio-cover', entity: 'cover.bedroom', feature: 'position' },
       { type: 'dio-vacuum', entity: 'vacuum.robot', size: 'wide', battery_entity: 'sensor.robot_battery' },
       { type: 'dio-select', entity: 'select.clean_mode', icon: 'ph:sliders' },
       { type: 'dio-select', entity: 'select.clean_mode', tap_behavior: 'cycle', name: 'Cycle mode' },

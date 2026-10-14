@@ -40,6 +40,9 @@ type Props = {
   readOnly?: boolean
   // Buttons in the top right corner, like a cover's up, stop and down.
   controls?: ReactNode
+  // Something that takes a while to get where it is sent, like a blind,
+  // and whether it is on its way now.
+  travels?: { moving: boolean }
 }
 
 // How far a finger goes along the fill before the press is a drag.
@@ -51,6 +54,13 @@ const GRIP_TO = 5
 const GRIP_OPACITY = 0.35
 // How long the arrow keys wait for another press before they send.
 const SEND_MS = 700
+// How long a value sent to something that travels waits for it to start
+// moving, and is kept once it stops short of it.
+const SETTLE_MS = 3000
+// How long the band fades out for once it is not needed, and how long it
+// waits first, while the fill glides the last of the way to it.
+const BAND_FADE_MS = 400
+const BAND_LINGER_MS = 1000
 // The smallest step that gets a tick at each stop, so a fan's few speeds
 // show and a percent at a time does not.
 const DOTS_FROM_STEP = 5
@@ -80,6 +90,11 @@ function StepTicks({ step }: { step: number }) {
 // it on or off. Near the end, where the edge is about to go, a short bar
 // fades in just inside it to show there is something to drag. One that
 // fills from the bottom or the top does the same up and down.
+//
+// One that travels, like a blind, always fills as far as it really is. A
+// drag lays a paler band from there to the finger, which stays where it was
+// let go while the fill moves to meet it, and fades once the fill gets
+// there or stops short.
 export function FillTile({
   env,
   config,
@@ -95,13 +110,46 @@ export function FillTile({
   from = 'left',
   readOnly = false,
   controls,
+  travels,
 }: Props) {
   const [value, hold] = useHeld(reported)
   const [drag, setDrag] = useState<number | null>(null)
   const box = useRef<HTMLDivElement>(null)
   const start = useRef<{ x: number; y: number; from: number; dragging: boolean } | null>(null)
   const keyTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
-  const shown = drag ?? value
+
+  // Where something that travels was sent, until it gets there or stops.
+  const [sent, setSent] = useState<number | null>(null)
+  const arrived = sent !== null && Math.abs(reported - sent) < 1
+  const pending = travels && sent !== null && !arrived ? sent : null
+  const moving = travels?.moving ?? false
+  useEffect(() => {
+    if (sent === null || (moving && !arrived)) return
+    const timer = setTimeout(() => setSent(null), arrived ? 0 : SETTLE_MS)
+    return () => clearTimeout(timer)
+  }, [sent, moving, arrived])
+  // The band, kept where it was while it fades out.
+  const aim = travels ? (drag ?? pending) : null
+  const [band, setBand] = useState<number | null>(null)
+  const [fading, setFading] = useState(false)
+  if (aim !== null && aim !== band) setBand(aim)
+  if (aim !== null && fading) setFading(false)
+  useEffect(() => {
+    if (aim !== null || band === null) return
+    const fade = setTimeout(() => setFading(true), BAND_LINGER_MS)
+    const gone = setTimeout(() => {
+      setBand(null)
+      setFading(false)
+    }, BAND_LINGER_MS + BAND_FADE_MS)
+    return () => {
+      clearTimeout(fade)
+      clearTimeout(gone)
+    }
+  }, [aim, band])
+
+  const shown = travels ? reported : (drag ?? value)
+  // A drag starts from where the fill is, or from the band when there is one.
+  const grabbed = travels ? (pending ?? reported) : shown
 
   // The nearest step, and the end itself for a step of a third that lands
   // a hair short of it.
@@ -111,7 +159,8 @@ export function FillTile({
     return Math.min(100, Math.max(0, Math.round(stepped * 100) / 100))
   }
   const send = (next: number) => {
-    hold(next)
+    if (travels) setSent(next)
+    else hold(next)
     onSend(next)
   }
   // The window listeners outlive a render, so they reach the latest ones
@@ -162,7 +211,7 @@ export function FillTile({
     if (e.button !== 0 || readOnly) return
     // A press on a button is the button's, not the start of a drag.
     if (e.target instanceof Element && e.target.closest('button')) return
-    start.current = { x: e.clientX, y: e.clientY, from: shown, dragging: false }
+    start.current = { x: e.clientX, y: e.clientY, from: grabbed, dragging: false }
   }
 
   // The arrows toward and away from where it fills from move a tenth, or a
@@ -176,7 +225,7 @@ export function FillTile({
     const by = e.key === more ? 1 : e.key === less ? -1 : 0
     if (!by || readOnly) return
     e.preventDefault()
-    const next = snap(shown + by * Math.max(step, 10))
+    const next = snap((drag ?? grabbed) + by * Math.max(step, 10))
     setDrag(next)
     clearTimeout(keyTimer.current)
     keyTimer.current = setTimeout(() => {
@@ -185,7 +234,63 @@ export function FillTile({
     }, SEND_MS)
   }
 
-  const state = format(Math.round(shown))
+  const state = format(Math.round(drag ?? shown))
+  // Clips that keep a layer from the side it fills from up to a value, or
+  // from that value on to the far side.
+  const upTo = (v: number) =>
+    ({
+      left: `inset(0 ${100 - v}% 0 0)`,
+      top: `inset(0 0 ${100 - v}% 0)`,
+      bottom: `inset(${100 - v}% 0 0 0)`,
+    })[from]
+  const past = (v: number) =>
+    ({
+      left: `inset(0 0 0 ${v}%)`,
+      top: `inset(${v}% 0 0 0)`,
+      bottom: `inset(0 0 ${v}% 0)`,
+    })[from]
+  // The band is drawn twice, and only ever clipped by where it ends. Ahead
+  // of the fill it lies under the fill, which covers it up to where the fill
+  // really is. Behind the fill it lies inside the fill, which cuts it off
+  // there. So the band always meets the fill as it glides. Each copy draws
+  // its words again over itself, in the color they have there, so the band
+  // never dims them.
+  const bandLayer = (ahead: boolean) =>
+    band !== null && (
+      <div
+        className="dio-fill-band"
+        data-on={!fading || undefined}
+        data-back={!ahead || undefined}
+        inert
+        style={{ clipPath: ahead ? upTo(band) : past(band) }}
+      >
+        <div className="dio-fill-band-tint">
+          <Tile
+            env={env}
+            config={config}
+            entity={entity}
+            active={ahead || on}
+            looksOff={!ahead}
+            accent={accent}
+            glow={ahead ? glow : undefined}
+            state={state}
+            controls={controls}
+          />
+        </div>
+        <div className="dio-fill-band-ink">
+          <Tile
+            env={env}
+            config={config}
+            entity={entity}
+            active={!ahead || on}
+            looksOff={ahead}
+            accent={accent}
+            state={state}
+            controls={controls}
+          />
+        </div>
+      </div>
+    )
   return (
     <div
       ref={box}
@@ -194,6 +299,7 @@ export function FillTile({
       data-vertical={from !== 'left' || undefined}
       data-from={from}
       data-readonly={readOnly || undefined}
+      data-travels={travels ? true : undefined}
       onPointerDownCapture={down}
       onKeyDown={keys}
     >
@@ -217,17 +323,8 @@ export function FillTile({
           style={{ opacity: GRIP_OPACITY * Math.max(0, (GRIP_TO - shown) / GRIP_TO) }}
         />
       )}
-      <div
-        className="dio-fill-lit"
-        inert
-        style={{
-          clipPath: {
-            left: `inset(0 ${100 - shown}% 0 0)`,
-            top: `inset(0 0 ${100 - shown}% 0)`,
-            bottom: `inset(${100 - shown}% 0 0 0)`,
-          }[from],
-        }}
-      >
+      {bandLayer(true)}
+      <div className="dio-fill-lit" inert style={{ clipPath: upTo(shown) }}>
         <Tile
           env={env}
           config={config}
@@ -250,6 +347,7 @@ export function FillTile({
             }
           />
         )}
+        {bandLayer(false)}
       </div>
     </div>
   )
@@ -297,6 +395,7 @@ export function PositionTile({
       on={tilt ? value > 0 : open}
       accent="var(--_accent-cover)"
       format={v => (tilt ? `Tilt ${v}%` : v === 0 ? 'Closed' : v === 100 ? 'Open' : `${v}%`)}
+      travels={{ moving: entity.state === 'opening' || entity.state === 'closing' }}
       onTap={() => callService(env.hass, `${domain}.toggle`, target)}
       onSend={v =>
         tilt

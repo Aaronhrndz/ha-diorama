@@ -73,7 +73,7 @@ const lift = support ? 0 : kind?.mount === 'ceiling' ? -(CEILING_HEIGHT_M - 1.4)
 const spread = Number(query.get('spread')) || 1.2
 
 const root = document.createElement('div')
-root.style.cssText = `width:100vw;height:100vh;background:${dark ? '#2a2a2e' : '#d9d6d0'}`
+root.style.cssText = `width:100vw;height:100vh;background:${dark ? '#2a2a2e' : '#3a3a40'}`
 document.body.appendChild(root)
 createRoot(root).render(
   kind ? (

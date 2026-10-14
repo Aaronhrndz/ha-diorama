@@ -64,8 +64,9 @@ type Props = {
   // and out of reach.
   focus?: string | null
   // Asked before a click acts on a device, with the room its piece stands
-  // in. True means the click went to the room instead.
-  roomFirst?: (room: string) => boolean
+  // in. True means the click went to the room instead. Only asked, it says
+  // whether a click would, and goes nowhere.
+  roomFirst?: (room: string, ask?: boolean) => boolean
   // Filled with when each frame is drawn, for counting them.
   fpsTicks?: FpsTicks
 }
