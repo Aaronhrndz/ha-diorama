@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- The weather tile shows the moon behind a cloud on partly cloudy nights, instead of the sun.
+
 ## [1.8.22] - 2026-10-14
 
 ### Fixed
