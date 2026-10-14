@@ -78,6 +78,7 @@ export type MediaControlConfig = TileConfig & {
   // same device as its remote.
   commands?: RemoteConfig['commands']
   volume_entity?: string
+  power_entity?: RemoteConfig['power_entity']
 }
 
 // What is playing, with the cover art washed large and blurred behind the
@@ -127,6 +128,8 @@ export default function MediaControl({
   const switcher = keys?.keys?.entity.startsWith('remote.') ? keys.keys.entity : undefined
   const turnOf = (on: boolean) => {
     const turn = on ? 'turn_on' : 'turn_off'
+    if (config.power_entity)
+      return () => callService(env.hass, `homeassistant.${turn}`, { entity_id: config.power_entity })
     if (supports(entity, on ? MEDIA.turnOn : MEDIA.turnOff))
       return () => callService(env.hass, `media_player.${turn}`, { entity_id: config.entity })
     if (switcher) return () => callService(env.hass, `remote.${turn}`, { entity_id: switcher })

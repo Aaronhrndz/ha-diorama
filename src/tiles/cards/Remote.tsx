@@ -28,6 +28,9 @@ export type RemoteConfig = TileConfig & {
   // Entities whose cards beside it already turn things on and off, set by
   // the side panel. The power key is left out when one is of its device.
   power_beside?: string[]
+  // What power turns on and off instead, like a script or a toggle that
+  // also sets the room for it. The state shown stays its own.
+  power_entity?: string
   commands?: Partial<Record<Key, Command>>
 }
 
@@ -196,9 +199,11 @@ export default function Remote({ env, config }: Props) {
   // The service that turns it on or off, when it has one.
   const domain = config.entity?.split('.')[0]
   const powerOf = (on: boolean) =>
-    domain === 'remote' || (domain === 'media_player' && supports(entity, on ? MEDIA.turnOn : MEDIA.turnOff))
-      ? () => callService(hass, `${domain}.turn_${on ? 'on' : 'off'}`, { entity_id: config.entity })
-      : null
+    config.power_entity
+      ? () => callService(hass, `homeassistant.turn_${on ? 'on' : 'off'}`, { entity_id: config.power_entity })
+      : domain === 'remote' || (domain === 'media_player' && supports(entity, on ? MEDIA.turnOn : MEDIA.turnOff))
+        ? () => callService(hass, `${domain}.turn_${on ? 'on' : 'off'}`, { entity_id: config.entity })
+        : null
   const turn = config.power === false || besideOf(hass, config) ? null : powerOf(off)
   const power = useArmed(off, turn)
 
