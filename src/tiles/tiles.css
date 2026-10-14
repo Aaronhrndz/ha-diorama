@@ -296,28 +296,18 @@
 }
 
 .dio-fill-band-tint {
-  opacity: 0.3;
+  opacity: 0.15;
 }
 
 /* An unlit tile is see-through, so over the lit fill it would barely show.
    There the band is the color of the words on a lit tile instead, dark on
-   a dark dashboard and light on a light one, half over the fill. */
+   a dark dashboard and light on a light one, faint over the fill. */
 .dio-fill-band[data-back] .dio-fill-band-tint {
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .dio-fill-band[data-back] .dio-fill-band-tint .dio-tile {
   background: var(--_text-active);
-}
-
-/* On a light dashboard the lit fill is dark, and either band stands out
-   more against it, so both are fainter. */
-:host([data-light]) .dio-fill-band-tint {
-  opacity: 0.15;
-}
-
-:host([data-light]) .dio-fill-band[data-back] .dio-fill-band-tint {
-  opacity: 0.3;
 }
 
 .dio-fill-band-tint .dio-tile > * {
