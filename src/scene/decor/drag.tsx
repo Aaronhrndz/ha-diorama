@@ -3,9 +3,9 @@ import { dropped, held } from '#/scene/drags.ts'
 import { multiTouchSince } from '#/scene/touches.ts'
 import type { DecorationConfig } from '#/types.ts'
 import { Html } from '@react-three/drei'
-import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { Mesh, Vector3, type Group, type Material } from 'three'
+import { Mesh, MeshStandardMaterial, Vector3, type Group, type Material } from 'three'
 
 type Vec3 = [number, number, number]
 
@@ -115,8 +115,7 @@ export function useDrag(travel: Travel | null, level: number, text: string | und
     return () => clearTimeout(timer)
   }, [sent, moving, arrived])
 
-  const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
-    const down = e.nativeEvent
+  const start = (down: PointerEvent) => {
     const piece = frame.current
     if (!travel || !action || !piece || down.button !== 0) return
     if (end.current && following.current === down.pointerId) return
@@ -201,7 +200,9 @@ export function useDrag(travel: Travel | null, level: number, text: string | und
     dragged,
     // Where the cover was sent, until it gets there or stops short.
     sent: dragged === null ? pending : null,
-    onPointerDown: travel && action ? onPointerDown : undefined,
+    // Starts following a press, from the piece itself, from a press that
+    // landed near it, or from one on the window it hangs over.
+    start: travel && action ? start : undefined,
   }
 }
 
@@ -214,12 +215,15 @@ const at = (travel: Travel, level: number): Vec3 => [
 // How see-through the ghost is, and how long it takes to show or go.
 const GHOST_OPACITY = 0.4
 const FADE_S = 0.25
+// One blue for every part, so the ghost reads as where the piece is going
+// rather than as a second piece.
+const GHOST_COLOR = '#7ad3e6'
 // The ghost is a little wider and deeper than the piece and sits a little
 // in front of it, so it shows over the piece whichever way the cover goes.
 const GHOST_SCALE: Vec3 = [1.03, 1, 1.03]
 const GHOST_FORWARD = 0.015
 
-// A see-through copy of the piece at the level a finger drags it to, and
+// A see-through blue copy of the piece at the level a finger drags it to, and
 // then at the level it was sent to until the cover gets there or stops. It
 // fades in when it shows and out when it goes. It takes no presses and casts
 // no shadow.
@@ -230,8 +234,8 @@ export function DragGhost({ level, children }: { level: number | null; children:
   const shown = level ?? last
   const group = useRef<Group>(null)
   const opacity = useRef(0)
-  // Each part's own material is copied once and the copy made see-through,
-  // so the piece and any other one sharing the material are left as they are.
+  // Each part's own material is swapped once for a see-through blue one, so
+  // the piece and any other one sharing the material are left as they are.
   const [copies] = useState(() => new Set<Material>())
   useEffect(() => () => copies.forEach(m => m.dispose()), [copies])
   const invalidate = useThree(state => state.invalidate)
@@ -258,10 +262,17 @@ export function DragGhost({ level, children }: { level: number | null; children:
       }
       const see = (m: Material) => {
         if (copies.has(m)) return m
-        const copy = m.clone()
+        const copy = new MeshStandardMaterial({
+          color: GHOST_COLOR,
+          emissive: GHOST_COLOR,
+          emissiveIntensity: 0.35,
+          roughness: 0.6,
+          side: m.side,
+          transparent: true,
+          depthWrite: false,
+          visible: m.visible,
+        })
         copy.userData.opacity = m.opacity
-        copy.transparent = true
-        copy.depthWrite = false
         copies.add(copy)
         return copy
       }

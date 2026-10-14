@@ -299,6 +299,7 @@ export function FillTile({
         <div
           className="dio-fill-band"
           data-on={aim !== null || undefined}
+          data-back={band < shown || undefined}
           inert
           style={{
             clipPath: {

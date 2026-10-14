@@ -22,7 +22,7 @@ media_player:
     children:
       - media_player.lounge_room
     attributes:
-      entity_picture: input_boolean.projector_screen_down|no_picture
+      entity_picture: input_number.projector_screen_position|no_picture
     commands:
       turn_on:
         action: media_player.turn_on
@@ -34,7 +34,8 @@ media_player:
           entity_id: media_player.lounge_room
 
 # A projector screen that rolls down and up, which the Demo integration does
-# not have, kept as a toggle behind a cover. Then two scenes for the side
+# not have, kept as a number behind a cover, so it can be sent to any
+# position as well as all the way down or up. Then two scenes for the side
 # panel's Home section, as switches so they have a state. Projector scene
 # is on while the screen is down: turning it on turns off the bedroom
 # lights, brings the screen down and turns the projector on, and turning
@@ -44,25 +45,39 @@ media_player:
 # and a tap turns them all off, or all on when every one is off. Cleaning is
 # on while the robot vacuum cleans: it sends the robot out, and turning it
 # off sends the robot back to its dock.
-input_boolean:
-  projector_screen_down:
-    name: Projector screen down
+input_number:
+  projector_screen_position:
+    name: Projector screen position
     icon: mdi:projector-screen
+    min: 0
+    max: 100
+    step: 1
 
 template:
   - cover:
       - name: Projector screen
         unique_id: projector_screen
         device_class: shade
-        state: "{{ 'open' if is_state('input_boolean.projector_screen_down', 'on') else 'closed' }}"
+        state: "{{ 'open' if states('input_number.projector_screen_position') | float(0) > 0 else 'closed' }}"
+        position: "{{ states('input_number.projector_screen_position') | int(0) }}"
         open_cover:
-          - action: input_boolean.turn_on
+          - action: input_number.set_value
             target:
-              entity_id: input_boolean.projector_screen_down
+              entity_id: input_number.projector_screen_position
+            data:
+              value: 100
         close_cover:
-          - action: input_boolean.turn_off
+          - action: input_number.set_value
             target:
-              entity_id: input_boolean.projector_screen_down
+              entity_id: input_number.projector_screen_position
+            data:
+              value: 0
+        set_cover_position:
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.projector_screen_position
+            data:
+              value: '{{ position }}'
   - switch:
       - name: Projector scene
         unique_id: projector_scene

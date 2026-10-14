@@ -1,3 +1,5 @@
+import type { Vector3 } from 'three'
+
 // The pointers a piece has asked to keep from the camera, by id. A press on
 // a piece that can be dragged, like a blind, is asked for the moment it goes
 // down, and the camera leaves it alone while the piece makes up its mind.
@@ -17,3 +19,12 @@ export function dropped() {
 export function justDropped() {
   return performance.now() - droppedAt < 400
 }
+
+// What starts a drag on a piece: its own, or for a window, the one of the
+// cover over the stretch the press landed on. Kept in the piece's userData
+// as drag, so a press that lands near it can find it too.
+export type Grab = (down: PointerEvent, at: Vector3) => void
+
+// The drags of the covers that can be dragged, by item id, so a press on the
+// window under one can start it.
+export const grabs = new Map<string, (down: PointerEvent) => void>()

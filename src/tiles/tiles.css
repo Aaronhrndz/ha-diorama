@@ -285,8 +285,15 @@
     clip-path 1s linear;
 }
 
+/* A lit stretch over the unlit tile stands out more than an unlit one
+   over the lit fill, so the first is fainter and the second stronger, and
+   both read about as half lit. */
 .dio-fill-band[data-on] {
-  opacity: 0.5;
+  opacity: 0.3;
+}
+
+.dio-fill-band[data-on][data-back] {
+  opacity: 0.7;
 }
 
 .dio-fill[data-dragging] .dio-fill-band {

@@ -11,7 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Added
 
-- Blinds, shutters, projector screens, garage doors, awnings and sliding doors can be dragged in the 3D view to any position: a see-through copy follows the finger and stays where it was let go while the real one moves to meet it.
+- Blinds, shutters, projector screens, garage doors, awnings and sliding doors can be dragged in the 3D view to any position, also from the window behind them or from just beside them: a see-through blue copy follows the finger and stays where it was let go while the real one moves to meet it.
 
 ### Changed
 

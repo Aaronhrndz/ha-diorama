@@ -2,6 +2,7 @@ import type { Between } from '#/decoration/between.ts'
 import { decorationKind, paramValue } from '#/decoration/catalog.ts'
 import { usePressActions, type PressAction } from '#/scene/decor/press.ts'
 import { DragBadge, DragGhost, travelOf, useDrag, type DragAction } from '#/scene/decor/drag.tsx'
+import { grabs, type Grab } from '#/scene/drags.ts'
 import { standHeight } from '#/decoration/surfaces.ts'
 import ApplianceModel from '#/scene/decor/ApplianceModel.tsx'
 import DecorModel from '#/scene/decor/DecorModel.tsx'
@@ -15,7 +16,7 @@ import LightModel from '#/scene/decor/LightModel.tsx'
 import OutdoorModel from '#/scene/decor/Outdoor.tsx'
 import { sameState, type ItemState } from '#/scene/decor/state.ts'
 import type { DecorationKind } from '#/decoration/catalog.ts'
-import { memo, useMemo, type ReactNode } from 'react'
+import { memo, useLayoutEffect, useMemo, type ReactNode } from 'react'
 import type { DecorationConfig, RoomConfig } from '#/types.ts'
 import { MathUtils } from 'three'
 import { useEased } from '#/scene/decor/ease.ts'
@@ -44,6 +45,9 @@ type Props = {
   // A cover that runs along a line, like a blind, follows a finger dragged
   // along it, and this sends it where it was let go.
   onDrag?: DragAction
+  // A drag on this piece moves another one, a blind over a window, which the
+  // press finds by where it landed.
+  passDrag?: Grab
 }
 
 type FamilyModel = (props: {
@@ -101,7 +105,19 @@ const READS_PLAN = new Set(['vacuum_robot', 'kitchen_counter'])
 // Places one decoration item in the scene. Wall and ceiling items are lifted
 // to their mounting height here, so every model can be built from its own
 // base up around its origin.
-function DecorationModel({ item, all, room, between, state, raise = 0, onClick, onOpen, exact, onDrag }: Props) {
+function DecorationModel({
+  item,
+  all,
+  room,
+  between,
+  state,
+  raise = 0,
+  onClick,
+  onOpen,
+  exact,
+  onDrag,
+  passDrag,
+}: Props) {
   const interactive = usePressActions(onClick, onOpen)
   const rise = useEased(raise, 2)
   // A press shows as the piece switched on for as long as it runs.
@@ -110,7 +126,17 @@ function DecorationModel({ item, all, room, between, state, raise = 0, onClick, 
   const kind = decorationKind(item.kind)
   const travel = useMemo(() => (kind && onDrag ? travelOf(kind, item) : null), [kind, item, onDrag])
   const level = state?.levels.open ?? (state?.on ? 1 : 0)
-  const { frame, dragged, sent, onPointerDown: dragDown } = useDrag(travel, level, state?.text, onDrag)
+  const { frame, dragged, sent, start } = useDrag(travel, level, state?.text, onDrag)
+  // Kept fresh on every render, so a press on the window under it starts the
+  // drag the piece would.
+  useLayoutEffect(() => {
+    if (!start) return
+    grabs.set(item.id, start)
+    return () => {
+      if (grabs.get(item.id) === start) grabs.delete(item.id)
+    }
+  })
+  const grab: Grab | undefined = start ?? passDrag
   if (!kind) return null
   const Model = KIND_MODELS[kind.id] ?? FAMILY_MODELS[kind.family]
   if (!Model) return null
@@ -135,13 +161,14 @@ function DecorationModel({ item, all, room, between, state, raise = 0, onClick, 
       // piece in a wall between two rooms says both.
       userData={{
         ...(onClick && { pick: { click: onClick, open: onOpen ?? onClick, exact } }),
+        ...(grab && { drag: grab }),
         room: item.room,
         ...(between && { rooms: between.rooms, between }),
       }}
       {...interactive}
       onPointerDown={e => {
         interactive.onPointerDown?.(e)
-        dragDown?.(e)
+        grab?.(e.nativeEvent, e.point)
       }}
     >
       <group ref={frame} rotation={[0, outside ? Math.PI : 0, 0]}>
@@ -175,7 +202,7 @@ function unchanged(a: Props, b: Props) {
   if (JSON.stringify(a.between ?? null) !== JSON.stringify(b.between ?? null)) return false
   if (a.item !== b.item || a.room !== b.room || a.onClick !== b.onClick || a.onOpen !== b.onOpen || a.exact !== b.exact)
     return false
-  if (a.onDrag !== b.onDrag) return false
+  if (a.onDrag !== b.onDrag || a.passDrag !== b.passDrag) return false
   if (!sameState(a.state, b.state)) return false
   if (a.all === b.all) return true
   return !READS_PLAN.has(a.item.kind) && standHeight(a.item, a.all) === standHeight(b.item, b.all)

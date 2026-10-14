@@ -4,6 +4,7 @@ import { canTry, initialTry, tryItemState, type TryState, type TryStates } from 
 import { DOOR_KINDS } from '#/geometry/passages.ts'
 import DecorationModel from '#/scene/decor/DecorationModel.tsx'
 import type { DragAction } from '#/scene/decor/drag.tsx'
+import { grabs, type Grab } from '#/scene/drags.ts'
 import type { PressAction } from '#/scene/decor/press.ts'
 import { deskRise } from '#/scene/decor/state.ts'
 import { showingOf } from '#/scene/decor/showing.ts'
@@ -242,8 +243,12 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
   // What a press on each piece does. The models are only drawn again when
   // they change, so each is handed a handler that stays the same and calls
   // whatever this render says a press does now.
-  const [actions] = useState(() => new Map<string, { click?: PressAction; open?: PressAction; drag?: DragAction }>())
-  const [handlers] = useState(() => new Map<string, { click: PressAction; open: PressAction; drag: DragAction }>())
+  const [actions] = useState(
+    () => new Map<string, { click?: PressAction; open?: PressAction; drag?: DragAction; pass?: Grab }>(),
+  )
+  const [handlers] = useState(
+    () => new Map<string, { click: PressAction; open: PressAction; drag: DragAction; pass: Grab }>(),
+  )
   const handler = (id: string) => {
     let h = handlers.get(id)
     if (!h) {
@@ -254,6 +259,7 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
           may: () => actions.get(id)?.drag?.may() ?? false,
           drop: level => actions.get(id)?.drag?.drop(level),
         },
+        pass: (down, at) => actions.get(id)?.pass?.(down, at),
       }
       handlers.set(id, h)
     }
@@ -383,7 +389,16 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
                   .catch(() => {}),
             }
           : undefined
-        actions.set(item.id, { click: onClick, open: onOpen, drag })
+        // A drag on the window is a drag on the cover over where it landed,
+        // as a click on it is, when that cover can be dragged.
+        const pass: Grab | undefined =
+          covers.length > 0 && !leads
+            ? (down, at) => {
+                const cover = coverAt(covers, [at.x, -at.z])
+                if (cover) grabs.get(cover.id)?.(down)
+              }
+            : undefined
+        actions.set(item.id, { click: onClick, open: onOpen, drag, pass })
         const h = handler(item.id)
         return (
           <DecorationModel
@@ -398,6 +413,7 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
             onOpen={onOpen && h.open}
             exact={!device && !onPick && !tried}
             onDrag={drag && h.drag}
+            passDrag={pass && h.pass}
           />
         )
       })}
