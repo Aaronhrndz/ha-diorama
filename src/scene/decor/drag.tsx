@@ -1,4 +1,5 @@
 import { decorationVariant, paramValue, screenSize, type DecorationKind } from '#/decoration/catalog.ts'
+import { useUnechoed } from '#/lib/echo.ts'
 import { dropped, held } from '#/scene/drags.ts'
 import { multiTouchSince } from '#/scene/touches.ts'
 import type { DecorationConfig } from '#/types.ts'
@@ -88,16 +89,18 @@ const clamp = (v: number) => Math.min(Math.max(v, 0), 1)
 // while it travels there.
 //
 // The frame is the group the piece is drawn in, which the travel is in.
-export function useDrag(travel: Travel | null, level: number, text: string | undefined, action?: DragAction) {
+export function useDrag(travel: Travel | null, reported: number, text: string | undefined, action?: DragAction) {
   const frame = useRef<Group>(null)
   const camera = useThree(state => state.camera)
   const gl = useThree(state => state.gl)
   const [dragged, setDragged] = useState<number | null>(null)
   const [sent, setSent] = useState<number | null>(null)
+  const moving = text === 'opening' || text === 'closing'
+  // Where the cover really is, past the echo of where it was sent.
+  const level = useUnechoed(reported, sent, moving, 0.015)
   // Read when a drag starts, so the drag starts where the ghost is, or where
   // the cover is when there is none.
   const latest = useRef(level)
-  const moving = text === 'opening' || text === 'closing'
   const arrived = sent !== null && Math.abs(level - sent) < 0.015
   const pending = sent !== null && !arrived ? sent : null
   useLayoutEffect(() => {
@@ -197,6 +200,7 @@ export function useDrag(travel: Travel | null, level: number, text: string | und
 
   return {
     frame,
+    level,
     dragged,
     // Where the cover was sent, until it gets there or stops short.
     sent: dragged === null ? pending : null,

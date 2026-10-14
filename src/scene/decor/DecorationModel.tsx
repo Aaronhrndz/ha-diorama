@@ -126,7 +126,8 @@ function DecorationModel({
   const kind = decorationKind(item.kind)
   const travel = useMemo(() => (kind && onDrag ? travelOf(kind, item) : null), [kind, item, onDrag])
   const level = state?.levels.open ?? (state?.on ? 1 : 0)
-  const { frame, dragged, sent, start } = useDrag(travel, level, state?.text, onDrag)
+  const { frame, level: real, dragged, sent, start } = useDrag(travel, level, state?.text, onDrag)
+  if (state && real !== level) state = { ...state, level: real, levels: { ...state.levels, open: real } }
   // Kept fresh on every render, so a press on the window under it starts the
   // drag the piece would.
   useLayoutEffect(() => {
