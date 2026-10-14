@@ -2,6 +2,7 @@ import { aspectRatioNumber } from '#/lib/aspect.ts'
 import { BACKGROUNDS, DEFAULT_BACKGROUND, PLAIN_SWATCH, THEME_BACKGROUND } from '#/lib/background.ts'
 import { setDevSettings, useDevSettings } from '#/lib/devSettings.ts'
 import { setPreviewRoom } from '#/lib/previewRoom.ts'
+import { screenName, thisScreen, withScreen } from '#/lib/screen.ts'
 import { cn } from '#/lib/utils.ts'
 import { group } from '#/editor/look.ts'
 import ControlsGuide from '#/editor/ControlsGuide.tsx'
@@ -139,6 +140,12 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
         return name ? { ...rest, name } : rest
       }),
     })
+
+  // How much of the screen the diorama takes beside the tiles and over
+  // them, on this screen only. Nothing is written down at the defaults.
+  const screenSizes = thisScreen(config)
+  const setScreen = (key: 'width' | 'height', value: number | undefined) =>
+    onChange(withScreen(config, { [key]: value }))
 
   const setSidePanel = (on: boolean) => {
     const { side_panel: _, ...rest } = config
@@ -417,6 +424,28 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
                 onChange={on => setHome({ show_rooms: on })}
               />
             </label>
+          )}
+          {sidePanel && (
+            <>
+              <ShareSlider
+                label="3D width with widgets beside"
+                hint={`On this screen only (${screenSizes?.name ?? screenName()})`}
+                min={40}
+                max={85}
+                fallback={67}
+                value={screenSizes?.width}
+                onChange={value => setScreen('width', value)}
+              />
+              <ShareSlider
+                label="3D height with widgets under"
+                hint="On this screen only, in a panel view. Auto keeps the phone height above."
+                min={25}
+                max={85}
+                fallback={55}
+                value={screenSizes?.height}
+                onChange={value => setScreen('height', value)}
+              />
+            </>
           )}
           {sidePanel && (
             <div className="border-separator flex items-center gap-3 border-t py-3">
@@ -1096,6 +1125,48 @@ function EntityPicker({
           })}
         </ul>
       )}
+    </div>
+  )
+}
+
+// A share of the screen for the diorama, in percent, on this screen only.
+// Unset, it shows where the default would be, or Auto when there is none.
+function ShareSlider({
+  label,
+  hint,
+  min,
+  max,
+  fallback,
+  value,
+  onChange,
+}: {
+  label: string
+  hint: string
+  min: number
+  max: number
+  fallback: number
+  value: number | undefined
+  onChange: (value: number | undefined) => void
+}) {
+  return (
+    <div className="border-separator flex flex-col gap-2 border-t py-3">
+      <div className="flex items-center gap-2">
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="text-[13px]">{label}</span>
+          <span className="text-label-2 text-xs">{hint}</span>
+        </span>
+        <span className="text-label-2 text-xs tabular-nums">{value === undefined ? 'Auto' : `${value}%`}</span>
+        <ResetButton label={label} changed={value !== undefined} onReset={() => onChange(undefined)} />
+      </div>
+      <Slider
+        aria-label={label}
+        className="w-full"
+        min={min}
+        max={max}
+        step={1}
+        value={value ?? fallback}
+        onChange={e => onChange(Number(e.target.value))}
+      />
     </div>
   )
 }

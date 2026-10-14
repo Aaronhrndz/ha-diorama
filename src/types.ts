@@ -59,6 +59,8 @@ export type HomeAssistant = {
   connection?: {
     subscribeMessage: <T>(callback: (message: T) => void, message: Record<string, unknown>) => Promise<() => void>
   }
+  // Inside the companion app, the way to send it messages.
+  auth?: { external?: { fireMessage: (message: { type: string }) => void } }
 }
 
 // Plan coordinates in meters. x grows to the right, y grows upward on the plan.
@@ -213,6 +215,22 @@ export type CardConfig = {
   // follows the ones it does, in the plan's order.
   room_order?: string[]
   background?: BackgroundConfig
+  // Sizes of the side panel's layout for each screen it is seen on, by the
+  // id the screen gave itself. Set from the card's settings on that screen.
+  screens?: Record<string, ScreenConfig>
+}
+
+// One screen's sizes. Without them the diorama takes two thirds of the
+// width beside the tiles and the shape of `aspect_ratio_mobile` over them.
+export type ScreenConfig = {
+  // Only there to tell the screens apart.
+  name?: string
+  // The part of the width the diorama takes with the tiles beside it, in
+  // percent.
+  width?: number
+  // The part of the height the diorama takes with the tiles under it, in
+  // percent, in a panel view.
+  height?: number
 }
 
 // A card Home Assistant's card picker offers for an entity.

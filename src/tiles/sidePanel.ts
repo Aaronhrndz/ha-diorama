@@ -1,6 +1,7 @@
 import { aspectRatioCss } from '#/lib/aspect.ts'
 import { closest, closestClass, inPanelView } from '#/lib/panelView.ts'
 import { onRoomFilter, roomFilter } from '#/lib/roomFilter.ts'
+import { thisScreen } from '#/lib/screen.ts'
 import { autoGroups } from '#/tiles/auto.ts'
 import type { CardConfig as PlanConfig, HomeAssistant } from '#/types.ts'
 
@@ -69,7 +70,7 @@ const CSS = `
 }
 .split {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: var(--_columns, 2fr 1fr);
   gap: 24px;
   box-sizing: border-box;
   height: calc(100vh - var(--_reserved, calc(var(--header-height, 56px) + env(safe-area-inset-top, 0px))));
@@ -176,6 +177,16 @@ const CSS = `
 .split[data-fit] .main[data-fill] {
   aspect-ratio: auto;
 }
+/* With this screen's own share of the height, a panel view keeps the
+   diorama at that part of the screen and the tiles scroll in the rest. */
+.split[data-panel][data-stacked][data-rows] {
+  height: calc(100vh - var(--_reserved, calc(var(--header-height, 56px) + env(safe-area-inset-top, 0px))));
+  height: calc(100dvh - var(--_reserved, calc(var(--header-height, 56px) + env(safe-area-inset-top, 0px))));
+  grid-template-rows: var(--_rows);
+}
+.split[data-panel][data-stacked][data-rows] .main[data-fill] {
+  aspect-ratio: auto;
+}
 .split[data-stacked] .side {
   margin-inline: 0;
   padding-inline: 0;
@@ -247,6 +258,13 @@ export class SidePanel extends HTMLElement {
     this._config = config
     // Over the tiles, the diorama takes the card's shape on a phone.
     this.root.style.setProperty('--_stacked-aspect', aspectRatioCss(config.aspect_ratio_mobile, '1 / 1'))
+    // This screen's own share for the diorama, beside the tiles and over them.
+    const { width, height } = thisScreen(config) ?? {}
+    if (width) this.root.style.setProperty('--_columns', `minmax(0, ${width}fr) minmax(0, ${100 - width}fr)`)
+    else this.root.style.removeProperty('--_columns')
+    if (height) this.root.style.setProperty('--_rows', `minmax(0, ${height}fr) minmax(0, ${100 - height}fr)`)
+    else this.root.style.removeProperty('--_rows')
+    this.root.toggleAttribute('data-rows', !!height)
     void this.build()
   }
 
