@@ -16,7 +16,8 @@ type Props = { env: TileEnv; config: CoverConfig }
 // while it moves. Up, stop and down buttons sit in the top right corner,
 // on a small tile only when they fit, stop only for a cover that can stop.
 // With the position or tilt position feature
-// the whole tile is how far it is open or tilted. The tile is
+// the whole tile is how far it is open or tilted, and with position with
+// buttons it keeps the buttons too. The tile is
 // lit while the cover is open or opening, so it shows where it is heading.
 export default function Cover({ env, config }: Props) {
   const entity = env.hass.states[config.entity!]
@@ -30,6 +31,8 @@ export default function Cover({ env, config }: Props) {
   const { feature: _, ...plain } = config
   if (usable && config.feature === 'position' && supports(entity, SET_POSITION))
     return <PositionTile env={env} config={plain} entity={entity} />
+  if (usable && config.feature === 'position-buttons' && supports(entity, SET_POSITION))
+    return <PositionTile env={env} config={plain} entity={entity} buttons />
   if (usable && config.feature === 'tilt-position' && supports(entity, SET_TILT))
     return <PositionTile env={env} config={plain} entity={entity} tilt />
   return (

@@ -639,8 +639,8 @@
   background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
-/* On a small tile the buttons are a little smaller, keep some room from
-   the icon, and hide when they do not fit beside it. */
+/* On a small tile the buttons are a little smaller and keep some room
+   from the icon. */
 .dio-tile:not([data-wide]) .dio-controls {
   flex: 0 1 auto;
   min-width: 0;
@@ -653,12 +653,19 @@
   width: 40px;
   height: 40px;
 }
-.dio-controls[data-crowded] {
-  visibility: hidden;
-}
 /* With no room for both, the icon makes way for the buttons, which then
-   take the whole top. Kept in the layout, so the room it leaves is still
-   measured the same. */
+   take the whole top, and with no room for them there either they shrink
+   until they fit. The icon is kept in the layout, so the room it leaves is
+   still measured the same. */
+.dio-tile .dio-controls[data-crowded] > .dio-control {
+  width: var(--_control);
+  height: var(--_control);
+}
+.dio-tile .dio-controls[data-crowded] > .dio-control > .dio-icon {
+  width: min(20px, calc(var(--_control) - 8px));
+  height: min(20px, calc(var(--_control) - 8px));
+  --mdc-icon-size: min(20px, calc(var(--_control) - 8px));
+}
 .dio-top[data-bare] > :first-child {
   position: absolute;
   visibility: hidden;

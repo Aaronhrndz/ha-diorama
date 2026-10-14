@@ -1,5 +1,7 @@
 import { callService, haptic, type TileEnv } from '#/tiles/actions.ts'
-import { numberOf, useHeld } from '#/tiles/features/parts.tsx'
+import CoverControls from '#/tiles/cards/CoverControls.tsx'
+import { STOP } from '#/tiles/features/cover.tsx'
+import { numberOf, supports, useHeld } from '#/tiles/features/parts.tsx'
 import type { TileConfig } from '#/tiles/host.tsx'
 import { Tile } from '#/tiles/Tile.tsx'
 import type { EntityState } from '#/types.ts'
@@ -10,6 +12,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from 'react'
 
 type Props = {
@@ -35,6 +38,8 @@ type Props = {
   from?: 'left' | 'bottom' | 'top'
   // Only shows the value, like a battery's charge, with nothing to drag.
   readOnly?: boolean
+  // Buttons in the top right corner, like a cover's up, stop and down.
+  controls?: ReactNode
 }
 
 // How far a finger goes along the fill before the press is a drag.
@@ -89,6 +94,7 @@ export function FillTile({
   onSend,
   from = 'left',
   readOnly = false,
+  controls,
 }: Props) {
   const [value, hold] = useHeld(reported)
   const [drag, setDrag] = useState<number | null>(null)
@@ -154,6 +160,8 @@ export function FillTile({
 
   const down = (e: ReactPointerEvent) => {
     if (e.button !== 0 || readOnly) return
+    // A press on a button is the button's, not the start of a drag.
+    if (e.target instanceof Element && e.target.closest('button')) return
     start.current = { x: e.clientX, y: e.clientY, from: shown, dragging: false }
   }
 
@@ -199,6 +207,7 @@ export function FillTile({
         accent={accent}
         state={state}
         onTap={onTap}
+        controls={controls}
       />
       {!readOnly && <StepTicks step={step} />}
       {!readOnly && (
@@ -219,7 +228,16 @@ export function FillTile({
           }[from],
         }}
       >
-        <Tile env={env} config={config} entity={entity} active accent={accent} glow={glow} state={state} />
+        <Tile
+          env={env}
+          config={config}
+          entity={entity}
+          active
+          accent={accent}
+          glow={glow}
+          state={state}
+          controls={controls}
+        />
         {!readOnly && <StepTicks step={step} />}
         {!readOnly && (
           <span
@@ -244,16 +262,20 @@ const SIDEWAYS = ['curtain', 'gate', 'door']
 // goes up and down, like a blind, a shutter or a garage door, fills from
 // the bottom as it rises, or from the top for a screen that comes down to
 // open; one that slides aside, like a curtain or a gate, from the left.
+// With `buttons` a cover also has its up, stop and down buttons in the
+// top right corner, as on its own tile.
 export function PositionTile({
   env,
   config,
   entity,
   tilt = false,
+  buttons = false,
 }: {
   env: TileEnv
   config: TileConfig
   entity: EntityState
   tilt?: boolean
+  buttons?: boolean
 }) {
   const valve = entity.entity_id.startsWith('valve.')
   const domain = valve ? 'valve' : 'cover'
@@ -263,9 +285,11 @@ export function PositionTile({
     : (numberOf(entity, 'current_position') ?? (open ? 100 : 0))
   const target = { entity_id: entity.entity_id }
   const sideways = valve || tilt || SIDEWAYS.includes(String(entity.attributes.device_class))
+  const invert = (config as { invert?: boolean }).invert === true
+  const run = (service: string) => () => callService(env.hass, `cover.${service}`, target)
   return (
     <FillTile
-      from={sideways ? 'left' : (config as { invert?: boolean }).invert ? 'top' : 'bottom'}
+      from={sideways ? 'left' : invert ? 'top' : 'bottom'}
       env={env}
       config={config}
       entity={entity}
@@ -278,6 +302,17 @@ export function PositionTile({
         tilt
           ? callService(env.hass, 'cover.set_cover_tilt_position', { ...target, tilt_position: v })
           : callService(env.hass, `${domain}.set_${domain}_position`, { ...target, position: v })
+      }
+      controls={
+        buttons && !valve ? (
+          <CoverControls
+            invert={invert}
+            stops={supports(entity, STOP)}
+            onOpen={run('open_cover')}
+            onStop={run('stop_cover')}
+            onClose={run('close_cover')}
+          />
+        ) : undefined
       }
     />
   )

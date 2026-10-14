@@ -9,6 +9,14 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- A cover's tile can be its position slider and still have its up, stop and down buttons, as Position with Buttons.
+
+### Fixed
+
+- The buttons of a small tile, like a cover's or a vacuum's, no longer disappear in a narrow side panel, like a tablet's: the icon makes way for them and they shrink if they still do not fit.
+
 ## [1.8.17] - 2026-10-14
 
 ### Added

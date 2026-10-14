@@ -17,7 +17,7 @@ Diorama comes with twelve small tiles and eight larger cards, to sit around the 
 | `dio-weather` | `weather.*`                                                                                                         | opens its dialog. It takes the whole width and three rows, and shows the next hours or days                                                                                                                                                                                                                                                      |
 | `dio-entity`  | any entity                                                                                                          | opens its dialog. The line under the name is its state, with its unit                                                                                                                                                                                                                                                                            |
 
-The buttons in the top right corner show on a small tile too when they fit beside the icon, with some room left between them, and hide when the tile is too narrow for them.
+The buttons in the top right corner show on a small tile too, with some room left between them and the icon. When the tile is too narrow for both, the icon makes way for the buttons, and when it is too narrow even for them alone they shrink until they fit, so they never go away. Buttons beside the icon from a `feature`, like a vacuum's commands, take the icon's place the same way.
 
 The larger cards are offered beside the tiles when a card is added by entity:
 
@@ -103,7 +103,7 @@ tap_action:
 | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `invert` | `false` | Swaps what up and down do, for a projector screen or a blind wired the other way round, where closing it brings it down |
 
-The buttons are never greyed out, since many covers do not know where they are. While a cover is partly open, its position is shown next to its state.
+The buttons are never greyed out, since many covers do not know where they are. While a cover is partly open, its position is shown next to its state. A cover's `position-buttons` feature makes the whole tile its position slider, as `position` does, and keeps the up, stop and down buttons in its top right corner. A press on a button never starts a drag.
 
 `dio-vacuum`
 
