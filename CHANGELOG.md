@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.20] - 2026-10-14
+
 ### Fixed
 
 - A blind made from a template no longer jumps to where it was sent and back as it starts to move, and its ghost stays until it gets there.
@@ -614,7 +616,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.19...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.20...HEAD
+[1.8.20]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.19...v1.8.20
 [1.8.19]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.18...v1.8.19
 [1.8.18]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.17...v1.8.18
 [1.8.17]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.16...v1.8.17
