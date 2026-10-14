@@ -171,6 +171,17 @@ let barBefore: string | null = null
 let barBy: ViewBackground | null = null
 const BAR = '--app-header-background-color'
 
+// How far down the bar's color reaches before it is all background.
+const BAR_FADE_PX = 72
+
+// The bar's color at the top edge, fading out the way the blobs do, slowly
+// at the end so it leaves no line where it stops.
+const barFade = (color: string) =>
+  `linear-gradient(to bottom, ${FALLOFF.map(
+    ([amount, stop]) =>
+      `color-mix(in oklab, ${color} ${amount}%, transparent) ${Math.round((stop * BAR_FADE_PX) / 100)}px`,
+  ).join(', ')})`
+
 function lendBar(by: ViewBackground, color: string, hass: HomeAssistant) {
   const external = hass.auth?.external
   if (!external) return
@@ -251,12 +262,15 @@ export class ViewBackground {
     }
     before.by.add(this)
     this.spot = spot
-    element.style.setProperty(property, value)
-    // Fixed to the window, so the colors stay put while the page scrolls.
-    if (fixable) element.toggleAttribute('fixed-background', true)
     const dark = hass.themes?.darkMode !== false
     const top = chosen(config, dark)?.top[dark ? 'dark' : 'light']
-    if (fixable && top) lendBar(this, top, hass)
+    const bar = fixable && top && hass.auth?.external ? top : null
+    // Under the app's status bar the background starts in the bar's own
+    // color and melts into its gradient, so the two read as one.
+    element.style.setProperty(property, bar ? `${barFade(bar)}, ${value}` : value)
+    // Fixed to the window, so the colors stay put while the page scrolls.
+    if (fixable) element.toggleAttribute('fixed-background', true)
+    if (bar) lendBar(this, bar, hass)
     else returnBar(this, hass)
   }
 
