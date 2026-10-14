@@ -42,8 +42,9 @@ type Props = {
   // only when it stays pressed, like a cover that is open.
   role?: 'button' | 'switch'
   toggles?: boolean
-  // Buttons shown in the top right corner, on a small tile only when they
-  // fit beside the icon.
+  // Buttons shown in the top right corner. On a small tile the icon makes
+  // way for them when they do not fit beside it, and they shrink when they
+  // do not fit at all.
   controls?: ReactNode
   // Buttons across from the name along the bottom of a wide tile, so the
   // name and the state stay in the bottom left corner. A feature beside
@@ -59,26 +60,42 @@ const PREVIEW_MS = 5000
 
 // How the buttons in a small tile's top right corner fit, checked whenever
 // the tile or the buttons change size: beside the icon, in place of it when
-// there is room for them only across the whole top, or not at all. The
-// buttons matter more than the icon, so it is the icon that makes way.
-type Fit = 'all' | 'bare' | 'none'
+// there is room for them only across the whole top, or there and smaller
+// when even that is too narrow, like on a tablet's narrow panel. The
+// buttons matter more than the icon, so it is the icon that makes way, and
+// they never go.
+type Fit = { kind: 'all' | 'bare' | 'crowded'; size: number }
 // The room between the icon and the buttons, its gap and their margin.
 const ICON_GAP_PX = 16
+const ALL: Fit = { kind: 'all', size: 0 }
 
 function useFits(enabled: boolean) {
   const ref = useRef<HTMLDivElement>(null)
-  const [fit, setFit] = useState<Fit>('all')
+  const [fit, setFit] = useState<Fit>(ALL)
   useLayoutEffect(() => {
     const box = ref.current
     const top = box?.parentElement
     const icon = top?.firstElementChild
+    const settle = (next: Fit) =>
+      setFit(fit => (fit.kind === next.kind && fit.size === next.size ? fit : next))
     const check = () => {
-      if (!enabled || !box || !top || !(icon instanceof HTMLElement)) return setFit('all')
-      // The width the buttons need, which hiding the icon does not change,
-      // so the choice does not flip back and forth.
+      if (!enabled || !box || !top || !(icon instanceof HTMLElement)) return settle(ALL)
+      // The width the buttons need at their own size, whatever they are
+      // shrunk to now, and which hiding the icon does not change, so the
+      // choice does not flip back and forth.
+      const shrunk = box.hasAttribute('data-crowded')
+      if (shrunk) box.removeAttribute('data-crowded')
       const need = box.scrollWidth
+      const buttons = [...box.children].filter(child => child.classList.contains('dio-control'))
+      const each = buttons[0] instanceof HTMLElement ? buttons[0].offsetWidth : 0
+      if (shrunk) box.setAttribute('data-crowded', '')
       const room = top.clientWidth
-      setFit(need + icon.offsetWidth + ICON_GAP_PX <= room ? 'all' : need <= room ? 'bare' : 'none')
+      if (need + icon.offsetWidth + ICON_GAP_PX <= room) return settle(ALL)
+      if (need <= room || !each) return settle({ kind: 'bare', size: 0 })
+      // Only the buttons shrink, the gaps between them and the padding
+      // around them stay as they are.
+      const rest = need - each * buttons.length
+      settle({ kind: 'crowded', size: Math.max(0, Math.floor((room - rest - 1) / buttons.length)) })
     }
     check()
     if (!enabled || !box || !top) return
@@ -89,6 +106,42 @@ function useFits(enabled: boolean) {
     return () => observer.disconnect()
   })
   return [ref, fit] as const
+}
+
+// Whether the icon of a small tile makes way for a row of buttons beside
+// it, like a cover's open and close, when they would otherwise be squeezed
+// narrower than they are. Worked out from what the buttons are, since they
+// shrink to the room they get and measuring them would only say that.
+function useMakesWay(enabled: boolean) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [bare, setBare] = useState(false)
+  useLayoutEffect(() => {
+    const box = ref.current
+    const top = box?.parentElement
+    const icon = top?.firstElementChild
+    const check = () => {
+      if (!enabled || !box || !top || !(icon instanceof HTMLElement)) return setBare(false)
+      const feature = box.firstElementChild
+      const groups = feature ? [...feature.children].filter(child => child.classList.contains('dio-group')) : []
+      const buttons = groups.every(group => [...group.children].every(child => child.classList.contains('dio-control')))
+      if (!feature || !groups.length || !buttons) return setBare(false)
+      const px = (value: string) => parseFloat(value) || 0
+      let need = px(getComputedStyle(feature).columnGap) * (feature.children.length - 1)
+      for (const group of groups) {
+        const style = getComputedStyle(group)
+        const each = [...group.children].map(button => px(getComputedStyle(button).maxWidth))
+        need += each.reduce((sum, width) => sum + width, 0)
+        need += px(style.columnGap) * (each.length - 1) + px(style.paddingLeft) + px(style.paddingRight)
+      }
+      setBare(need + icon.offsetWidth + ICON_GAP_PX > top.clientWidth)
+    }
+    check()
+    if (!enabled || !box || !top) return
+    const observer = new ResizeObserver(check)
+    observer.observe(top)
+    return () => observer.disconnect()
+  })
+  return [ref, bare] as const
 }
 
 // The icon set for the entity in Home Assistant, in its settings or its
@@ -145,7 +198,8 @@ export function Tile({
   }, [preview])
   const beside = besideIcon(config.feature) && !unavailable
   const wide = isWide(config, entity)
-  const [corner, fit] = useFits(!wide && !beside && !!controls && !unavailable)
+  const [corner, fit] = useFits(!beside && !!controls && !unavailable)
+  const [besideBox, makesWay] = useMakesWay(beside)
   const said = (active && !unavailable && featureState(config.feature, entity!)) || state
   const shown = unavailable ? 'Unavailable' : preview ? preview.state : (config.state_text ?? said)
   const name = entityName(config, entity)
@@ -182,7 +236,7 @@ export function Tile({
         } as CSSProperties
       }
     >
-      <div className="dio-top" data-bare={fit === 'bare' || undefined}>
+      <div className="dio-top" data-bare={fit.kind !== 'all' || makesWay || undefined}>
         {picture ? (
           <img className="dio-picture" src={picture} alt="" draggable={false} />
         ) : logo ? (
@@ -199,13 +253,18 @@ export function Tile({
           />
         )}
         {beside ? (
-          <div className="dio-beside">
+          <div ref={besideBox} className="dio-beside">
             <Feature env={env} config={config} entity={entity!} onPreview={setPreview} />
           </div>
         ) : (
           controls &&
           !unavailable && (
-            <div ref={corner} className="dio-controls" data-crowded={fit === 'none' || undefined}>
+            <div
+              ref={corner}
+              className="dio-controls"
+              data-crowded={fit.kind === 'crowded' || undefined}
+              style={fit.kind === 'crowded' ? ({ '--_control': `${fit.size}px` } as CSSProperties) : undefined}
+            >
               {controls}
             </div>
           )

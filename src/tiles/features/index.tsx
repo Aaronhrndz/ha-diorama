@@ -90,6 +90,12 @@ export const FEATURES: FeatureDef[] = [
     supports: bit(cover.SET_POSITION),
   },
   {
+    id: 'position-buttons',
+    label: 'Position slider with buttons', name: 'Position with Buttons',
+    domains: ['cover'],
+    supports: bit(cover.SET_POSITION),
+  },
+  {
     id: 'position-favorite',
     label: 'Favorite position buttons', name: 'Favorite Positions',
     domains: COVERS,
