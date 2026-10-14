@@ -193,6 +193,11 @@ export function FillTile({
       start.current = null
       if (!s?.dragging) return
       const { send, drag, snap } = latest.current
+      // A drag that started on a button ends in a click on it. It was a
+      // drag, so the button never gets it.
+      const swallow = (e: Event) => e.stopPropagation()
+      box.current?.addEventListener('click', swallow, { capture: true })
+      setTimeout(() => box.current?.removeEventListener('click', swallow, { capture: true }))
       setDrag(null)
       if (drag === null) return
       haptic('selection')
@@ -211,8 +216,8 @@ export function FillTile({
 
   const down = (e: ReactPointerEvent) => {
     if (e.button !== 0 || readOnly) return
-    // A press on a button is the button's, not the start of a drag.
-    if (e.target instanceof Element && e.target.closest('button')) return
+    // A press on a button can still start a drag. Only a press that stays
+    // put is the button's.
     start.current = { x: e.clientX, y: e.clientY, from: grabbed, dragging: false }
   }
 

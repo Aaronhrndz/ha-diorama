@@ -9,6 +9,18 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- Each phone, tablet or computer can have its own share of the screen for the 3D view, beside the widgets and over them, set from the card settings on that screen.
+
+### Changed
+
+- In the companion app the status bar takes the color of the card's background instead of the header's.
+
+### Fixed
+
+- A cover tile with a position slider and buttons can now be dragged starting on its buttons, and a drag never presses them.
+
 ## [1.8.20] - 2026-10-14
 
 ### Fixed

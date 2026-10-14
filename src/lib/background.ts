@@ -5,7 +5,15 @@ import type { BackgroundConfig, HomeAssistant } from '#/types.ts'
 // version for a dark dashboard and a pale one of the same hues for a light
 // one. Most are large soft blobs of color over a plain gradient, as if seen
 // out of focus.
-export type Background = { id: string; name: string; dark: string; light: string }
+// `top` is the color along its top edge, on average, for the status bar
+// of the companion app to take.
+export type Background = {
+  id: string
+  name: string
+  dark: string
+  light: string
+  top: { dark: string; light: string }
+}
 
 // A soft blob of `color` centered at `at`, as wide and tall as `size`. It
 // thins out slowly all the way to its edge, the way light falls off, so it
@@ -37,6 +45,7 @@ const tint = (size: string, at: string, color: string) => blob(size, at, color, 
 export const BACKGROUNDS: Background[] = [
   {
     id: 'graphite',
+    top: { dark: '#303645', light: '#fafafc' },
     name: 'Graphite',
     dark: [
       blob('140% 90%', '15% 0%', '#343a4b'),
@@ -55,6 +64,7 @@ export const BACKGROUNDS: Background[] = [
   },
   {
     id: 'dusk',
+    top: { dark: '#35253c', light: '#f0e2f3' },
     name: 'Dusk',
     dark: [
       tint('150% 90%', '10% 0%', '#3d2a47'),
@@ -75,6 +85,7 @@ export const BACKGROUNDS: Background[] = [
   },
   {
     id: 'ocean',
+    top: { dark: '#1a353c', light: '#dbf1f1' },
     name: 'Ocean',
     dark: [
       tint('130% 90%', '85% 0%', '#1c4a4c'),
@@ -95,6 +106,7 @@ export const BACKGROUNDS: Background[] = [
   },
   {
     id: 'forest',
+    top: { dark: '#233128', light: '#e7f2e3' },
     name: 'Forest',
     dark: [
       tint('150% 100%', '0% 0%', '#283f34'),
@@ -113,6 +125,7 @@ export const BACKGROUNDS: Background[] = [
   },
   {
     id: 'ember',
+    top: { dark: '#2d1e26', light: '#f5e6ed' },
     name: 'Ember',
     dark: [
       tint('130% 85%', '100% 0%', '#45282f'),
@@ -141,9 +154,42 @@ export const PLAIN_SWATCH = { light: '#fafafa', dark: '#111111' }
 // The background chosen for a light or a dark dashboard, as CSS, or null to
 // leave the theme's.
 export function backgroundOf(config: BackgroundConfig | undefined, dark: boolean): string | null {
-  const id = (dark ? config?.dark : config?.light) ?? DEFAULT_BACKGROUND
-  const background = BACKGROUNDS.find(b => b.id === id)
+  const background = chosen(config, dark)
   return background ? background[dark ? 'dark' : 'light'] : null
+}
+
+function chosen(config: BackgroundConfig | undefined, dark: boolean) {
+  const id = (dark ? config?.dark : config?.light) ?? DEFAULT_BACKGROUND
+  return BACKGROUNDS.find(b => b.id === id)
+}
+
+// The companion app paints its status bar in the header's color of the
+// theme, read from the page when it is told the theme changed. A card that
+// lays its background on a view lends that color the top of its background,
+// so the bar goes on from it, with the header hidden in a kiosk.
+let barBefore: string | null = null
+let barBy: ViewBackground | null = null
+const BAR = '--app-header-background-color'
+
+function lendBar(by: ViewBackground, color: string, hass: HomeAssistant) {
+  const external = hass.auth?.external
+  if (!external) return
+  const root = document.documentElement
+  if (barBy === null) barBefore = root.style.getPropertyValue(BAR)
+  barBy = by
+  if (root.style.getPropertyValue(BAR) === color) return
+  root.style.setProperty(BAR, color)
+  external.fireMessage({ type: 'theme-update' })
+}
+
+function returnBar(by: ViewBackground, hass: HomeAssistant | null) {
+  if (barBy !== by) return
+  barBy = null
+  const root = document.documentElement
+  if (barBefore) root.style.setProperty(BAR, barBefore)
+  else root.style.removeProperty(BAR)
+  barBefore = null
+  hass?.auth?.external?.fireMessage({ type: 'theme-update' })
 }
 
 // Whether two configs differ in nothing but their background.
@@ -168,6 +214,7 @@ const held = new WeakMap<HTMLElement, { value: string; fixed: boolean; by: Set<V
 
 export class ViewBackground {
   private spot: Spot | null = null
+  private hass: HomeAssistant | null = null
 
   private readonly card: HTMLElement
 
@@ -187,6 +234,7 @@ export class ViewBackground {
 
   apply(config: BackgroundConfig | undefined, hass: HomeAssistant | null) {
     if (!hass || !this.card.isConnected) return
+    this.hass = hass
     const spot = this.find()
     if (spot?.element !== this.spot?.element) this.release()
     const value = backgroundOf(config, hass.themes?.darkMode !== false)
@@ -206,9 +254,14 @@ export class ViewBackground {
     element.style.setProperty(property, value)
     // Fixed to the window, so the colors stay put while the page scrolls.
     if (fixable) element.toggleAttribute('fixed-background', true)
+    const dark = hass.themes?.darkMode !== false
+    const top = chosen(config, dark)?.top[dark ? 'dark' : 'light']
+    if (fixable && top) lendBar(this, top, hass)
+    else returnBar(this, hass)
   }
 
   release() {
+    returnBar(this, this.hass)
     const spot = this.spot
     this.spot = null
     if (!spot) return

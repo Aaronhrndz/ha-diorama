@@ -209,6 +209,7 @@ const sections: { title: Record<string, unknown>; cards: Record<string, unknown>
       { type: 'dio-cover', entity: 'cover.projector', size: 'wide', invert: true, icon: 'ph:projector-screen' },
       { type: 'dio-cover', entity: 'cover.bedroom' },
       { type: 'dio-cover', entity: 'cover.bedroom', feature: 'position' },
+      { type: 'dio-cover', entity: 'cover.bedroom', feature: 'position-buttons', size: 'wide' },
       { type: 'dio-vacuum', entity: 'vacuum.robot', size: 'wide', battery_entity: 'sensor.robot_battery' },
       { type: 'dio-select', entity: 'select.clean_mode', icon: 'ph:sliders' },
       { type: 'dio-select', entity: 'select.clean_mode', tap_behavior: 'cycle', name: 'Cycle mode' },
