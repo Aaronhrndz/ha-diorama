@@ -6,9 +6,10 @@ export const PLACEHOLDER = /^not provided$/i
 // The smaller line under what plays: the series of an episode, the artist
 // of a song or the channel of a video, or else the album, or else the app
 // it plays from. A player that sends a blank in one of them, like a space
-// for the artist of an episode, has said nothing there. Null when it tells
-// none of them.
-export function bylineOf(told: Record<string, unknown>, app: string | null): string | null {
+// for the artist of an episode, has said nothing there, and one that only
+// repeats the title tells nothing new. Null when it tells none of them.
+export function bylineOf(told: Record<string, unknown>, app: string | null, title?: unknown): string | null {
+  const same = typeof title === 'string' ? title.trim().toLowerCase() : null
   const said = [
     told.media_series_title,
     told.media_artist,
@@ -17,7 +18,10 @@ export function bylineOf(told: Record<string, unknown>, app: string | null): str
     told.media_album_name,
     app,
   ]
-  for (const part of said) if (typeof part === 'string' && part.trim()) return part.trim()
+  for (const part of said) {
+    const shown = typeof part === 'string' ? part.trim() : ''
+    if (shown && shown.toLowerCase() !== same) return shown
+  }
   return null
 }
 

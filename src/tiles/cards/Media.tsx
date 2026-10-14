@@ -29,7 +29,7 @@ export default function Media({ env, config }: Props) {
   const features = typeof attributes.supported_features === 'number' ? attributes.supported_features : 0
   const playing = entity?.state === 'playing'
   const loaded = playing || entity?.state === 'paused'
-  const title = [attributes.media_title, bylineOf(attributes, null)].filter(
+  const title = [attributes.media_title, bylineOf(attributes, null, attributes.media_title)].filter(
     part => typeof part === 'string' && part.trim(),
   )
   const on = !!entity && !['off', 'standby', 'unavailable', 'unknown'].includes(entity.state)

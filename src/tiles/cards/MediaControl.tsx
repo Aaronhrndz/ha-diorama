@@ -217,7 +217,7 @@ export default function MediaControl({
   // With no cover art behind it, a card that is on has a soft light behind
   // it in the colors of its app, which drifts while it plays.
   const glow = !off && going !== 'off' && !(picture && !square) ? (known?.colors ?? NEUTRAL) : null
-  const artist = bylineOf(told, app)
+  const artist = bylineOf(told, app, title)
   const duration = numberOf(media, 'media_duration')
   const position = numberOf(media, 'media_position')
   const updated = typeof told.media_position_updated_at === 'string' ? told.media_position_updated_at : null

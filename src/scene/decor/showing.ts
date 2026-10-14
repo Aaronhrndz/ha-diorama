@@ -43,7 +43,7 @@ export function showingOf(hass: HomeAssistant, entityId: string): Showing | null
       ? entity.attributes.app_name
       : null)
   // The line under the title, as on the card.
-  const artist = bylineOf(told, app)
+  const artist = bylineOf(told, app, said)
   return {
     colors: known?.colors ?? NEUTRAL,
     art: typeof told.entity_picture === 'string' ? told.entity_picture : null,
