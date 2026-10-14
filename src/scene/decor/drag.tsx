@@ -220,8 +220,8 @@ const FADE_S = 0.25
 const GHOST_COLOR = '#7ad3e6'
 // The ghost is a little wider and deeper than the piece and sits a little
 // in front of it, so it shows over the piece whichever way the cover goes.
-const GHOST_SCALE: Vec3 = [1.01, 1, 1.01]
-const GHOST_FORWARD = 0.008
+const GHOST_SCALE: Vec3 = [1.02, 1, 1.02]
+const GHOST_FORWARD = 0.012
 
 // A see-through blue copy of the piece at the level a finger drags it to, and
 // then at the level it was sent to until the cover gets there or stops. It
@@ -270,6 +270,11 @@ export function DragGhost({ level, children }: { level: number | null; children:
           side: m.side,
           transparent: true,
           depthWrite: false,
+          // Pulled toward the camera in the depth test, so where it lies
+          // flat against the piece, like a screen's sheet, it still wins.
+          polygonOffset: true,
+          polygonOffsetFactor: -4,
+          polygonOffsetUnits: -4,
           visible: m.visible,
         })
         copy.userData.opacity = m.opacity
