@@ -282,17 +282,11 @@
   inset: 0;
   pointer-events: none;
   opacity: 0;
-  transition:
-    opacity 400ms ease,
-    clip-path 1s linear;
+  transition: opacity 400ms ease;
 }
 
 .dio-fill-band[data-on] {
   opacity: 1;
-}
-
-.dio-fill[data-dragging] .dio-fill-band {
-  transition: opacity 400ms ease;
 }
 
 .dio-fill-band-tint,
@@ -305,8 +299,15 @@
   opacity: 0.3;
 }
 
+/* An unlit tile is see-through, so over the lit fill it would barely show.
+   There the band is the color of the words on a lit tile instead, dark on
+   a dark dashboard and light on a light one, half over the fill. */
 .dio-fill-band[data-back] .dio-fill-band-tint {
-  opacity: 0.85;
+  opacity: 0.5;
+}
+
+.dio-fill-band[data-back] .dio-fill-band-tint .dio-tile {
+  background: var(--_text-active);
 }
 
 .dio-fill-band-tint .dio-tile > * {

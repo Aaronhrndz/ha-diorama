@@ -235,10 +235,62 @@ export function FillTile({
   }
 
   const state = format(Math.round(drag ?? shown))
-  // The stretch between the fill and the band's end, from its start to its
-  // end along the side it fills from.
-  const lo = Math.min(shown, band ?? shown)
-  const hi = Math.max(shown, band ?? shown)
+  // Clips that keep a layer from the side it fills from up to a value, or
+  // from that value on to the far side.
+  const upTo = (v: number) =>
+    ({
+      left: `inset(0 ${100 - v}% 0 0)`,
+      top: `inset(0 0 ${100 - v}% 0)`,
+      bottom: `inset(${100 - v}% 0 0 0)`,
+    })[from]
+  const past = (v: number) =>
+    ({
+      left: `inset(0 0 0 ${v}%)`,
+      top: `inset(${v}% 0 0 0)`,
+      bottom: `inset(0 0 ${v}% 0)`,
+    })[from]
+  // The band is drawn twice, and only ever clipped by where it ends. Ahead
+  // of the fill it lies under the fill, which covers it up to where the fill
+  // really is. Behind the fill it lies inside the fill, which cuts it off
+  // there. So the band always meets the fill as it glides. Each copy draws
+  // its words again over itself, in the color they have there, so the band
+  // never dims them.
+  const bandLayer = (ahead: boolean) =>
+    band !== null && (
+      <div
+        className="dio-fill-band"
+        data-on={!fading || undefined}
+        data-back={!ahead || undefined}
+        inert
+        style={{ clipPath: ahead ? upTo(band) : past(band) }}
+      >
+        <div className="dio-fill-band-tint">
+          <Tile
+            env={env}
+            config={config}
+            entity={entity}
+            active={ahead || on}
+            looksOff={!ahead}
+            accent={accent}
+            glow={ahead ? glow : undefined}
+            state={state}
+            controls={controls}
+          />
+        </div>
+        <div className="dio-fill-band-ink">
+          <Tile
+            env={env}
+            config={config}
+            entity={entity}
+            active={!ahead || on}
+            looksOff={ahead}
+            accent={accent}
+            state={state}
+            controls={controls}
+          />
+        </div>
+      </div>
+    )
   return (
     <div
       ref={box}
@@ -271,17 +323,8 @@ export function FillTile({
           style={{ opacity: GRIP_OPACITY * Math.max(0, (GRIP_TO - shown) / GRIP_TO) }}
         />
       )}
-      <div
-        className="dio-fill-lit"
-        inert
-        style={{
-          clipPath: {
-            left: `inset(0 ${100 - shown}% 0 0)`,
-            top: `inset(0 0 ${100 - shown}% 0)`,
-            bottom: `inset(${100 - shown}% 0 0 0)`,
-          }[from],
-        }}
-      >
+      {bandLayer(true)}
+      <div className="dio-fill-lit" inert style={{ clipPath: upTo(shown) }}>
         <Tile
           env={env}
           config={config}
@@ -304,51 +347,8 @@ export function FillTile({
             }
           />
         )}
+        {bandLayer(false)}
       </div>
-      {band !== null && (
-        // Over the fill where it heads back, so that stretch looks half lit.
-        // The words and the icon are drawn again over it, as on a tile that
-        // is off, so the band never dims them.
-        <div
-          className="dio-fill-band"
-          data-on={!fading || undefined}
-          data-back={band < shown || undefined}
-          inert
-          style={{
-            clipPath: {
-              left: `inset(0 ${100 - hi}% 0 ${lo}%)`,
-              top: `inset(${lo}% 0 ${100 - hi}% 0)`,
-              bottom: `inset(${100 - hi}% 0 ${lo}% 0)`,
-            }[from],
-          }}
-        >
-          <div className="dio-fill-band-tint">
-            <Tile
-              env={env}
-              config={config}
-              entity={entity}
-              active={band > shown || on}
-              looksOff={band < shown}
-              accent={accent}
-              glow={band > shown ? glow : undefined}
-              state={state}
-              controls={controls}
-            />
-          </div>
-          <div className="dio-fill-band-ink">
-            <Tile
-              env={env}
-              config={config}
-              entity={entity}
-              active={false}
-              looksOff
-              accent={accent}
-              state={state}
-              controls={controls}
-            />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
