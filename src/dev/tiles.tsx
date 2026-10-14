@@ -123,6 +123,8 @@ const entities = Object.fromEntries(
 
 let hass: HomeAssistant
 const tiles: HTMLElement[] = []
+// Where each cover really is while it runs, apart from what it reports.
+const reals = new Map<string, number>()
 const runs = new Map<string, ReturnType<typeof setInterval>>()
 function update(id: string, value: string, attributes?: Record<string, unknown>) {
   const old = states[id]
@@ -155,14 +157,19 @@ hass = {
     if (service === 'toggle' && domain !== 'cover') update(id, s.state === 'on' ? 'off' : 'on')
     if (service === 'press' || (domain === 'scene' && service === 'turn_on')) update(id, new Date().toISOString())
     // A cover sent to a position runs there a tenth of its travel every
-    // half second, as a slow blind would.
+    // half second, as a slow blind would. Like a cover made from a template,
+    // it first reports the place it was sent to as it starts, then where it
+    // really is.
     if (service === 'set_cover_position') {
       clearInterval(runs.get(id))
       const to = Number(data!.position)
+      let at = reals.get(id) ?? Number(s.attributes.current_position ?? 0)
+      if (at !== to) update(id, to > at ? 'opening' : 'closing', { current_position: to })
       const step = () => {
-        const from = Number(states[id].attributes.current_position ?? 0)
-        const next = from < to ? Math.min(from + 10, to) : Math.max(from - 10, to)
-        const moving = next > from ? 'opening' : 'closing'
+        const next = at < to ? Math.min(at + 10, to) : Math.max(at - 10, to)
+        const moving = next > at ? 'opening' : 'closing'
+        at = next
+        reals.set(id, at)
         update(id, next === to ? (next > 0 ? 'open' : 'closed') : moving, { current_position: next })
         if (next === to) clearInterval(runs.get(id))
       }

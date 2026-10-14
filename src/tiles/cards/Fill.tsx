@@ -1,3 +1,4 @@
+import { useUnechoed } from '#/lib/echo.ts'
 import { callService, haptic, type TileEnv } from '#/tiles/actions.ts'
 import CoverControls from '#/tiles/cards/CoverControls.tsx'
 import { STOP } from '#/tiles/features/cover.tsx'
@@ -99,7 +100,7 @@ export function FillTile({
   env,
   config,
   entity,
-  value: reported,
+  value: raw,
   step = 1,
   accent,
   glow,
@@ -112,7 +113,7 @@ export function FillTile({
   controls,
   travels,
 }: Props) {
-  const [value, hold] = useHeld(reported)
+  const [value, hold] = useHeld(raw)
   const [drag, setDrag] = useState<number | null>(null)
   const box = useRef<HTMLDivElement>(null)
   const start = useRef<{ x: number; y: number; from: number; dragging: boolean } | null>(null)
@@ -120,9 +121,10 @@ export function FillTile({
 
   // Where something that travels was sent, until it gets there or stops.
   const [sent, setSent] = useState<number | null>(null)
+  const moving = travels?.moving ?? false
+  const reported = useUnechoed(raw, travels ? sent : null, moving, 1)
   const arrived = sent !== null && Math.abs(reported - sent) < 1
   const pending = travels && sent !== null && !arrived ? sent : null
-  const moving = travels?.moving ?? false
   useEffect(() => {
     if (sent === null || (moving && !arrived)) return
     const timer = setTimeout(() => setSent(null), arrived ? 0 : SETTLE_MS)

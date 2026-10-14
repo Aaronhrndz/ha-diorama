@@ -99,14 +99,25 @@ const hass = (): HomeAssistant => ({
   themes: { darkMode: !light },
 })
 const runs = new Map<string, ReturnType<typeof setInterval>>()
+// Where each cover really is while it runs, apart from what it reports.
+const reals = new Map<string, number>()
+// Like a cover made from a template, one sent somewhere first reports that
+// place as it starts, then where it really is.
 function run(id: string, to: number) {
   clearInterval(runs.get(id))
+  const entity = states[id]
+  let at = reals.get(id) ?? Number(entity.attributes.current_position ?? 0)
+  if (at !== to) {
+    entity.attributes.current_position = to
+    entity.state = to > at ? 'opening' : 'closing'
+    element.hass = hass()
+  }
   const step = () => {
-    const entity = states[id]
-    const from = Number(entity.attributes.current_position ?? 0)
-    const next = from < to ? Math.min(from + 10, to) : Math.max(from - 10, to)
+    const next = at < to ? Math.min(at + 10, to) : Math.max(at - 10, to)
     entity.attributes.current_position = next
-    entity.state = next === to ? (next > 0 ? 'open' : 'closed') : next > from ? 'opening' : 'closing'
+    entity.state = next === to ? (next > 0 ? 'open' : 'closed') : next > at ? 'opening' : 'closing'
+    at = next
+    reals.set(id, at)
     if (next === to) clearInterval(runs.get(id))
     element.hass = hass()
   }

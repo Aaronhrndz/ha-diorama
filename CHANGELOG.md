@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A blind made from a template no longer jumps to where it was sent and back as it starts to move, and its ghost stays until it gets there.
+
 ## [1.8.19] - 2026-10-14
 
 ### Added
