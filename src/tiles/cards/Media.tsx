@@ -5,6 +5,7 @@ import { Control } from '#/tiles/Control.tsx'
 import { MEDIA } from '#/tiles/features/media.tsx'
 import { numberOf, supports } from '#/tiles/features/parts.tsx'
 import type { TileConfig } from '#/tiles/host.tsx'
+import { bylineOf } from '#/tiles/playing.ts'
 import { Tile } from '#/tiles/Tile.tsx'
 
 // The media player features the buttons need, as Home Assistant numbers them.
@@ -28,7 +29,9 @@ export default function Media({ env, config }: Props) {
   const features = typeof attributes.supported_features === 'number' ? attributes.supported_features : 0
   const playing = entity?.state === 'playing'
   const loaded = playing || entity?.state === 'paused'
-  const title = [attributes.media_title, attributes.media_artist].filter(part => typeof part === 'string' && part)
+  const title = [attributes.media_title, bylineOf(attributes, null)].filter(
+    part => typeof part === 'string' && part.trim(),
+  )
   const on = !!entity && !['off', 'standby', 'unavailable', 'unknown'].includes(entity.state)
   const muted = attributes.is_volume_muted === true
   const loudness = (v: number) => (muted ? 'Muted' : `${v}%`)

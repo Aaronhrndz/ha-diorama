@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- What plays on a TV or a media card always has a second line under its title: the series, the artist or the channel, or else the app, or else On.
+
 ## [1.8.18] - 2026-10-14
 
 ### Added
