@@ -81,6 +81,11 @@ function useForecast(hass: HomeAssistant, entityId: string | undefined, kind: Ki
 // Whole degrees with a degree sign and no unit, like 21°.
 const degrees = (value: number | undefined) => (typeof value === 'number' ? `${Math.round(value)}°` : '')
 
+// How a condition looks at night: a clear sky shows the moon, and a partly
+// cloudy one the moon behind a cloud.
+const NIGHT: Record<string, string> = { sunny: 'clear-night', partlycloudy: 'partlycloudy-night' }
+const atNight = (condition: string | undefined, night: boolean) => (night && NIGHT[condition ?? '']) || condition
+
 // White icons, but for the sun, which is yellow.
 const iconColor = (condition: string | undefined) => (condition === 'sunny' ? '#ffd60a' : undefined)
 
@@ -137,8 +142,7 @@ export default function Weather({ env, config }: Props) {
 
   const night = env.hass.states['sun.sun']?.state === 'below_horizon'
   const condition = entity?.state
-  // Sunny at night is a clear night, with the moon for its icon.
-  const looks = night && condition === 'sunny' ? 'clear-night' : condition
+  const looks = atNight(condition, night)
   const today = days?.[0]
   const language = env.hass.locale?.language ?? env.hass.language
   const label = (step: Forecast, i: number) => {
@@ -215,7 +219,7 @@ export default function Weather({ env, config }: Props) {
       {steps && steps.length > 0 && (
         <div className="dio-weather-steps">
           {steps.slice(0, STEPS).map((step, i) => {
-            const condition = step.condition === 'sunny' && step.is_daytime === false ? 'clear-night' : step.condition
+            const condition = atNight(step.condition, step.is_daytime === false)
             return (
               <div key={step.datetime} className="dio-weather-step">
                 <div className="dio-weather-when">{label(step, i)}</div>
