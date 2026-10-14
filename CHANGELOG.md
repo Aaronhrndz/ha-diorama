@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A cover tile with a position slider and buttons can now be dragged starting on its buttons, and a drag never presses them.
+
 ## [1.8.20] - 2026-10-14
 
 ### Fixed
