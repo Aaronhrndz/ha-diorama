@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- In the companion app the status bar melts into the card's background, with no line where it ends.
+
 ## [1.8.21] - 2026-10-14
 
 ### Added
