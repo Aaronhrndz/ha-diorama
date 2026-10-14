@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.22] - 2026-10-14
+
 ### Fixed
 
 - In the companion app the status bar melts into the card's background, with no line where it ends.
@@ -634,7 +636,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.21...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.22...HEAD
+[1.8.22]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.21...v1.8.22
 [1.8.21]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.20...v1.8.21
 [1.8.20]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.19...v1.8.20
 [1.8.19]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.18...v1.8.19
