@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.18] - 2026-10-14
+
 ### Added
 
 - A cover's tile can be its position slider and still have its up, stop and down buttons, as Position with Buttons.
@@ -594,7 +596,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.17...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.18...HEAD
+[1.8.18]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.17...v1.8.18
 [1.8.17]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.16...v1.8.17
 [1.8.16]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.15...v1.8.16
 [1.8.15]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.14...v1.8.15
