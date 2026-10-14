@@ -7,6 +7,7 @@ import {
   CAMERA_TURN_S,
 } from '#/constants.ts'
 import { passageFootprint, passagesOf } from '#/geometry/passages.ts'
+import { held } from '#/scene/drags.ts'
 import { flights } from '#/scene/flights.ts'
 import { fitView, frameRooms, sceneHeight } from '#/scene/framing.ts'
 import { multiTouchSince, sent } from '#/scene/touches.ts'
@@ -503,6 +504,8 @@ export default function CameraRig({
         return
       }
       if (given.has(press.id)) return
+      // A piece is dragging it, or deciding whether to.
+      if (held.has(press.id)) return
       // A move with nothing held is a release that was never heard.
       if (event.pointerType !== 'touch' && event.buttons === 0) return forget(press.id)
       const last = zooms.get(press.id)

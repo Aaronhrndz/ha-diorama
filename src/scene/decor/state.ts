@@ -22,6 +22,8 @@ export type ItemState = {
   presses?: number
   // What a player plays, for a screen to show it.
   showing?: Showing | null
+  // A finger is dragging the piece, which follows it with no easing.
+  dragged?: boolean
 }
 
 // Whether two states draw the same. Each render builds its states afresh, so
@@ -29,7 +31,14 @@ export type ItemState = {
 export function sameState(a: ItemState | null, b: ItemState | null) {
   if (a === b) return true
   if (!a || !b) return false
-  if (a.on !== b.on || a.level !== b.level || a.value !== b.value || a.text !== b.text || a.presses !== b.presses)
+  if (
+    a.on !== b.on ||
+    a.level !== b.level ||
+    a.value !== b.value ||
+    a.text !== b.text ||
+    a.presses !== b.presses ||
+    a.dragged !== b.dragged
+  )
     return false
   if (!sameShowing(a.showing, b.showing)) return false
   if (a.glow[0] !== b.glow[0] || a.glow[1] !== b.glow[1] || a.glow[2] !== b.glow[2]) return false

@@ -161,7 +161,7 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
   // it has none. Without the switch, a cover bound to something that only
   // turns on and off would never move.
   const openTarget = state ? (state.levels.open ?? (state.on ? 1 : 0)) : 0
-  const coverLevel = useTravel(openTarget)
+  const coverLevel = useTravel(openTarget, undefined, state?.dragged)
   // Same, but a cover with no position at all counts as fully open.
   const openAmount = coverLevel
   // Slats, or a window's tilt, when a second percentage feeds it.

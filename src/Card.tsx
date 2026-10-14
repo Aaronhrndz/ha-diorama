@@ -124,9 +124,10 @@ export default function Card({ hass, config, panel = false, preview = false }: P
   // With rooms first, a click on a device in a room the camera has not flown
   // to goes to that room. The card comes with devices first, where a device
   // answers from anywhere.
-  const roomFirst = (id: string) => {
+  const roomFirst = (id: string, ask = false) => {
     // With a room focused, whatever can be pressed is in it or in its walls.
     if (config.first_click !== 'room' || focused || !roomOf(id) || !camera.current) return false
+    if (ask) return true
     showRoom(id)
     return true
   }

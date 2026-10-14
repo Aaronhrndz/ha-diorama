@@ -50,7 +50,9 @@ const STEP = 0.5
 // reports to measure between.
 const FIRST_STEP_S = 1
 
-export function useTravel(target: number, fallback = 0.9) {
+// A target that is being dragged is shown where it is, with no easing, so
+// the piece stays under the finger.
+export function useTravel(target: number, fallback = 0.9, snap = false) {
   const [shown, setShown] = useState(target)
   const value = useRef(target)
   const report = useRef({ target, at: 0, speed: fallback })
@@ -78,11 +80,16 @@ export function useTravel(target: number, fallback = 0.9) {
     const aim = Number.isFinite(target) ? Math.min(Math.max(target, 0), 1) : value.current
     if (value.current === aim) return
     invalidate()
+    if (snap) {
+      value.current = aim
+      setShown(aim)
+      return
+    }
     const step = report.current.speed * Math.min(delta, 0.1)
     const rest = aim - value.current
     value.current = Math.abs(rest) <= step ? aim : value.current + Math.sign(rest) * step
     setShown(value.current)
   })
 
-  return shown
+  return snap && Number.isFinite(target) ? Math.min(Math.max(target, 0), 1) : shown
 }

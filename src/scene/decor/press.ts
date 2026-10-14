@@ -1,3 +1,4 @@
+import { justDropped } from '#/scene/drags.ts'
 import { multiTouchSince } from '#/scene/touches.ts'
 import type { ThreeEvent } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
@@ -48,6 +49,8 @@ export function usePressActions(onClick?: PressAction, onOpen?: PressAction) {
     onClick: (e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation()
       if (e.nativeEvent.button !== 0) return
+      // The release of a drag is not a click.
+      if (justDropped()) return
       // The long press already opened the dialog, so this release is spent.
       if (opened.current) {
         opened.current = false

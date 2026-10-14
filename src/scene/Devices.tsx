@@ -3,6 +3,7 @@ import { decorationKind, type DecorationKind } from '#/decoration/catalog.ts'
 import { canTry, initialTry, tryItemState, type TryState, type TryStates } from '#/editor/tryState.ts'
 import { DOOR_KINDS } from '#/geometry/passages.ts'
 import DecorationModel from '#/scene/decor/DecorationModel.tsx'
+import type { DragAction } from '#/scene/decor/drag.tsx'
 import type { PressAction } from '#/scene/decor/press.ts'
 import { deskRise } from '#/scene/decor/state.ts'
 import { showingOf } from '#/scene/decor/showing.ts'
@@ -33,8 +34,9 @@ type Props = {
   tries?: TryStates
   onTry?: (id: string) => void
   // Asked before a click acts on a device, with the room its piece stands
-  // in. True means the click was spent on the room instead.
-  roomFirst?: (room: string) => boolean
+  // in. True means the click was spent on the room instead. Only asked, it
+  // says whether a click would be, and goes nowhere.
+  roomFirst?: (room: string, ask?: boolean) => boolean
   // In the card, a click that is for a room and nothing else, with the
   // rooms on either side of the wall the piece it landed on stands in.
   onRoom?: (room: string, through: string[]) => void
@@ -56,6 +58,9 @@ const scratch = new Color()
 // for as long as the device took to answer, which for a lamp on a cloud
 // account can be a second or two.
 const GUESS_MS = 2000
+
+// The bit in a cover's supported features that says it takes a position.
+const SET_POSITION = 4
 
 // The presses each button has had since the card opened, and the last time
 // Home Assistant gave for one. A click counts its press at once. The new
@@ -237,15 +242,37 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
   // What a press on each piece does. The models are only drawn again when
   // they change, so each is handed a handler that stays the same and calls
   // whatever this render says a press does now.
-  const [actions] = useState(() => new Map<string, { click?: PressAction; open?: PressAction }>())
-  const [handlers] = useState(() => new Map<string, { click: PressAction; open: PressAction }>())
+  const [actions] = useState(() => new Map<string, { click?: PressAction; open?: PressAction; drag?: DragAction }>())
+  const [handlers] = useState(() => new Map<string, { click: PressAction; open: PressAction; drag: DragAction }>())
   const handler = (id: string) => {
     let h = handlers.get(id)
     if (!h) {
-      h = { click: at => actions.get(id)?.click?.(at), open: at => actions.get(id)?.open?.(at) }
+      h = {
+        click: at => actions.get(id)?.click?.(at),
+        open: at => actions.get(id)?.open?.(at),
+        drag: {
+          may: () => actions.get(id)?.drag?.may() ?? false,
+          drop: level => actions.get(id)?.drag?.drop(level),
+        },
+      }
       handlers.set(id, h)
     }
     return h
+  }
+
+  // A cover Home Assistant can send to any position, fed by that position,
+  // can be dragged there. Not in the editor, which leaves the real one be.
+  const draggable = (device: DeviceConfig | undefined) => {
+    if (!hass || !device || onTry || onPick || !device.entity_id.startsWith('cover.')) return false
+    const entity = hass.states[device.entity_id]
+    if (!entity || entity.state === 'unavailable') return false
+    const features = Number(entity.attributes.supported_features ?? 0)
+    const fed = device.levels?.open
+    return (
+      (features & SET_POSITION) !== 0 &&
+      (!fed || fed === 'position') &&
+      typeof entity.attributes.current_position === 'number'
+    )
   }
 
   const stateOf = (item: (typeof decorations)[number]) => {
@@ -339,7 +366,24 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
                   if (over) openMoreInfo(over.entity_id)
                 }
               : undefined
-        actions.set(item.id, { click: onClick, open: onOpen })
+        // A drag never flies to the room first. Where a click would, it is
+        // left to turn the camera.
+        const drag: DragAction | undefined = draggable(device)
+          ? {
+              may: () => !roomFirst?.(roomOf(), true),
+              drop: level =>
+                hass!
+                  .callService(
+                    'cover',
+                    'set_cover_position',
+                    { entity_id: device!.entity_id, position: Math.round(level * 100) },
+                    undefined,
+                    false,
+                  )
+                  .catch(() => {}),
+            }
+          : undefined
+        actions.set(item.id, { click: onClick, open: onOpen, drag })
         const h = handler(item.id)
         return (
           <DecorationModel
@@ -353,6 +397,7 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
             onClick={onClick && h.click}
             onOpen={onOpen && h.open}
             exact={!device && !onPick && !tried}
+            onDrag={drag && h.drag}
           />
         )
       })}

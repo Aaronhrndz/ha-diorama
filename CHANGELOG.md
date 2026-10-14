@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- Blinds, shutters, projector screens, garage doors, awnings and sliding doors can be dragged in the 3D view to any position, and the cover goes there when let go.
+
 ### Fixed
 
 - What plays on a TV or a media card always has a second line under its title: the series, the artist or the channel, or else the app, or else On.

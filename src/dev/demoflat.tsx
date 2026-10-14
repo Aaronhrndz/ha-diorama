@@ -15,7 +15,8 @@
 // `mobile=1:1` gives the card that aspect ratio while it is narrow, and 16:9
 // otherwise; `frame=living,kitchen` has the view of the whole home zoom in
 // on those rooms.
-// A click on a piece flips its entity, the way Home Assistant would.
+// A click on a piece flips its entity, the way Home Assistant would. A cover
+// sent to a position runs there at a tenth of its travel every half second.
 import { setMerging } from '#/scene/Merged.tsx'
 import type { CardConfig, HomeAssistant } from '#/types.ts'
 import { DEMO_AREAS, DEMO_ENTITIES, DEMO_FLAT, DEMO_STATES, flip } from '../../scripts/demoflat.plan.ts'
@@ -81,8 +82,12 @@ const hass = (): HomeAssistant => ({
   states: structuredClone(states),
   areas: DEMO_AREAS,
   entities: DEMO_ENTITIES,
-  callService: (_domain, _service, data) => {
+  callService: (_domain, service, data) => {
     const id = data?.entity_id
+    if (service === 'set_cover_position' && typeof id === 'string' && states[id]) {
+      run(id, Number(data?.position))
+      return Promise.resolve()
+    }
     if (typeof id === 'string' && states[id]) {
       flip(states[id])
       element.hass = hass()
@@ -91,6 +96,20 @@ const hass = (): HomeAssistant => ({
   },
   themes: { darkMode: params.has('dark') },
 })
+const runs = new Map<string, ReturnType<typeof setInterval>>()
+function run(id: string, to: number) {
+  clearInterval(runs.get(id))
+  const step = () => {
+    const entity = states[id]
+    const from = Number(entity.attributes.current_position ?? 0)
+    const next = from < to ? Math.min(from + 10, to) : Math.max(from - 10, to)
+    entity.attributes.current_position = next
+    entity.state = next === to ? (next > 0 ? 'open' : 'closed') : next > from ? 'opening' : 'closing'
+    if (next === to) clearInterval(runs.get(id))
+    element.hass = hass()
+  }
+  runs.set(id, setInterval(step, 500))
+}
 element.style.cssText = 'display:block;width:100vw;height:100vh'
 element.setConfig(config)
 element.hass = hass()

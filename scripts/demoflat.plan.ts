@@ -477,7 +477,7 @@ function initial(entityId: string): { state: string; attributes: Record<string, 
     case 'light':
       return { state: 'off', attributes: { supported_color_modes: ['color_temp'] } }
     case 'cover':
-      return { state: 'closed', attributes: { current_position: 0, device_class: 'blind' } }
+      return { state: 'closed', attributes: { current_position: 0, device_class: 'blind', supported_features: 1 | 2 | 4 } }
     case 'media_player':
       return { state: 'off', attributes: {} }
     case 'climate':

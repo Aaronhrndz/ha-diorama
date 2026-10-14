@@ -1,6 +1,7 @@
 import type { Between } from '#/decoration/between.ts'
 import { decorationKind, paramValue } from '#/decoration/catalog.ts'
 import { usePressActions, type PressAction } from '#/scene/decor/press.ts'
+import { DragMarks, travelOf, useDrag, type DragAction } from '#/scene/decor/drag.tsx'
 import { standHeight } from '#/decoration/surfaces.ts'
 import ApplianceModel from '#/scene/decor/ApplianceModel.tsx'
 import DecorModel from '#/scene/decor/DecorModel.tsx'
@@ -14,7 +15,7 @@ import LightModel from '#/scene/decor/LightModel.tsx'
 import OutdoorModel from '#/scene/decor/Outdoor.tsx'
 import { sameState, type ItemState } from '#/scene/decor/state.ts'
 import type { DecorationKind } from '#/decoration/catalog.ts'
-import { memo, type ReactNode } from 'react'
+import { memo, useMemo, type ReactNode } from 'react'
 import type { DecorationConfig, RoomConfig } from '#/types.ts'
 import { MathUtils } from 'three'
 import { useEased } from '#/scene/decor/ease.ts'
@@ -40,6 +41,9 @@ type Props = {
   onOpen?: PressAction
   // The click is only for a press that lands on the piece, not near it.
   exact?: boolean
+  // A cover that runs along a line, like a blind, follows a finger dragged
+  // along it, and this sends it where it was let go.
+  onDrag?: DragAction
 }
 
 type FamilyModel = (props: {
@@ -97,13 +101,21 @@ const READS_PLAN = new Set(['vacuum_robot', 'kitchen_counter'])
 // Places one decoration item in the scene. Wall and ceiling items are lifted
 // to their mounting height here, so every model can be built from its own
 // base up around its origin.
-function DecorationModel({ item, all, room, between, state, raise = 0, onClick, onOpen, exact }: Props) {
+function DecorationModel({ item, all, room, between, state, raise = 0, onClick, onOpen, exact, onDrag }: Props) {
   const interactive = usePressActions(onClick, onOpen)
   const rise = useEased(raise, 2)
   // A press shows as the piece switched on for as long as it runs.
   const pressed = usePressed(item.kind, state?.presses)
   if (pressed && state) state = pressedState(item.kind, state)
   const kind = decorationKind(item.kind)
+  const travel = useMemo(() => (kind && onDrag ? travelOf(kind, item) : null), [kind, item, onDrag])
+  const level = state?.levels.open ?? (state?.on ? 1 : 0)
+  const { frame, dragged, sent, onPointerDown: dragDown } = useDrag(travel, level, state?.text, onDrag)
+  // While a finger drags it, the piece is where the finger is.
+  if (dragged !== null && state) {
+    const open = dragged
+    state = { ...state, on: open > 0, level: open, levels: { ...state.levels, open }, dragged: true }
+  }
   if (!kind) return null
   const Model = KIND_MODELS[kind.id] ?? FAMILY_MODELS[kind.family]
   if (!Model) return null
@@ -132,14 +144,15 @@ function DecorationModel({ item, all, room, between, state, raise = 0, onClick, 
         ...(between && { rooms: between.rooms, between }),
       }}
       {...interactive}
+      onPointerDown={e => {
+        interactive.onPointerDown?.(e)
+        dragDown?.(e)
+      }}
     >
-      {outside ? (
-        <group rotation={[0, Math.PI, 0]}>
-          <Model kind={kind} item={item} state={state} room={room} all={all} />
-        </group>
-      ) : (
+      <group ref={frame} rotation={[0, outside ? Math.PI : 0, 0]}>
         <Model kind={kind} item={item} state={state} room={room} all={all} />
-      )}
+        {travel && <DragMarks travel={travel} dragged={dragged} sent={sent} />}
+      </group>
     </group>
   )
 }
@@ -153,6 +166,7 @@ function unchanged(a: Props, b: Props) {
   if (JSON.stringify(a.between ?? null) !== JSON.stringify(b.between ?? null)) return false
   if (a.item !== b.item || a.room !== b.room || a.onClick !== b.onClick || a.onOpen !== b.onOpen || a.exact !== b.exact)
     return false
+  if (a.onDrag !== b.onDrag) return false
   if (!sameState(a.state, b.state)) return false
   if (a.all === b.all) return true
   return !READS_PLAN.has(a.item.kind) && standHeight(a.item, a.all) === standHeight(b.item, b.all)
