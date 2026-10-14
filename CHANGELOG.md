@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.23] - 2026-10-14
+
 ### Changed
 
 - The weather tile shows the moon behind a cloud on partly cloudy nights, instead of the sun.
@@ -640,7 +642,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.22...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.23...HEAD
+[1.8.23]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.22...v1.8.23
 [1.8.22]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.21...v1.8.22
 [1.8.21]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.20...v1.8.21
 [1.8.20]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.19...v1.8.20
