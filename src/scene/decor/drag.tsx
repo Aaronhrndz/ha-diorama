@@ -213,7 +213,7 @@ const at = (travel: Travel, level: number): Vec3 => [
 ]
 
 // How see-through the ghost is, and how long it takes to show or go.
-const GHOST_OPACITY = 0.4
+const GHOST_OPACITY = 0.28
 const FADE_S = 0.25
 // One blue for every part, so the ghost reads as where the piece is going
 // rather than as a second piece.
