@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.19] - 2026-10-14
+
 ### Added
 
 - Blinds, shutters, projector screens, garage doors, awnings and sliding doors can be dragged in the 3D view to any position, also from the window behind them or from just beside them: a see-through blue copy follows the finger and stays where it was let go while the real one moves to meet it.
@@ -608,7 +610,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.18...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.19...HEAD
+[1.8.19]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.18...v1.8.19
 [1.8.18]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.17...v1.8.18
 [1.8.17]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.16...v1.8.17
 [1.8.16]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.15...v1.8.16
