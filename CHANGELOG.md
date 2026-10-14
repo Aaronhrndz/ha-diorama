@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.17] - 2026-10-14
+
 ### Added
 
 - A remote, or a player with its remote, can have its power key turn something else on and off, like a toggle that also readies the room, while it still shows whether the device itself is on.
@@ -584,7 +586,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.16...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.17...HEAD
+[1.8.17]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.16...v1.8.17
 [1.8.16]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.15...v1.8.16
 [1.8.15]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.14...v1.8.15
 [1.8.14]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.13...v1.8.14
