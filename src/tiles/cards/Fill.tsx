@@ -48,6 +48,9 @@ type Props = {
 
 // How far a finger goes along the fill before the press is a drag.
 const SLOP_PX = 8
+// The strip along the bottom of the screen where a phone's own swipe home
+// starts. A touch there is the phone's, even over a tile.
+const SYSTEM_EDGE_PX = 24
 // The value the handle at the end starts to fade in at, the one the handle
 // at the start is gone by, and how strong both are at their end.
 const GRIP_FROM = 95
@@ -116,7 +119,7 @@ export function FillTile({
   const [value, hold] = useHeld(raw)
   const [drag, setDrag] = useState<number | null>(null)
   const box = useRef<HTMLDivElement>(null)
-  const start = useRef<{ x: number; y: number; from: number; dragging: boolean } | null>(null)
+  const start = useRef<{ id: number; x: number; y: number; from: number; dragging: boolean } | null>(null)
   const keyTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   // Where something that travels was sent, until it gets there or stops.
@@ -175,7 +178,7 @@ export function FillTile({
   useEffect(() => {
     const move = (e: PointerEvent) => {
       const s = start.current
-      if (!s || !box.current) return
+      if (!s || s.id !== e.pointerId || !box.current) return
       const { from } = latest.current
       const vertical = from !== 'left'
       const along = from === 'left' ? e.clientX - s.x : from === 'top' ? e.clientY - s.y : s.y - e.clientY
@@ -183,15 +186,18 @@ export function FillTile({
       if (!s.dragging) {
         if (Math.abs(along) < SLOP_PX || Math.abs(along) < Math.abs(across)) return
         s.dragging = true
+        mirror(null, 'data-active')
       }
       const rect = box.current.getBoundingClientRect()
       const size = vertical ? rect.height : rect.width
       setDrag(Math.min(100, Math.max(0, s.from + (along / size) * 100)))
     }
-    const up = () => {
+    const up = (e: PointerEvent) => {
       const s = start.current
+      if (!s || s.id !== e.pointerId) return
       start.current = null
-      if (!s?.dragging) return
+      mirror(null, 'data-active')
+      if (!s.dragging) return
       const { send, drag, snap } = latest.current
       // A drag that started on a button ends in a click on it. It was a
       // drag, so the button never gets it.
@@ -199,7 +205,9 @@ export function FillTile({
       box.current?.addEventListener('click', swallow, { capture: true })
       setTimeout(() => box.current?.removeEventListener('click', swallow, { capture: true }))
       setDrag(null)
-      if (drag === null) return
+      // The phone or the browser took the touch over, like a swipe home
+      // that crossed the tile, so it sends nothing.
+      if (drag === null || e.type === 'pointercancel') return
       haptic('selection')
       send(snap(drag))
     }
@@ -216,9 +224,27 @@ export function FillTile({
 
   const down = (e: ReactPointerEvent) => {
     if (e.button !== 0 || readOnly) return
+    if (e.pointerType === 'touch' && e.clientY > window.innerHeight - SYSTEM_EDGE_PX) return
     // A press on a button can still start a drag. Only a press that stays
     // put is the button's.
-    start.current = { x: e.clientX, y: e.clientY, from: grabbed, dragging: false }
+    start.current = { id: e.pointerId, x: e.clientX, y: e.clientY, from: grabbed, dragging: false }
+    mirror(button(e.target), 'data-active')
+  }
+
+  // The lit copy and the band lie over the tile and draw its buttons again,
+  // so a button under them would never show it is pointed at or pressed.
+  // The same button in each copy takes it on too.
+  const button = (target: EventTarget | null) =>
+    target instanceof Element ? target.closest('.dio-fill > .dio-tile .dio-control') : null
+  function mirror(pressed: Element | null, attr: string) {
+    const root = box.current
+    if (!root) return
+    for (const copy of root.querySelectorAll(`.dio-control[${attr}]`)) copy.removeAttribute(attr)
+    const tile = root.querySelector(':scope > .dio-tile')
+    if (!pressed || !tile) return
+    const at = [...tile.querySelectorAll('.dio-control')].indexOf(pressed)
+    for (const layer of root.querySelectorAll('.dio-fill-lit, .dio-fill-band'))
+      layer.querySelectorAll('.dio-control')[at]?.setAttribute(attr, '')
   }
 
   // The arrows toward and away from where it fills from move a tenth, or a
@@ -308,6 +334,8 @@ export function FillTile({
       data-readonly={readOnly || undefined}
       data-travels={travels ? true : undefined}
       onPointerDownCapture={down}
+      onPointerOver={e => mirror(button(e.target), 'data-hover')}
+      onPointerLeave={() => mirror(null, 'data-hover')}
       onKeyDown={keys}
     >
       <Tile

@@ -9,6 +9,11 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- A phone's swipe home that crosses a slider tile, like a blind's, no longer moves it.
+- The buttons on a slider tile show they are pressed again when the fill lies over them.
+
 ## [1.8.23] - 2026-10-14
 
 ### Changed
