@@ -664,6 +664,10 @@ export default function CameraRig({
       if (!resting.current) return
       const { position, target } = show(room)
       place(C.set(...position), D.set(...target))
+      // A card that opens on a room, as one built again does, is away from
+      // the opening view from the start.
+      moved.current = true
+      setAway(true)
       return
     }
     if (moved.current) return

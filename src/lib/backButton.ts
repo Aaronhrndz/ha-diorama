@@ -5,8 +5,13 @@ const KEY = 'dioramaBack'
 // The key the entry under the card's own keeps Home Assistant's state in.
 const HIDDEN = 'dioramaHidden'
 // Each use gets its own mark, as every card is its own React root and
-// React's ids would repeat.
+// React's ids would repeat. It differs from one load of the page to the
+// next, so an entry left from before a reload is never taken for a new one.
+const LOAD = Math.random().toString(36).slice(2, 8)
 let uses = 0
+// The uses still on the page. A card built again leaves its old entry on
+// top with no one to answer it.
+const live = new Set<string>()
 
 type State = Record<string, unknown> | null
 const state = () => history.state as State
@@ -16,11 +21,14 @@ const state = () => history.state as State
 // to that entry. So while the card's own entry is on top of one, that
 // entry's state is put away, and put back once the browser is back on it,
 // after Home Assistant has seen it without its marks.
-function push(id: number) {
+function push(id: string) {
   const below = state()
   if (below && ('dialog' in below || 'dialogData' in below || 'opensDialog' in below))
     history.replaceState({ [HIDDEN]: below }, '')
-  history.pushState({ [KEY]: id }, '')
+  // An entry left by a card that is gone is taken over, not stacked on.
+  const owner = below?.[KEY]
+  if (typeof owner === 'string' && !live.has(owner)) history.replaceState({ [KEY]: id }, '')
+  else history.pushState({ [KEY]: id }, '')
 }
 function restore() {
   const hidden = state()?.[HIDDEN]
@@ -34,7 +42,13 @@ function restore() {
 // open and the next back asks again. Closing any other way takes the entry
 // back off.
 export function useBackButton(open: boolean, onBack: () => boolean | void, enabled = true) {
-  const [id] = useState(() => ++uses)
+  const [id] = useState(() => `${LOAD}:${++uses}`)
+  useEffect(() => {
+    live.add(id)
+    return () => {
+      live.delete(id)
+    }
+  }, [id])
   // Whether the entry this use added is still in the history.
   const added = useRef(false)
   // Whether the card is taking its own entry back off, a back that is not

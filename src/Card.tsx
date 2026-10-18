@@ -6,6 +6,7 @@ import { cn } from '#/lib/utils.ts'
 import { EDGE_FADE_MASK } from '#/theme.ts'
 import { useEditorOpen } from '#/lib/editorOpen.ts'
 import { useEmptyClick } from '#/lib/emptyClick.ts'
+import { cardKey, keepRoom, lastRoom } from '#/lib/lastRoom.ts'
 import { usePreviewRoom } from '#/lib/previewRoom.ts'
 import { useRoomFilter } from '#/lib/roomFilter.ts'
 import { FpsBadge, type FpsTicks } from '#/scene/FpsMeter.tsx'
@@ -50,7 +51,12 @@ export default function Card({ hass, config, panel = false, preview = false }: P
   //
   // The room flown to stands alone: the rest of the home fades away and
   // takes no presses until the camera heads back.
-  const [focus, setFocus] = useState<string | null>(null)
+  //
+  // A card built again, as when the app comes back from the background,
+  // opens on the room it was showing. The edit dialog's copy follows the
+  // settings instead.
+  const card = preview ? null : cardKey(config)
+  const [focus, setFocus] = useState<string | null>(() => (card ? lastRoom(card) : null))
   const roomOf = (id: string) => config.rooms?.find(r => r.id === id)
   const viewOf = (id: string) => {
     const room = roomOf(id)
@@ -61,6 +67,9 @@ export default function Card({ hass, config, panel = false, preview = false }: P
   // The side panel follows the room in view, and the Diorama tiles on the
   // dashboard too when the card says so.
   useRoomFilter(focused ? roomOf(focused) : undefined, config.filter_tiles === true)
+  useEffect(() => {
+    if (card) keepRoom(card, focused)
+  }, [card, focused])
   const goHome = () => {
     setFocus(null)
     camera.current?.reset()
