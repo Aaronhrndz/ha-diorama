@@ -30,9 +30,11 @@ export function injectProperties(css = styles, id = PROPERTIES_ID) {
   document.head.appendChild(style)
 }
 
-// The tree of a card the preview in the card dialog has just thrown away,
-// kept for a tick so the card that replaces it can take it over.
-let parked: { root: Root; mount: HTMLDivElement; config: unknown } | null = null
+// Trees of cards Home Assistant has just thrown away, by a key the card
+// gives, kept a while so a card built again in their place can take them
+// over instead of building its own from nothing.
+type Parked = { root: Root; mount: HTMLDivElement; config: unknown }
+const parked = new Map<string, Parked[]>()
 
 // Custom element that hosts a React tree in a shadow root with the card styles.
 // HA detaches and re-attaches elements when a view re-renders, so everything
@@ -42,6 +44,9 @@ export abstract class ReactHost<Config> extends HTMLElement {
   private mount: HTMLDivElement
   protected _hass: HomeAssistant | null = null
   protected _config: Config | null = null
+  // Set while the element waits to see whether it has a tree to take over,
+  // so it does not build one of its own in the meantime.
+  protected held = false
 
   constructor() {
     super()
@@ -72,34 +77,44 @@ export abstract class ReactHost<Config> extends HTMLElement {
     }, 0)
   }
 
-  // Leaves this element's tree for the one that replaces it to take over
-  // with `adopt`, and tears it down if none does by the next tick.
-  protected park() {
+  // Leaves this element's tree under `key` for the one that replaces it to
+  // take over with `adopt`, and tears it down if none does within `keep`
+  // milliseconds.
+  protected park(key: string, keep = 0) {
     if (!this.root) return
     const handed = { root: this.root, mount: this.mount, config: this._config }
-    parked?.root.unmount()
-    parked = handed
+    parked.set(key, [...(parked.get(key) ?? []), handed])
     this.root = null
     setTimeout(() => {
-      if (parked !== handed) return
-      parked = null
+      const left = parked.get(key)?.filter(tree => tree !== handed)
+      if (left?.length === parked.get(key)?.length) return
+      if (left?.length) parked.set(key, left)
+      else parked.delete(key)
       handed.root.unmount()
-    }, 0)
+    }, keep)
   }
 
-  // Takes over the tree another element parked, so React updates it to
-  // this element's config instead of building a new one from nothing.
-  // Returns the config that tree was last drawn with.
-  protected adopt(): Config | null {
-    if (!parked || this.root) return null
-    const { root, mount, config } = parked
-    parked = null
-    if (mount !== this.mount) {
-      this.mount.replaceWith(mount)
-      this.mount = mount
+  // Takes over a tree parked under `key`, its own first when it was only
+  // moved, so React updates it to this element's config instead of building
+  // a new one from nothing. Returns the config that tree was last drawn
+  // with, or undefined when there was none to take.
+  protected get mounted() {
+    return !!this.root
+  }
+
+  protected adopt(key: string): Config | null | undefined {
+    const trees = parked.get(key)
+    if (!trees?.length || this.root) return undefined
+    const tree = trees.find(t => t.mount === this.mount) ?? trees[0]
+    const left = trees.filter(t => t !== tree)
+    if (left.length) parked.set(key, left)
+    else parked.delete(key)
+    if (tree.mount !== this.mount) {
+      this.mount.replaceWith(tree.mount)
+      this.mount = tree.mount
     }
-    this.root = root
-    return config as Config | null
+    this.root = tree.root
+    return tree.config as Config | null
   }
 
   // Called by HA on every state change.
@@ -115,7 +130,7 @@ export abstract class ReactHost<Config> extends HTMLElement {
   protected abstract view(): ReactNode
 
   protected render() {
-    if (!this._config || !this.isConnected) return
+    if (!this._config || !this.isConnected || this.held) return
     this.root ??= createRoot(this.mount)
     this.root.render(<StrictMode>{this.view()}</StrictMode>)
   }
