@@ -4,7 +4,7 @@ import { useBackToHome } from '#/lib/backButton.ts'
 import { useDevSettings } from '#/lib/devSettings.ts'
 import { cn } from '#/lib/utils.ts'
 import { EDGE_FADE_MASK } from '#/theme.ts'
-import arrowLeft from '@phosphor-icons/core/assets/regular/arrow-left.svg?raw'
+import arrowLeft from '@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw'
 import { useEditorOpen } from '#/lib/editorOpen.ts'
 import { useEmptyClick } from '#/lib/emptyClick.ts'
 import { cardKey, keepRoom, lastRoom } from '#/lib/lastRoom.ts'
@@ -191,7 +191,8 @@ export default function Card({ hass, config, panel = false, preview = false }: P
               </div>
               {fps && <FpsBadge ticks={fpsTicks} />}
               {/* With a room in view, an arrow in the corner takes it back to
-                the whole home, for a phone with no back button of its own. */}
+                the whole home, for a phone with no back button of its own. Just
+                the arrow, faint, over a target big enough for a finger. */}
               {!preview && (
                 <button
                   type="button"
@@ -201,9 +202,8 @@ export default function Card({ hass, config, panel = false, preview = false }: P
                   aria-hidden={!focused}
                   onClick={goHome}
                   className={cn(
-                    'absolute top-3 left-3 z-10 grid size-10 cursor-pointer place-items-center rounded-full border-none p-0 text-(--primary-text-color,#e1e1e1) backdrop-blur-md transition duration-slow [-webkit-tap-highlight-color:transparent] active:scale-90 [&>svg]:size-5',
-                    'bg-[color-mix(in_srgb,var(--card-background-color,#1c1c1c)_70%,transparent)]',
-                    focused ? 'opacity-100' : 'pointer-events-none opacity-0',
+                    'duration-slow absolute top-2.5 left-2.5 z-10 grid size-11 cursor-pointer place-items-center rounded-full border-none bg-transparent p-0 text-(--primary-text-color,#e1e1e1) transition [-webkit-tap-highlight-color:transparent] active:scale-90 [&>svg]:size-6',
+                    focused ? 'mouse:hover:opacity-100 opacity-60' : 'pointer-events-none opacity-0',
                   )}
                   dangerouslySetInnerHTML={{ __html: arrowLeft }}
                 />
