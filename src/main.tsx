@@ -5,6 +5,7 @@ import { persistCard } from '#/editor/persist.ts'
 import { ReactHost } from '#/host.tsx'
 import { registerTiles } from '#/tiles/index.tsx'
 import { sameButBackground, ViewBackground } from '#/lib/background.ts'
+import { cardKey } from '#/lib/lastRoom.ts'
 import { closest, closestClass, inPanelView } from '#/lib/panelView.ts'
 import WithSidePanel from '#/tiles/WithSidePanel.tsx'
 import pickerPicture from '#/assets/picker.jpg?inline'
@@ -162,6 +163,10 @@ function validate(config: CardConfig) {
   }
 }
 
+// How long the tree of a card Home Assistant threw away waits for a card
+// built again in its place to take it over.
+const KEEP_MS = 1000
+
 class DioramaCard extends ReactHost<CardConfig> {
   private background = new ViewBackground(this)
 
@@ -225,6 +230,13 @@ class DioramaCard extends ReactHost<CardConfig> {
   // whole flat again.
   private previewed = false
 
+  // Home Assistant also builds the whole dashboard again when the app comes
+  // back from the background. The new card takes over the old one's tree
+  // the same way, so the flat stays on screen, on the room it showed,
+  // instead of loading again. Trees are kept by the card's page and rooms,
+  // and apart for the copy inside the side panel.
+  private key: string | null = null
+
   connectedCallback() {
     const holder = this.parentElement
     this.picked = (this.getRootNode() as ShadowRoot).host?.localName === 'hui-card-picker'
@@ -243,15 +255,37 @@ class DioramaCard extends ReactHost<CardConfig> {
       })
     }
     this.previewed = holder?.localName === 'hui-card' && !!holder.parentElement?.classList.contains('element-preview')
-    if (this.previewed) {
-      const before = this.adopt()
-      if (this._config) this._config = this.keep(before, this._config)
+    this.key = null
+    if (this.previewed) this.take('preview')
+    else if (!this.picked && this._config) {
+      const key = `${closest(this, 'dio-side-panel') ? 'panel' : 'card'}|${cardKey(this._config)}`
+      this.key = key
+      // The old card may only leave once the new one is in, so a new card
+      // with nothing to take yet waits a tick before building its own.
+      if (!this.take(key) && !this.mounted) {
+        this.held = true
+        setTimeout(() => {
+          this.held = false
+          if (this.isConnected && this.key === key) this.take(key)
+          this.render()
+        }, 0)
+      }
     }
     super.connectedCallback()
   }
 
+  // Takes over a tree parked under `key`, keeping the config it was drawn
+  // with when only the background differs. Says whether there was one.
+  private take(key: string) {
+    const before = this.adopt(key)
+    if (before === undefined) return false
+    if (this._config) this._config = this.keep(before, this._config)
+    return true
+  }
+
   disconnectedCallback() {
-    if (this.previewed) this.park()
+    if (this.previewed) this.park('preview')
+    else if (this.key) this.park(this.key, KEEP_MS)
     super.disconnectedCallback()
     // A card only moved is back by the next tick and keeps its background.
     setTimeout(() => {

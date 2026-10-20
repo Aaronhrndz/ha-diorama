@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- When the app comes back from the background the flat stays on screen as it was, instead of flickering while it loads again.
+
 ## [1.8.27] - 2026-10-20
 
 ### Changed
