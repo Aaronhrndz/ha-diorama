@@ -1,7 +1,7 @@
 import { useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
+import { claimedSince, LONG_PRESS_MS } from '#/lib/longPress.ts'
 import { haptic } from '#/tiles/actions.ts'
 
-const HOLD_MS = 500
 // How far a finger can drift before the press counts as a scroll.
 const SLOP_PX = 10
 // A touch long press can also raise a context menu. One hold, not two.
@@ -13,10 +13,26 @@ type Options = { onTap?: () => void; onHold?: () => void; haptics?: boolean }
 // so a press that turned into a scroll or a hold never also taps. Inner
 // buttons stop their events so they never reach these, and a click that
 // did not start with a press on the tile itself, like the end of a drag
-// along a slider inside it, never taps it.
+// along a slider inside it, never taps it. A long press is only ever a
+// press on the tile itself held still, never one on a control inside it,
+// one that moved, or one that something else took on the way.
 export function useTileGestures({ onTap, onHold, haptics = true }: Options) {
   const [pressed, setPressed] = useState(false)
-  const press = useRef({ timer: 0, x: 0, y: 0, down: false, held: false, heldAt: 0, moved: false })
+  const press = useRef({
+    timer: 0,
+    x: 0,
+    y: 0,
+    down: false,
+    held: false,
+    heldAt: 0,
+    moved: false,
+    // When the last press went down, and whether it went down on a control
+    // inside the tile that kept it, rather than on the tile.
+    at: 0,
+    inner: false,
+    // Whether the tile's own press is still held down.
+    holding: false,
+  })
 
   const cancel = () => {
     clearTimeout(press.current.timer)
@@ -42,16 +58,24 @@ export function useTileGestures({ onTap, onHold, haptics = true }: Options) {
   return {
     pressed,
     handlers: {
+      // Seen before any control inside gets the press, and kept as inner
+      // until the press reaches the tile itself.
+      onPointerDownCapture: () => {
+        press.current.at = performance.now()
+        press.current.inner = true
+      },
       onPointerDown: (e: PointerEvent) => {
-        if (e.button !== 0) return
         const p = press.current
+        p.inner = false
+        p.holding = e.button === 0
+        if (e.button !== 0) return
         Object.assign(p, { x: e.clientX, y: e.clientY, down: true, held: false, moved: false })
         setPressed(true)
         clearTimeout(p.timer)
         p.timer = window.setTimeout(() => {
           cancel()
-          hold()
-        }, HOLD_MS)
+          if (!claimedSince(p.at)) hold()
+        }, LONG_PRESS_MS)
       },
       onPointerMove: (e: PointerEvent) => {
         const p = press.current
@@ -59,9 +83,13 @@ export function useTileGestures({ onTap, onHold, haptics = true }: Options) {
         p.moved = true
         cancel()
       },
-      onPointerUp: cancel,
+      onPointerUp: () => {
+        press.current.holding = false
+        cancel()
+      },
       onPointerCancel: () => {
         press.current.moved = true
+        press.current.holding = false
         cancel()
       },
       onPointerLeave: cancel,
@@ -73,8 +101,15 @@ export function useTileGestures({ onTap, onHold, haptics = true }: Options) {
         e.preventDefault()
         tap()
       },
+      // A right click, or the menu a phone raises for a finger held down.
+      // One raised for a control inside the tile is that control's, and one
+      // for a finger on the tile only counts while the finger still could
+      // make a long press there.
       onContextMenu: (e: MouseEvent) => {
         e.preventDefault()
+        const p = press.current
+        if (p.inner || claimedSince(p.at)) return
+        if (p.holding && !p.timer) return
         cancel()
         hold()
       },

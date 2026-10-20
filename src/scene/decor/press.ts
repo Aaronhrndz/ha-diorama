@@ -1,3 +1,4 @@
+import { claimedSince, LONG_PRESS_MS } from '#/lib/longPress.ts'
 import { justDropped } from '#/scene/drags.ts'
 import { multiTouchSince } from '#/scene/touches.ts'
 import type { ThreeEvent } from '@react-three/fiber'
@@ -11,7 +12,6 @@ export type PressAction = (at?: Vector3) => void
 // A right click, or a long press on a touch screen, asks Home Assistant for
 // its dialog instead, where brightness, color and the rest live. Double
 // click is not used for it: it would toggle the device twice on the way.
-const LONG_PRESS_MS = 500
 // A press that wanders this far is the viewer orbiting, not a long press.
 const SLOP_PX = 8
 
@@ -72,7 +72,7 @@ export function usePressActions(onClick?: PressAction, onOpen?: PressAction) {
       if (timer.current === null || !from.current || !onOpen) return
       clearTimeout(timer.current)
       timer.current = null
-      if (multiTouchSince(downAt.current)) return
+      if (multiTouchSince(downAt.current) || claimedSince(downAt.current)) return
       opened.current = true
       onOpen(e.point)
     },
@@ -95,6 +95,8 @@ export function usePressActions(onClick?: PressAction, onOpen?: PressAction) {
         // Two fingers held still on a piece are a pinch about to start,
         // not a long press on it.
         if (multiTouchSince(at)) return
+        // Nor is one that already dragged a blind, held still at the end.
+        if (claimedSince(at)) return
         opened.current = true
         onOpen(point)
       }, LONG_PRESS_MS)

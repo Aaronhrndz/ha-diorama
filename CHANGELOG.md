@@ -13,6 +13,10 @@ moves that section under the new version and uses it as the release notes.
 
 - In the Android companion app the navigation bar at the bottom takes the color of the card's background, which melts into it, as the status bar already does.
 
+### Fixed
+
+- A long press no longer opens Home Assistant's dialog when the finger was on a button or a slider inside a widget, had moved, or had already dragged something like a blind, and two fingers held still on the home no longer open one either.
+
 ## [1.8.25] - 2026-10-20
 
 ### Added

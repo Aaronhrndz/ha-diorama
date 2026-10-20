@@ -1,5 +1,7 @@
 import { roomLookedFrom, type Between } from '#/decoration/between.ts'
+import { claimedSince, LONG_PRESS_MS } from '#/lib/longPress.ts'
 import type { Grab } from '#/scene/drags.ts'
+import { multiTouchSince } from '#/scene/touches.ts'
 import { useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { PICK_RADIUS_PX, PICK_RADIUS_TOUCH_PX, PICK_ROOM_AT, PICK_ROOM_AT_TOUCH } from '#/theme.ts'
@@ -24,7 +26,6 @@ const RINGS = [0.25, 0.45, 0.65, 0.85, 1]
 const SAMPLES = 16
 // A press that moves more than this is the camera being dragged.
 const SLOP_PX = 8
-const LONG_PRESS_MS = 500
 // The point in the ring search, counted in rays, at which the floor under
 // the press gets its turn. Rounded so 0 and 1 mean exactly first and last.
 const roomTurn = (share: number) => Math.round(Math.min(1, Math.max(0, share)) * RINGS.length * SAMPLES)
@@ -188,6 +189,9 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
       stop()
       if (!from || held) return
       held = true
+      // Two fingers held still are a pinch about to start, and a press that
+      // already dragged a blind has done its part.
+      if (multiTouchSince(from.at) || claimedSince(from.at)) return
       const found = near(from.x, from.y, false, from.reach)
       // A direct hit is the object's own business, it has handlers of its
       // own. This only speaks for presses that landed on nothing.

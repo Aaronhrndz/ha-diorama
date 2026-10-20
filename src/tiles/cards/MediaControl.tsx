@@ -1,3 +1,4 @@
+import { claim } from '#/lib/longPress.ts'
 import { cn } from '#/lib/utils.ts'
 import { appOf, PACKAGE } from '#/tiles/apps.ts'
 import { bylineOf, PLACEHOLDER, twinOf } from '#/tiles/playing.ts'
@@ -269,6 +270,7 @@ export default function MediaControl({
       if (!s.dragging) {
         if (Math.abs(along) < SLOP_PX || Math.abs(along) < Math.abs(e.clientY - s.y)) return
         s.dragging = true
+        claim()
       }
       setDrag(Math.min(1, Math.max(0, s.from + along / box.current.getBoundingClientRect().width)))
     }
