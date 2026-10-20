@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- The arrow that takes a room back to the whole home is now just a faint arrow, larger and easier to tap.
+
 ## [1.8.26] - 2026-10-20
 
 ### Changed
