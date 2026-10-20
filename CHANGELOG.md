@@ -9,6 +9,14 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- With a room in view, an arrow in the top left corner of the card takes it back to the whole home.
+
+### Changed
+
+- A drag on a cover tile with a position slider and buttons no longer starts on its buttons, so they press like any other button.
+
 ## [1.8.24] - 2026-10-20
 
 ### Fixed

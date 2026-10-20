@@ -186,24 +186,18 @@ export function FillTile({
       if (!s.dragging) {
         if (Math.abs(along) < SLOP_PX || Math.abs(along) < Math.abs(across)) return
         s.dragging = true
-        mirror(null, 'data-active')
       }
       const rect = box.current.getBoundingClientRect()
       const size = vertical ? rect.height : rect.width
       setDrag(Math.min(100, Math.max(0, s.from + (along / size) * 100)))
     }
     const up = (e: PointerEvent) => {
+      mirror(null, 'data-active')
       const s = start.current
       if (!s || s.id !== e.pointerId) return
       start.current = null
-      mirror(null, 'data-active')
       if (!s.dragging) return
       const { send, drag, snap } = latest.current
-      // A drag that started on a button ends in a click on it. It was a
-      // drag, so the button never gets it.
-      const swallow = (e: Event) => e.stopPropagation()
-      box.current?.addEventListener('click', swallow, { capture: true })
-      setTimeout(() => box.current?.removeEventListener('click', swallow, { capture: true }))
       setDrag(null)
       // The phone or the browser took the touch over, like a swipe home
       // that crossed the tile, so it sends nothing.
@@ -225,10 +219,12 @@ export function FillTile({
   const down = (e: ReactPointerEvent) => {
     if (e.button !== 0 || readOnly) return
     if (e.pointerType === 'touch' && e.clientY > window.innerHeight - SYSTEM_EDGE_PX) return
-    // A press on a button can still start a drag. Only a press that stays
-    // put is the button's.
+    // A press on a button is the button's, not the start of a drag.
+    if (e.target instanceof Element && e.target.closest('button')) {
+      mirror(button(e.target), 'data-active')
+      return
+    }
     start.current = { id: e.pointerId, x: e.clientX, y: e.clientY, from: grabbed, dragging: false }
-    mirror(button(e.target), 'data-active')
   }
 
   // The lit copy and the band lie over the tile and draw its buttons again,
