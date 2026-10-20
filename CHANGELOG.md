@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.28] - 2026-10-20
+
 ### Fixed
 
 - When the app comes back from the background the flat stays on screen as it was, instead of flickering while it loads again.
@@ -680,7 +682,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.27...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.28...HEAD
+[1.8.28]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.27...v1.8.28
 [1.8.27]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.26...v1.8.27
 [1.8.26]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.25...v1.8.26
 [1.8.25]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.24...v1.8.25
