@@ -202,7 +202,7 @@ export default function Card({ hass, config, panel = false, preview = false }: P
                   aria-hidden={!focused}
                   onClick={goHome}
                   className={cn(
-                    'duration-slow absolute top-2.5 left-2.5 z-10 grid size-11 cursor-pointer place-items-center rounded-full border-none bg-transparent p-0 text-(--primary-text-color,#e1e1e1) transition [-webkit-tap-highlight-color:transparent] active:scale-90 [&>svg]:size-6',
+                    'duration-slow absolute top-2.5 left-2.5 z-10 grid size-11 cursor-pointer place-items-center rounded-full border-none bg-transparent p-0 text-(--primary-text-color,#e1e1e1) transition [-webkit-tap-highlight-color:transparent] active:scale-90 [&>svg]:size-7',
                     focused ? 'mouse:hover:opacity-100 opacity-60' : 'pointer-events-none opacity-0',
                   )}
                   dangerouslySetInnerHTML={{ __html: arrowLeft }}
