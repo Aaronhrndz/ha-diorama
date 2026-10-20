@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- In the Android companion app the navigation bar at the bottom takes the color of the card's background, which melts into it, as the status bar already does.
+
 ## [1.8.25] - 2026-10-20
 
 ### Added

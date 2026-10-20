@@ -5,14 +5,16 @@ import type { BackgroundConfig, HomeAssistant } from '#/types.ts'
 // version for a dark dashboard and a pale one of the same hues for a light
 // one. Most are large soft blobs of color over a plain gradient, as if seen
 // out of focus.
-// `top` is the color along its top edge, on average, for the status bar
-// of the companion app to take.
+// `top` and `bottom` are the colors along its top and bottom edges, on
+// average, for the status bar and the navigation bar of the companion app
+// to take.
 export type Background = {
   id: string
   name: string
   dark: string
   light: string
   top: { dark: string; light: string }
+  bottom: { dark: string; light: string }
 }
 
 // A soft blob of `color` centered at `at`, as wide and tall as `size`. It
@@ -46,6 +48,7 @@ export const BACKGROUNDS: Background[] = [
   {
     id: 'graphite',
     top: { dark: '#303645', light: '#fafafc' },
+    bottom: { dark: '#191d28', light: '#d9dfeb' },
     name: 'Graphite',
     dark: [
       blob('140% 90%', '15% 0%', '#343a4b'),
@@ -65,6 +68,7 @@ export const BACKGROUNDS: Background[] = [
   {
     id: 'dusk',
     top: { dark: '#35253c', light: '#f0e2f3' },
+    bottom: { dark: '#222f3d', light: '#e3e9ed' },
     name: 'Dusk',
     dark: [
       tint('150% 90%', '10% 0%', '#3d2a47'),
@@ -86,6 +90,7 @@ export const BACKGROUNDS: Background[] = [
   {
     id: 'ocean',
     top: { dark: '#1a353c', light: '#dbf1f1' },
+    bottom: { dark: '#172434', light: '#dbeaf2' },
     name: 'Ocean',
     dark: [
       tint('130% 90%', '85% 0%', '#1c4a4c'),
@@ -107,6 +112,7 @@ export const BACKGROUNDS: Background[] = [
   {
     id: 'forest',
     top: { dark: '#233128', light: '#e7f2e3' },
+    bottom: { dark: '#202a22', light: '#e4eee1' },
     name: 'Forest',
     dark: [
       tint('150% 100%', '0% 0%', '#283f34'),
@@ -126,6 +132,7 @@ export const BACKGROUNDS: Background[] = [
   {
     id: 'ember',
     top: { dark: '#2d1e26', light: '#f5e6ed' },
+    bottom: { dark: '#2d2021', light: '#f8e8dc' },
     name: 'Ember',
     dark: [
       tint('130% 85%', '100% 0%', '#45282f'),
@@ -164,42 +171,53 @@ function chosen(config: BackgroundConfig | undefined, dark: boolean) {
 }
 
 // The companion app paints its status bar in the header's color of the
-// theme, read from the page when it is told the theme changed. A card that
-// lays its background on a view lends that color the top of its background,
-// so the bar goes on from it, with the header hidden in a kiosk.
-let barBefore: string | null = null
-let barBy: ViewBackground | null = null
-const BAR = '--app-header-background-color'
+// theme and its navigation bar in the theme's background color, read from
+// the page when it is told the theme changed. A card that lays its
+// background on a view lends those the top and bottom of its background, so
+// the bars go on from it, with the header hidden in a kiosk.
+type Edges = { top: string; bottom: string }
+const BARS: Edges = { top: '--app-header-background-color', bottom: '--primary-background-color' }
+let barsBefore: Edges | null = null
+let barsBy: ViewBackground | null = null
 
-// How far down the bar's color reaches before it is all background.
+// How far in from the edge a bar's color reaches before it is all
+// background.
 const BAR_FADE_PX = 72
 
-// The bar's color at the top edge, fading out the way the blobs do, slowly
+// A bar's color at the edge `from`, fading out the way the blobs do, slowly
 // at the end so it leaves no line where it stops.
-const barFade = (color: string) =>
-  `linear-gradient(to bottom, ${FALLOFF.map(
+const barFade = (color: string, from: keyof Edges) =>
+  `linear-gradient(to ${from === 'top' ? 'bottom' : 'top'}, ${FALLOFF.map(
     ([amount, stop]) =>
       `color-mix(in oklab, ${color} ${amount}%, transparent) ${Math.round((stop * BAR_FADE_PX) / 100)}px`,
   ).join(', ')})`
 
-function lendBar(by: ViewBackground, color: string, hass: HomeAssistant) {
+function lendBars(by: ViewBackground, colors: Edges, hass: HomeAssistant) {
   const external = hass.auth?.external
   if (!external) return
   const root = document.documentElement
-  if (barBy === null) barBefore = root.style.getPropertyValue(BAR)
-  barBy = by
-  if (root.style.getPropertyValue(BAR) === color) return
-  root.style.setProperty(BAR, color)
+  if (barsBy === null)
+    barsBefore = {
+      top: root.style.getPropertyValue(BARS.top),
+      bottom: root.style.getPropertyValue(BARS.bottom),
+    }
+  barsBy = by
+  const edges = ['top', 'bottom'] as const
+  if (edges.every(edge => root.style.getPropertyValue(BARS[edge]) === colors[edge])) return
+  for (const edge of edges) root.style.setProperty(BARS[edge], colors[edge])
   external.fireMessage({ type: 'theme-update' })
 }
 
-function returnBar(by: ViewBackground, hass: HomeAssistant | null) {
-  if (barBy !== by) return
-  barBy = null
+function returnBars(by: ViewBackground, hass: HomeAssistant | null) {
+  if (barsBy !== by) return
+  barsBy = null
   const root = document.documentElement
-  if (barBefore) root.style.setProperty(BAR, barBefore)
-  else root.style.removeProperty(BAR)
-  barBefore = null
+  for (const edge of ['top', 'bottom'] as const) {
+    const before = barsBefore?.[edge]
+    if (before) root.style.setProperty(BARS[edge], before)
+    else root.style.removeProperty(BARS[edge])
+  }
+  barsBefore = null
   hass?.auth?.external?.fireMessage({ type: 'theme-update' })
 }
 
@@ -263,19 +281,27 @@ export class ViewBackground {
     before.by.add(this)
     this.spot = spot
     const dark = hass.themes?.darkMode !== false
-    const top = chosen(config, dark)?.top[dark ? 'dark' : 'light']
-    const bar = fixable && top && hass.auth?.external ? top : null
-    // Under the app's status bar the background starts in the bar's own
-    // color and melts into its gradient, so the two read as one.
-    element.style.setProperty(property, bar ? `${barFade(bar)}, ${value}` : value)
+    const background = chosen(config, dark)
+    const mode = dark ? 'dark' : 'light'
+    const bars =
+      fixable && background && hass.auth?.external
+        ? { top: background.top[mode], bottom: background.bottom[mode] }
+        : null
+    // Under the app's status bar and over its navigation bar the background
+    // is in the bar's own color and melts into its gradient, so they read
+    // as one.
+    element.style.setProperty(
+      property,
+      bars ? `${barFade(bars.top, 'top')}, ${barFade(bars.bottom, 'bottom')}, ${value}` : value,
+    )
     // Fixed to the window, so the colors stay put while the page scrolls.
     if (fixable) element.toggleAttribute('fixed-background', true)
-    if (bar) lendBar(this, bar, hass)
-    else returnBar(this, hass)
+    if (bars) lendBars(this, bars, hass)
+    else returnBars(this, hass)
   }
 
   release() {
-    returnBar(this, this.hass)
+    returnBars(this, this.hass)
     const spot = this.spot
     this.spot = null
     if (!spot) return
