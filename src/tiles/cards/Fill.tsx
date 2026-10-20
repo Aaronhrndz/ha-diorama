@@ -1,4 +1,5 @@
 import { useUnechoed } from '#/lib/echo.ts'
+import { claim } from '#/lib/longPress.ts'
 import { callService, haptic, type TileEnv } from '#/tiles/actions.ts'
 import CoverControls from '#/tiles/cards/CoverControls.tsx'
 import { STOP } from '#/tiles/features/cover.tsx'
@@ -186,6 +187,7 @@ export function FillTile({
       if (!s.dragging) {
         if (Math.abs(along) < SLOP_PX || Math.abs(along) < Math.abs(across)) return
         s.dragging = true
+        claim()
       }
       const rect = box.current.getBoundingClientRect()
       const size = vertical ? rect.height : rect.width

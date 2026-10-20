@@ -1,5 +1,6 @@
 import { decorationVariant, paramValue, screenSize, type DecorationKind } from '#/decoration/catalog.ts'
 import { useUnechoed } from '#/lib/echo.ts'
+import { claim, LONG_PRESS_MS } from '#/lib/longPress.ts'
 import { dropped, held } from '#/scene/drags.ts'
 import { multiTouchSince } from '#/scene/touches.ts'
 import type { DecorationConfig } from '#/types.ts'
@@ -68,8 +69,6 @@ export function travelOf(kind: DecorationKind, item: DecorationConfig): Travel |
 
 // How far a press moves before it is read as a drag, or as the camera's.
 const SLOP_PX = 8
-// A press held still this long is a long press, never a drag.
-const LONG_PRESS_MS = 500
 // A cover whose whole travel is shorter than this on screen is too small to
 // drag, and a press on it turns the camera.
 const MIN_TRAVEL_PX = 24
@@ -173,6 +172,7 @@ export function useDrag(travel: Travel | null, reported: number, text: string | 
         const across = Math.abs(dx * uy - dy * ux) / length
         if (along < across || performance.now() - at > LONG_PRESS_MS) return give()
         mine = true
+        claim()
         document.body.style.cursor = 'grabbing'
       }
       setDragged(levelAt(event.clientX, event.clientY))
