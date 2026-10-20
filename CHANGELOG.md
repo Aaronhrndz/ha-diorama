@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.26] - 2026-10-20
+
 ### Changed
 
 - In the Android companion app the navigation bar at the bottom takes the color of the card's background, which melts into it, as the status bar already does.
@@ -668,7 +670,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.25...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.26...HEAD
+[1.8.26]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.25...v1.8.26
 [1.8.25]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.24...v1.8.25
 [1.8.24]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.23...v1.8.24
 [1.8.23]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.22...v1.8.23
