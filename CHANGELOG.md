@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.27] - 2026-10-20
+
 ### Changed
 
 - The arrow that takes a room back to the whole home is now just a faint arrow, larger and easier to tap.
@@ -674,7 +676,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.26...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.27...HEAD
+[1.8.27]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.26...v1.8.27
 [1.8.26]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.25...v1.8.26
 [1.8.25]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.24...v1.8.25
 [1.8.24]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.23...v1.8.24
