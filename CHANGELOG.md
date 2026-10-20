@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.24] - 2026-10-20
+
 ### Fixed
 
 - A phone's swipe home that crosses a slider tile, like a blind's, no longer moves it.
@@ -648,7 +650,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.23...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.24...HEAD
+[1.8.24]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.23...v1.8.24
 [1.8.23]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.22...v1.8.23
 [1.8.22]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.21...v1.8.22
 [1.8.21]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.20...v1.8.21
