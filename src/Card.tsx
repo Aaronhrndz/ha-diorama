@@ -4,6 +4,7 @@ import { useBackToHome } from '#/lib/backButton.ts'
 import { useDevSettings } from '#/lib/devSettings.ts'
 import { cn } from '#/lib/utils.ts'
 import { EDGE_FADE_MASK } from '#/theme.ts'
+import arrowLeft from '@phosphor-icons/core/assets/regular/arrow-left.svg?raw'
 import { useEditorOpen } from '#/lib/editorOpen.ts'
 import { useEmptyClick } from '#/lib/emptyClick.ts'
 import { cardKey, keepRoom, lastRoom } from '#/lib/lastRoom.ts'
@@ -189,6 +190,24 @@ export default function Card({ hass, config, panel = false, preview = false }: P
                 />
               </div>
               {fps && <FpsBadge ticks={fpsTicks} />}
+              {/* With a room in view, an arrow in the corner takes it back to
+                the whole home, for a phone with no back button of its own. */}
+              {!preview && (
+                <button
+                  type="button"
+                  aria-label="Back to the whole home"
+                  title="Back to the whole home"
+                  tabIndex={focused ? 0 : -1}
+                  aria-hidden={!focused}
+                  onClick={goHome}
+                  className={cn(
+                    'absolute top-3 left-3 z-10 grid size-10 cursor-pointer place-items-center rounded-full border-none p-0 text-(--primary-text-color,#e1e1e1) backdrop-blur-md transition duration-slow [-webkit-tap-highlight-color:transparent] active:scale-90 [&>svg]:size-5',
+                    'bg-[color-mix(in_srgb,var(--card-background-color,#1c1c1c)_70%,transparent)]',
+                    focused ? 'opacity-100' : 'pointer-events-none opacity-0',
+                  )}
+                  dangerouslySetInnerHTML={{ __html: arrowLeft }}
+                />
+              )}
             </>
           ) : (
             <div className="font-montserrat flex h-full flex-col items-center justify-center gap-1 p-4 text-center">
