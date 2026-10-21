@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.8.29] - 2026-10-21
+
 ### Fixed
 
 - On desktop a quick click on a room is no longer sometimes ignored.
@@ -686,7 +688,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.28...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.29...HEAD
+[1.8.29]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.28...v1.8.29
 [1.8.28]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.27...v1.8.28
 [1.8.27]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.26...v1.8.27
 [1.8.26]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.25...v1.8.26
