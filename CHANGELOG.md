@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- On desktop a quick click on a room is no longer sometimes ignored.
+
 ## [1.8.28] - 2026-10-20
 
 ### Fixed
