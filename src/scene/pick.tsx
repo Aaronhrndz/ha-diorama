@@ -5,7 +5,7 @@ import { multiTouchSince } from '#/scene/touches.ts'
 import { useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { PICK_RADIUS_PX, PICK_RADIUS_TOUCH_PX, PICK_ROOM_AT, PICK_ROOM_AT_TOUCH } from '#/theme.ts'
-import { Vector2, Vector3, type Object3D } from 'three'
+import { Box3, Vector2, Vector3, type Object3D } from 'three'
 
 // What a click on an object does. Models carry it in their userData so a
 // pick that lands near them, rather than on them, can still act.
@@ -68,6 +68,8 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
 
   useEffect(() => {
     const el = gl.domElement
+    const box = new Box3()
+    const corner = new Vector3()
 
     const ray = (x: number, y: number) => {
       const rect = el.getBoundingClientRect()
@@ -107,13 +109,49 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
       return null
     }
 
+    // Whether anything that can be dragged comes within `radius` of the
+    // press on screen, going by the box around it. Most presses are nowhere
+    // near one, and are spared the rings of rays below.
+    const grabbableNear = (x: number, y: number, radius: number) => {
+      const rect = el.getBoundingClientRect()
+      let found = false
+      scene.traverseVisible(node => {
+        if (found || !node.userData?.drag) return
+        box.setFromObject(node)
+        if (box.isEmpty()) return
+        let left = Infinity
+        let right = -Infinity
+        let top = Infinity
+        let bottom = -Infinity
+        for (let i = 0; i < 8; i++) {
+          corner.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z)
+          corner.project(camera)
+          // A corner behind the camera has no place on screen, so the piece
+          // is taken as near rather than missed.
+          if (corner.z > 1) {
+            found = true
+            return
+          }
+          const sx = rect.left + ((corner.x + 1) / 2) * rect.width
+          const sy = rect.top + ((1 - corner.y) / 2) * rect.height
+          left = Math.min(left, sx)
+          right = Math.max(right, sx)
+          top = Math.min(top, sy)
+          bottom = Math.max(bottom, sy)
+        }
+        found = x >= left - radius && x <= right + radius && y >= top - radius && y <= bottom + radius
+      })
+      return found
+    }
+
     // A press that lands on nothing, between the slats of a blind, starts
     // the drag of what can be dragged nearby, as a click there clicks it.
     // A press on a piece is the piece's own business.
     const grabNear = (e: PointerEvent) => {
       const { clientX: x, clientY: y } = e
-      if (at(x, y) || grabAt(x, y)) return
       const reach = reachOf(e)
+      if (!grabbableNear(x, y, reach.radius)) return
+      if (at(x, y) || grabAt(x, y)) return
       for (const step of RINGS) {
         const radius = step * reach.radius
         for (let i = 0; i < SAMPLES; i++) {
@@ -175,9 +213,12 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
     let rightFrom: { x: number; y: number } | null = null
     let timer: ReturnType<typeof setTimeout> | null = null
     let opened = false
-    // The press under way was held long enough to be a long press, whether
-    // or not it found a dialog to open. Its release is then never a click.
+    // The press under way has had its long press, whether or not it found a
+    // dialog to open.
     let held = false
+    // The browser raised its menu for the press under way, which is a long
+    // press however soon it came. Its release is then never a click.
+    let menu = false
     const stop = () => {
       if (timer !== null) clearTimeout(timer)
       timer = null
@@ -207,6 +248,7 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
       rightFrom = null
       opened = false
       held = false
+      menu = false
       stop()
       if (e.button === 2) {
         rightFrom = { x: e.clientX, y: e.clientY }
@@ -214,7 +256,10 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
       }
       // Only the left button presses. Any other is the camera's.
       if (e.button !== 0) return
-      from = { x: e.clientX, y: e.clientY, at: performance.now(), reach: reachOf(e) }
+      // When it went down by the event's own time, not by when it was
+      // handled: a busy moment between press and release would otherwise
+      // make a quick click look long.
+      from = { x: e.clientX, y: e.clientY, at: e.timeStamp, reach: reachOf(e) }
       timer = setTimeout(longPress, LONG_PRESS_MS)
       grabNear(e)
     }
@@ -249,7 +294,9 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
       if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > SLOP_PX) return
       // A long press is spent when it is let go: it clicks nothing, goes to
       // no room, and is not a press on nothing that sends the camera home.
-      if (opened || held || performance.now() - start.at > LONG_PRESS_MS) {
+      // How long it was held is read from the events, so a timer that only
+      // ran late, after a busy moment, does not spend a quick click.
+      if (opened || menu || e.timeStamp - start.at > LONG_PRESS_MS) {
         onHandled?.()
         return
       }
@@ -279,6 +326,7 @@ export default function PickFallback({ onHandled, onRoom }: Props = {}) {
       // press, taken there and then, and the menu has no place over the plan.
       if (from) {
         const touch = from.reach === TOUCH
+        menu = true
         longPress()
         if (opened || touch) e.preventDefault()
         return

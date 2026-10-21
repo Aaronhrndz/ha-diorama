@@ -21,7 +21,8 @@ export function usePressActions(onClick?: PressAction, onOpen?: PressAction) {
   // Where the right button went down, until it drags or comes up.
   const rightFrom = useRef<[number, number] | null>(null)
   const opened = useRef(false)
-  // When the left button or the finger last went down.
+  // When the left button or the finger last went down, by the event's own
+  // time, so a busy moment before the release does not make it look long.
   const downAt = useRef(0)
   const hovered = useRef(false)
 
@@ -58,7 +59,7 @@ export function usePressActions(onClick?: PressAction, onOpen?: PressAction) {
       }
       // A press held this long was a long press, even one that opened
       // nothing, and a long press never clicks.
-      if (performance.now() - downAt.current > LONG_PRESS_MS) return
+      if (e.nativeEvent.timeStamp - downAt.current > LONG_PRESS_MS) return
       onClick?.(e.point)
     },
     // The menu is kept away. The right click opens the dialog when it is let
@@ -79,7 +80,7 @@ export function usePressActions(onClick?: PressAction, onOpen?: PressAction) {
     onPointerDown: (e: ThreeEvent<PointerEvent>) => {
       cancel()
       opened.current = false
-      if (e.nativeEvent.button === 0) downAt.current = performance.now()
+      if (e.nativeEvent.button === 0) downAt.current = e.nativeEvent.timeStamp
       if (!onOpen) return
       if (e.nativeEvent.button === 2) {
         rightFrom.current = [e.nativeEvent.clientX, e.nativeEvent.clientY]
