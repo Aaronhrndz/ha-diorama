@@ -11,7 +11,7 @@ moves that section under the new version and uses it as the release notes.
 
 ### Fixed
 
-- The editor responds to clicks again on older Home Assistant versions, such as 2026.1, where it opened but nothing in it could be clicked.
+- On older Home Assistant versions the editor responds to clicks again, where it opened but nothing in it could be clicked, and on 2024.6 the side panel shows its widgets again.
 
 ## [1.8.29] - 2026-10-21
 

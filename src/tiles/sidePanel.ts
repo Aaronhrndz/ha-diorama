@@ -23,7 +23,13 @@ export const SIDE_PANEL = 'dio-side-panel'
 // whole width.
 const STACK_PX = 900
 
-type HuiCard = HTMLElement & { config: CardConfig; hass: HomeAssistant; preview: boolean; load: () => void }
+type HuiCard = HTMLElement & {
+  config: CardConfig
+  hass: HomeAssistant
+  preview: boolean
+  load?: () => void
+  setConfig?: (config: CardConfig) => void
+}
 
 export const ROW_PX = 56
 export const GAP_PX = 10
@@ -361,8 +367,12 @@ export class SidePanel extends HTMLElement {
     const card = document.createElement('hui-card') as HuiCard
     if (this._hass) card.hass = this._hass
     card.preview = this._preview
-    card.config = config
-    card.load()
+    // Older Home Assistant, such as 2024.6, builds the card in setConfig and
+    // has no load, so the side panel came up empty there.
+    if (typeof card.load === 'function') {
+      card.config = config
+      card.load()
+    } else card.setConfig?.(config)
     return card
   }
 
