@@ -15,6 +15,8 @@ export type ItemState = {
   glow: [number, number, number]
   // Raw numeric reading, for models with a display.
   value?: number
+  // How wet a plant's soil is, 0 to 100, for a plant to wilt when it dries.
+  moisture?: number
   // Raw state string, for enum devices.
   text?: string
   // Goes up by one with every press of a button behind it. The piece plays
@@ -35,6 +37,7 @@ export function sameState(a: ItemState | null, b: ItemState | null) {
     a.on !== b.on ||
     a.level !== b.level ||
     a.value !== b.value ||
+    a.moisture !== b.moisture ||
     a.text !== b.text ||
     a.presses !== b.presses ||
     a.dragged !== b.dragged

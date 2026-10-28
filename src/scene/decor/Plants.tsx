@@ -902,8 +902,21 @@ function ficus(size: number, height: number, potH: number): Parts {
   return f
 }
 
+// A plant short of water sinks toward its soil and spreads, its leaves
+// hanging lower and wider round it. Everything above the soil, at height
+// `at`, is squashed down onto it, the pot left as it is.
+function Wilt({ at, wilt, children }: { at: number; wilt: number; children: ReactNode }) {
+  if (wilt <= 0) return children
+  return (
+    <group position={[0, at, 0]} scale={[1 + 0.15 * wilt, 1 - 0.35 * wilt, 1 + 0.15 * wilt]}>
+      <group position={[0, -at, 0]}>{children}</group>
+    </group>
+  )
+}
+
 export function FloorPlant({
   style,
+  wilt = 0,
   size,
   height,
   paint,
@@ -912,6 +925,8 @@ export function FloorPlant({
   size: number
   height: number
   paint: Paint
+  // 0 watered to 1 dry.
+  wilt?: number
 }) {
   const kind = (['monstera', 'kentia', 'mango', 'bird', 'bamboo', 'ficus'] as const).find(k => k === style) ?? 'fiddle'
   const potR = kind === 'kentia' ? clamp(size * 0.16, 0.14, 0.22) : clamp(size * 0.2, 0.1, 0.2)
@@ -938,13 +953,16 @@ export function FloorPlant({
   return (
     <group>
       <Pot r={potR} h={potH} shape={kind === 'kentia' ? 'basket' : 'straight'} paint={paint} />
-      <Growth grown={grown} paint={paint} flat={['stems', 'soil']} />
+      <Wilt at={potH} wilt={wilt}>
+        <Growth grown={grown} paint={paint} flat={['stems', 'soil']} />
+      </Wilt>
     </group>
   )
 }
 
 export function ShelfPlant({
   style,
+  wilt = 0,
   size,
   height,
   trail,
@@ -955,6 +973,8 @@ export function ShelfPlant({
   height: number
   trail: number
   paint: Paint
+  // 0 watered to 1 dry.
+  wilt?: number
 }) {
   const kind = style === 'pilea' || style === 'snake' ? style : 'pothos'
   const potR = kind === 'snake' ? clamp(size * 0.35, 0.05, 0.1) : clamp(size * 0.22, 0.05, 0.09)
@@ -973,7 +993,9 @@ export function ShelfPlant({
   return (
     <group>
       <Pot r={potR} h={potH} shape={kind === 'pilea' ? 'terracotta' : 'straight'} paint={paint} />
-      <Growth grown={grown} paint={paint} flat={kind === 'pilea' ? ['markings'] : ['stems']} />
+      <Wilt at={potH} wilt={wilt}>
+        <Growth grown={grown} paint={paint} flat={kind === 'pilea' ? ['markings'] : ['stems']} />
+      </Wilt>
     </group>
   )
 }
@@ -982,6 +1004,7 @@ export function ShelfPlant({
 // each in a half round pocket open at the top.
 export function WallPlant({
   style,
+  wilt = 0,
   width,
   trail,
   paint,
@@ -990,6 +1013,8 @@ export function WallPlant({
   width: number
   trail: number
   paint: Paint
+  // 0 watered to 1 dry.
+  wilt?: number
 }) {
   const kind = style === 'boston' || style === 'pearls' ? style : 'pothos'
   const tall = width * 0.6
@@ -1027,7 +1052,9 @@ export function WallPlant({
         <boxGeometry args={[width, tall, 0.004]} />
         {paint('pot')}
       </mesh>
-      <Growth grown={grown} paint={paint} flat={kind === 'pearls' ? ['stems', 'leaves'] : ['stems']} />
+      <Wilt at={top - 0.025} wilt={wilt}>
+        <Growth grown={grown} paint={paint} flat={kind === 'pearls' ? ['stems', 'leaves'] : ['stems']} />
+      </Wilt>
     </group>
   )
 }
