@@ -597,7 +597,7 @@ export const DECORATION_KINDS: DecorationKind[] = [
         id: 'banker',
         label: 'Green Glass Banker',
         params: { size: 0.28, height: 0.41 },
-        colors: { shade: '#2f6a4f', diffuser: PENDANT_OPAL_COLOR, base: '#b89a5e' },
+        colors: { shade: '#2e8b57', diffuser: PENDANT_OPAL_COLOR, base: '#b89a5e' },
         materials: { shade: 'ceramic', diffuser: 'matte', base: 'metal' },
       },
     ],
@@ -1895,7 +1895,7 @@ export const DECORATION_KINDS: DecorationKind[] = [
         label: 'Slim Digital',
         // 136 by 42 cm and 86 cm tall.
         params: { width: 1.36, depth: 0.42, height: 0.86 },
-        colors: { case: '#f3f1ec', keys: '#f4f1ea', sharps: '#1d1e20', fittings: '#8a8f92' },
+        colors: { case: '#232427', keys: '#f4f1ea', sharps: '#1d1e20', fittings: '#8a8f92' },
         materials: { case: 'matte', keys: 'matte', sharps: 'matte', fittings: 'metal' },
       },
     ],

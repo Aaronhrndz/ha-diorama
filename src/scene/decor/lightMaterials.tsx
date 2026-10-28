@@ -50,6 +50,25 @@ export function ShadeMaterial({
   )
 }
 
+// Colored glass the bulb shines through, like a banker's lamp's green shade.
+// It glows its own color when on rather than taking the light's, so a lit
+// shade still reads green instead of going dark against the lit inside.
+export function TintedGlassMaterial({
+  color,
+  material = 'ceramic',
+  state,
+}: {
+  color: string
+  material?: string
+  state: LightState | null
+}) {
+  const lit = useEased(state?.on ? (state.level ?? 1) : 0, 9)
+  const glow = useMemo(() => new Color(color), [color])
+  return (
+    <Material material={material} color={color} emissive={[glow.r, glow.g, glow.b]} emissiveIntensity={lit * 0.6} />
+  )
+}
+
 export function BaseMaterial({ color, material = 'matte' }: { color: string; material?: string }) {
   return <Material material={material} color={color} />
 }

@@ -1,4 +1,4 @@
-import { BaseMaterial, ShadeMaterial, type LightState } from '#/scene/decor/lightMaterials.tsx'
+import { BaseMaterial, ShadeMaterial, TintedGlassMaterial, type LightState } from '#/scene/decor/lightMaterials.tsx'
 import { Rod, SEG, Slab } from '#/scene/decor/parts.tsx'
 import {
   ARM_BULB,
@@ -176,7 +176,7 @@ function Banker({ c, m, state, up }: ModelProps) {
             along x and open underneath, closed at both ends. */}
         <mesh rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[r, r, length, SEG * 2, 1, true, 0, Math.PI]} />
-          <BaseMaterial color={c('shade')} material={m('shade')} />
+          <TintedGlassMaterial color={c('shade')} material={m('shade')} state={state} />
         </mesh>
         <mesh rotation={[0, 0, Math.PI / 2]} userData={{ transmits: true }}>
           <cylinderGeometry args={[r - glass, r - glass, length - glass, SEG * 2, 1, true, 0, Math.PI]} />
@@ -187,7 +187,7 @@ function Banker({ c, m, state, up }: ModelProps) {
           <group key={s}>
             <mesh position={[(s * length) / 2, 0, 0]} rotation={[0, (s * Math.PI) / 2, 0]}>
               <circleGeometry args={[r, SEG, 0, Math.PI]} />
-              <BaseMaterial color={c('shade')} material={m('shade')} />
+              <TintedGlassMaterial color={c('shade')} material={m('shade')} state={state} />
             </mesh>
             <mesh
               position={[(s * (length - glass)) / 2, 0, 0]}
