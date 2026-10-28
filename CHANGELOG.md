@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- The editor responds to clicks again on older Home Assistant versions, such as 2026.1, where it opened but nothing in it could be clicked.
+
 ## [1.8.29] - 2026-10-21
 
 ### Fixed
