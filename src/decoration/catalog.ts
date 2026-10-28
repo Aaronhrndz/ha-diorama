@@ -456,10 +456,39 @@ export const DECORATION_KINDS: DecorationKind[] = [
     'light',
     'Ceiling light',
     'ceiling',
-    [size(0.1, 0.06, 0.4)],
+    // Size is the light's diameter. Each style starts at its own.
+    [size(0.1, 0.06, 0.7)],
     { focus: LIGHT_SHADE_COLOR, rim: LIGHT_BASE_COLOR },
     { focus: 'matte', rim: 'metal' },
     LIGHT_SIGNALS,
+    [
+      // The first keeps the kind's old slots, so a saved color still lands.
+      { id: 'focus', label: 'Recessed Spot' },
+      {
+        id: 'dome',
+        label: 'Opal Dome',
+        // A flush mount Ø35 opal glass dome on a white ring.
+        params: { size: 0.35 },
+        colors: { globe: PENDANT_OPAL_COLOR, rim: '#f3f1ec' },
+        materials: { globe: 'matte', rim: 'metal' },
+      },
+      {
+        id: 'drum',
+        label: 'Linen Drum',
+        // A flush mount Ø45 linen drum, 14 cm deep, closed by opal underneath.
+        params: { size: 0.45 },
+        colors: { shade: '#ecdfc0', diffuser: PENDANT_OPAL_COLOR, rim: LIGHT_BASE_COLOR },
+        materials: { shade: 'fabric', diffuser: 'matte', rim: 'metal' },
+      },
+      {
+        id: 'spot',
+        label: 'Surface Spot',
+        // A black Ø9 can 12 cm long, screwed straight to the ceiling.
+        params: { size: 0.09 },
+        colors: { body: '#2b2c2d', focus: LIGHT_SHADE_COLOR },
+        materials: { body: 'metal', focus: 'matte' },
+      },
+    ],
   ),
   kind(
     'light_pendant',

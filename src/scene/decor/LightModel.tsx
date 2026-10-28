@@ -1,4 +1,5 @@
 import { colorValue, decorationVariant, materialValue, paramValue, type DecorationKind } from '#/decoration/catalog.ts'
+import FlushLight from '#/scene/decor/CeilingLights.tsx'
 import DeskLamp from '#/scene/decor/DeskLamps.tsx'
 import { DESK_LAMPS } from '#/scene/decor/deskLampSpecs.ts'
 import FloorLamp from '#/scene/decor/FloorLamps.tsx'
@@ -187,8 +188,15 @@ export default function LightModel({ kind, item, state }: Props) {
   let glowSpread = 0
   switch (kind.id) {
     case 'light_ceiling': {
-      // A plain round focus in the ceiling, ten centimeters across.
+      const style = decorationVariant(kind, item.variant)?.id ?? 'focus'
       const r = size / 2
+      if (style !== 'focus') {
+        const drop = style === 'dome' ? r * 0.45 : style === 'drum' ? 0.14 : 0.12
+        glowAt = [0, CEILING_HEIGHT_M - drop - 0.05, 0]
+        body = <FlushLight style={style} r={r} drop={drop} c={c} m={m} state={state} />
+        break
+      }
+      // A plain round focus in the ceiling, ten centimeters across.
       glowAt = [0, CEILING_HEIGHT_M - r - 0.05, 0]
       body = (
         <group>

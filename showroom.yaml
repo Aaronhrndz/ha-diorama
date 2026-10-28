@@ -6,107 +6,107 @@ rooms:
     name: "Ceiling light"
     points:
       - [0, 0]
-      - [1.1, 0]
-      - [1.1, 1.4]
-      - [0, 1.4]
+      - [3.5, 0]
+      - [3.5, 1.45]
+      - [0, 1.45]
   - id: light_pendant
     name: "Pendant"
     points:
-      - [0, 1.8]
-      - [3.35, 1.8]
-      - [3.35, 3.2]
-      - [0, 3.2]
+      - [0, 1.85]
+      - [3.35, 1.85]
+      - [3.35, 3.25]
+      - [0, 3.25]
   - id: light_floor
     name: "Floor lamp"
     points:
-      - [0, 3.6]
-      - [3.3, 3.6]
-      - [3.3, 5.1]
-      - [0, 5.1]
+      - [0, 3.65]
+      - [3.3, 3.65]
+      - [3.3, 5.15]
+      - [0, 5.15]
   - id: light_table
     name: "Table lamp"
     points:
-      - [0, 5.5]
-      - [3.15, 5.5]
-      - [3.15, 6.9]
-      - [0, 6.9]
+      - [0, 5.55]
+      - [3.15, 5.55]
+      - [3.15, 6.95]
+      - [0, 6.95]
   - id: light_desk
     name: "Desk lamp"
     points:
-      - [0, 7.3]
-      - [2.2, 7.3]
-      - [2.2, 8.7]
-      - [0, 8.7]
+      - [0, 7.35]
+      - [2.2, 7.35]
+      - [2.2, 8.75]
+      - [0, 8.75]
   - id: light_wall
     name: "Wall light"
     points:
-      - [0, 9.1]
-      - [2.6, 9.1]
-      - [2.6, 10.5]
-      - [0, 10.5]
+      - [0, 9.15]
+      - [2.6, 9.15]
+      - [2.6, 10.55]
+      - [0, 10.55]
   - id: light_strip
     name: "Floor LED strip"
     points:
-      - [0, 10.9]
-      - [2, 10.9]
-      - [2, 12.3]
-      - [0, 12.3]
+      - [0, 10.95]
+      - [2, 10.95]
+      - [2, 12.35]
+      - [0, 12.35]
   - id: light_strip_ceiling
     name: "Ceiling LED strip"
     points:
-      - [0, 12.7]
-      - [2.6, 12.7]
-      - [2.6, 14.1]
-      - [0, 14.1]
+      - [0, 12.75]
+      - [2.6, 12.75]
+      - [2.6, 14.15]
+      - [0, 14.15]
   - id: light_strip_wall
     name: "Wall LED strip"
     points:
-      - [0, 14.5]
-      - [2.6, 14.5]
-      - [2.6, 15.9]
-      - [0, 15.9]
+      - [0, 14.55]
+      - [2.6, 14.55]
+      - [2.6, 15.95]
+      - [0, 15.95]
   - id: sofa
     name: "Sofa"
     points:
-      - [0, 16.3]
-      - [8.7, 16.3]
-      - [8.7, 18.3]
-      - [0, 18.3]
+      - [0, 16.35]
+      - [8.7, 16.35]
+      - [8.7, 18.35]
+      - [0, 18.35]
   - id: dining_chair
     name: "Dining chair"
     points:
-      - [0, 18.7]
-      - [3.45, 18.7]
-      - [3.45, 20.25]
-      - [0, 20.25]
+      - [0, 18.75]
+      - [3.45, 18.75]
+      - [3.45, 20.3]
+      - [0, 20.3]
   - id: office_chair
     name: "Office chair"
     points:
-      - [0, 20.65]
-      - [3.95, 20.65]
-      - [3.95, 22.35]
-      - [0, 22.35]
+      - [0, 20.7]
+      - [3.95, 20.7]
+      - [3.95, 22.4]
+      - [0, 22.4]
   - id: stool
     name: "Stool"
     points:
-      - [0, 22.75]
-      - [3.35, 22.75]
-      - [3.35, 24.3]
-      - [0, 24.3]
+      - [0, 22.8]
+      - [3.35, 22.8]
+      - [3.35, 24.35]
+      - [0, 24.35]
   - id: bench
     name: "Bench"
     points:
-      - [0, 24.7]
-      - [4.5, 24.7]
-      - [4.5, 26.2]
-      - [0, 26.2]
+      - [0, 24.75]
+      - [4.5, 24.75]
+      - [4.5, 26.25]
+      - [0, 26.25]
   - id: pouf
     name: "Pouf"
     points:
-      - [0, 26.6]
-      - [4.1, 26.6]
-      - [4.1, 28.4]
-      - [0, 28.4]
+      - [0, 26.65]
+      - [4.1, 26.65]
+      - [4.1, 28.45]
+      - [0, 28.45]
   - id: dining_table
     name: "Dining table"
     points:
@@ -738,190 +738,206 @@ rooms:
       - [67, 11.5]
       - [58, 11.5]
 decorations:
-  - id: light_ceiling
+  - id: light_ceiling_focus
     kind: light_ceiling
     room: light_ceiling
-    position: [0.55, 0.7]
+    position: [0.55, 0.73]
+    variant: focus
+  - id: light_ceiling_dome
+    kind: light_ceiling
+    room: light_ceiling
+    position: [1.28, 0.73]
+    variant: dome
+  - id: light_ceiling_drum
+    kind: light_ceiling
+    room: light_ceiling
+    position: [2.18, 0.73]
+    variant: drum
+  - id: light_ceiling_spot
+    kind: light_ceiling
+    room: light_ceiling
+    position: [2.95, 0.73]
+    variant: spot
   - id: light_pendant_nagoya
     kind: light_pendant
     room: light_pendant
-    position: [0.7, 2.5]
+    position: [0.7, 2.55]
     variant: nagoya
   - id: light_pendant_globo_cestita
     kind: light_pendant
     room: light_pendant
-    position: [1.48, 2.5]
+    position: [1.48, 2.55]
     variant: globo_cestita
   - id: light_pendant_headhat_bowl
     kind: light_pendant
     room: light_pendant
-    position: [2.15, 2.5]
+    position: [2.15, 2.55]
     variant: headhat_bowl
   - id: light_pendant_cirio_simple
     kind: light_pendant
     room: light_pendant
-    position: [2.8, 2.5]
+    position: [2.8, 2.55]
     variant: cirio_simple
   - id: light_floor_tmm
     kind: light_floor
     room: light_floor
-    position: [0.8, 4.35]
+    position: [0.8, 4.4]
     variant: tmm
   - id: light_floor_fad
     kind: light_floor
     room: light_floor
-    position: [1.85, 4.35]
+    position: [1.85, 4.4]
     variant: fad
   - id: light_floor_lamina
     kind: light_floor
     room: light_floor
-    position: [2.7, 4.35]
+    position: [2.7, 4.4]
     variant: lamina
   - id: light_table_cestita
     kind: light_table
     room: light_table
-    position: [0.6, 6.2]
+    position: [0.6, 6.25]
     variant: cestita
   - id: light_table_sylvestrina
     kind: light_table
     room: light_table
-    position: [1.27, 6.2]
+    position: [1.27, 6.25]
     variant: sylvestrina
   - id: light_table_maija
     kind: light_table
     room: light_table
-    position: [1.95, 6.2]
+    position: [1.95, 6.25]
     variant: maija
   - id: light_table_basica_minima
     kind: light_table
     room: light_table
-    position: [2.6, 6.2]
+    position: [2.6, 6.25]
     variant: basica_minima
   - id: light_desk_balanced_arm
     kind: light_desk
     room: light_desk
-    position: [0.7, 8]
+    position: [0.7, 8.05]
     variant: balanced_arm
   - id: light_desk_banker
     kind: light_desk
     room: light_desk
-    position: [1.55, 8]
+    position: [1.55, 8.05]
     variant: banker
   - id: light_wall_tmm
     kind: light_wall
     room: light_wall
-    position: [0.6, 9.1]
+    position: [0.6, 9.15]
     rotation: 180
     variant: tmm
   - id: light_wall_singular
     kind: light_wall
     room: light_wall
-    position: [1.3, 9.1]
+    position: [1.3, 9.15]
     rotation: 180
     variant: singular
   - id: light_wall_wally
     kind: light_wall
     room: light_wall
-    position: [2, 9.1]
+    position: [2, 9.15]
     rotation: 180
     variant: wally
   - id: light_strip
     kind: light_strip
     room: light_strip
-    position: [1, 11.6]
+    position: [1, 11.65]
   - id: light_strip_ceiling
     kind: light_strip_ceiling
     room: light_strip_ceiling
-    position: [1.3, 13.4]
+    position: [1.3, 13.45]
   - id: light_strip_wall
     kind: light_strip_wall
     room: light_strip_wall
-    position: [1.3, 14.5]
+    position: [1.3, 14.55]
     rotation: 180
   - id: sofa_dresde
     kind: sofa
     room: sofa
-    position: [1.65, 17.3]
+    position: [1.65, 17.35]
     variant: dresde
   - id: sofa_block
     kind: sofa
     room: sofa
-    position: [4.45, 17.3]
+    position: [4.45, 17.35]
     variant: block
   - id: sofa_rail
     kind: sofa
     room: sofa
-    position: [7.15, 17.3]
+    position: [7.15, 17.35]
     variant: rail
   - id: dining_chair_oia
     kind: dining_chair
     room: dining_chair
-    position: [0.75, 19.47]
+    position: [0.75, 19.52]
     variant: oia
   - id: dining_chair_sura
     kind: dining_chair
     room: dining_chair
-    position: [1.73, 19.47]
+    position: [1.73, 19.52]
     variant: sura
   - id: dining_chair_varma
     kind: dining_chair
     room: dining_chair
-    position: [2.7, 19.47]
+    position: [2.7, 19.52]
     variant: varma
   - id: office_chair_teck
     kind: office_chair
     room: office_chair
-    position: [0.83, 21.5]
+    position: [0.83, 21.55]
     variant: teck
   - id: office_chair_sling
     kind: office_chair
     room: office_chair
-    position: [1.95, 21.5]
+    position: [1.95, 21.55]
     variant: sling
   - id: office_chair_racer
     kind: office_chair
     room: office_chair
-    position: [3.1, 21.5]
+    position: [3.1, 21.55]
     variant: racer
   - id: stool_lauta
     kind: stool
     room: stool
-    position: [0.73, 23.53]
+    position: [0.73, 23.58]
     variant: lauta
   - id: stool_dean
     kind: stool
     room: stool
-    position: [1.68, 23.53]
+    position: [1.68, 23.58]
     variant: dean
   - id: stool_keula
     kind: stool
     room: stool
-    position: [2.63, 23.53]
+    position: [2.63, 23.58]
     variant: keula
   - id: bench_lauta
     kind: bench
     room: bench
-    position: [1.15, 25.45]
+    position: [1.15, 25.5]
     variant: lauta
   - id: bench_angle
     kind: bench
     room: bench
-    position: [3.15, 25.45]
+    position: [3.15, 25.5]
     variant: angle
   - id: pouf_dresde
     kind: pouf
     room: pouf
-    position: [0.9, 27.5]
+    position: [0.9, 27.55]
     variant: dresde
   - id: pouf_block
     kind: pouf
     room: pouf
-    position: [2.15, 27.5]
+    position: [2.15, 27.55]
     variant: block
   - id: pouf_rail
     kind: pouf
     room: pouf
-    position: [3.3, 27.5]
+    position: [3.3, 27.55]
     variant: rail
   - id: dining_table_viok
     kind: dining_table
