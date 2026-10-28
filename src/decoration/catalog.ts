@@ -96,6 +96,14 @@ const KIND_DOMAINS: Record<string, string[]> = {
   projector_screen: ['cover'],
   awning: ['cover'],
   louvred_pergola: ['cover'],
+  driveway_gate: ['cover'],
+  // A printer is watched through a smart plug, or through a sensor that
+  // says what it is doing, and a router through its connectivity.
+  printer_3d: ['switch', 'sensor', 'binary_sensor'],
+  router: ['binary_sensor', 'switch'],
+  // A tablet's screen is a light or a switch where its kiosk app makes it
+  // one, and a player where it plays.
+  wall_tablet: ['media_player', 'light', 'switch'],
   fan_ceiling: ['fan'],
   fan_floor: ['fan'],
   air_purifier: ['fan'],
@@ -248,6 +256,8 @@ const TOGGLE: Signal[] = ['toggle']
 const TOGGLE_LEVEL: Signal[] = ['toggle', 'level']
 const LIGHT_SIGNALS: Signal[] = ['toggle', 'level', 'color', 'warmth']
 const READOUT: Signal[] = ['value', 'enum', 'toggle']
+// A printer runs or not, and a sensor beside it says how far the print has got.
+const PRINTER_SIGNALS: Signal[] = ['toggle', 'value']
 
 // Pieces that switch but have nothing to do for a press: a sensor only says
 // what it sees, a lock is locked or not, and a readout shows a number.
@@ -452,6 +462,16 @@ const WALL_TMM: DecorationVariant = {
   materials: { shade: 'fabric', channel: 'wood', fittings: 'metal' },
 }
 
+// The stairs' first style, an open riser flight: 4 cm oak treads on two
+// white steel strings, 90 cm wide, with a black steel handrail 90 cm over
+// the nosings on its open side.
+const STAIRS_OPEN: DecorationVariant = {
+  id: 'open',
+  label: 'Open Oak',
+  colors: { treads: SCANDI.oak, strings: '#f3f1ec', rail: '#2b2c2d' },
+  materials: { treads: 'wood', strings: 'matte', rail: 'metal' },
+}
+
 export const DECORATION_KINDS: DecorationKind[] = [
   // Lights
   kind(
@@ -592,7 +612,8 @@ export const DECORATION_KINDS: DecorationKind[] = [
     TABLE_CESTITA.colors ?? {},
     TABLE_CESTITA.materials ?? {},
     LIGHT_SIGNALS,
-    // Four Santa & Cole lamps, each drawn from its dimensional drawing.
+    // Four Santa & Cole lamps, each drawn from its dimensional drawing, and
+    // a color lamp after a Philips Hue.
     [
       TABLE_CESTITA,
       {
@@ -616,6 +637,15 @@ export const DECORATION_KINDS: DecorationKind[] = [
         params: { size: 0.12, height: 0.3 },
         colors: { shade: '#e6d6b4', column: '#e8d3ad', base: '#4b3a2a', stitching: '#5a3b25' },
         materials: { shade: 'fabric', column: 'wood', base: 'metal', stitching: 'fabric' },
+      },
+      {
+        id: 'iris',
+        label: 'Tilted Ring',
+        // After the Philips Hue Iris: an opal disc in a clear ring, tilted
+        // back on a small round foot, 18.8 cm wide and 19.4 cm tall.
+        params: { size: 0.19, height: 0.19 },
+        colors: { diffuser: PENDANT_OPAL_COLOR, ring: '#e8ecee', body: '#f3f2ef' },
+        materials: { diffuser: 'matte', ring: 'ceramic', body: 'matte' },
       },
     ],
   ),
@@ -815,6 +845,35 @@ export const DECORATION_KINDS: DecorationKind[] = [
         params: { width: 0.7, depth: 0.68, height: 0.48 },
         colors: { seat: '#1f1f21', accent: '#b3262c', pillows: '#2a2a2d', base: '#1f1f21', castors: '#1b1b1c' },
         materials: { seat: 'fabric', accent: 'fabric', pillows: 'fabric', base: 'matte', castors: 'matte' },
+      },
+    ],
+  ),
+  kind(
+    'sim_rig',
+    'seating',
+    'Sim racing cockpit',
+    'floor',
+    // Width is across the seat and depth from the pedals to the back of the
+    // seat. Each style starts at its rig's own size, and the sliders scale
+    // it from there.
+    [p('width', 'Width', 0.55, 0.45, 1), p('depth', 'Depth', 1.38, 1, 2)],
+    { frame: '#1f2022', seat: '#232426', trim: '#b3262c', wheel: '#1b1c1e', pedals: '#8a8f92' },
+    { frame: 'matte', seat: 'fabric', trim: 'fabric', wheel: 'matte', pedals: 'metal' },
+    NONE,
+    [
+      // After the Next Level Racing GTtrack: a black steel tube frame 138
+      // by 55 cm with a fixed bucket seat, the wheel on a deck at the
+      // front and the pedals on a plate at the far end.
+      { id: 'tube', label: 'Tube Cockpit' },
+      {
+        id: 'profile',
+        label: 'Aluminium Profile',
+        // After the Sim-Lab GT1 Evo: a frame of 80 by 40 mm aluminium
+        // profile, 135 by 58 cm, with a direct drive wheel on a front
+        // upright and the pedals on a slotted deck.
+        params: { width: 0.6, depth: 1.35 },
+        colors: { frame: '#b9bdc0', seat: '#2a2b2d', trim: '#5c6064', wheel: '#1b1c1e', pedals: '#2b2c2d' },
+        materials: { frame: 'metal', seat: 'fabric', trim: 'fabric', wheel: 'matte', pedals: 'metal' },
       },
     ],
   ),
@@ -1715,6 +1774,49 @@ export const DECORATION_KINDS: DecorationKind[] = [
     { wall: 'matte' },
   ),
   kind(
+    'stairs',
+    'decor',
+    'Stairs',
+    'floor',
+    // A flight that climbs a whole storey: its top reaches the next floor,
+    // so it rises the room's height unless told otherwise. Width is the
+    // flight's, length how far it runs across the floor, and the quarter
+    // turn adds a second flight across the top. The risers share out the
+    // rise, each as close to 18 cm as a whole number of them comes.
+    [
+      width(0.9, 0.6, 1.6),
+      length(3.25, 1.2, 6),
+      p('height', 'Rise', CEILING_HEIGHT_M, 1, 3),
+      only(p('reach', 'Second flight', 1.6, 0.5, 4), ['quarter']),
+      only(flag('flip', 'Turn left'), ['quarter']),
+      only(flag('rail', 'Rail on left'), ['open', 'closed']),
+    ],
+    STAIRS_OPEN.colors ?? {},
+    STAIRS_OPEN.materials ?? {},
+    NONE,
+    [
+      STAIRS_OPEN,
+      {
+        id: 'closed',
+        label: 'White Closed String',
+        // The same 90 cm flight, its treads, risers and the string wall on
+        // its open side all painted white under an oak handrail.
+        colors: { treads: '#f3f1ec', risers: '#f3f1ec', sides: '#f3f1ec', rail: SCANDI.oak },
+        materials: { treads: 'matte', risers: 'matte', sides: 'matte', rail: 'wood' },
+      },
+      {
+        id: 'quarter',
+        label: 'Quarter Turn',
+        // A 90 cm flight that turns on a square landing at the top: 2.2 m
+        // up the first flight and 1.6 m across the second, a common way to
+        // fit a storey into a hall.
+        params: { length: 2.2, reach: 1.6 },
+        colors: { treads: SCANDI.oak, risers: '#f3f1ec', rail: '#2b2c2d' },
+        materials: { treads: 'wood', risers: 'matte', rail: 'metal' },
+      },
+    ],
+  ),
+  kind(
     'rug',
     'decor',
     'Rug',
@@ -2011,6 +2113,31 @@ export const DECORATION_KINDS: DecorationKind[] = [
     { bezel: SCANDI.ink, screen: SCREEN_OFF_COLOR },
     { bezel: 'matte', screen: 'ceramic' },
     TOGGLE,
+  ),
+  kind(
+    'wall_tablet',
+    'media',
+    'Wall tablet',
+    'wall',
+    // Width is the tablet's as it hangs, and height how high its middle is.
+    // It shows a dashboard while on, or what a player bound to it plays.
+    [width(0.25, 0.12, 0.6), height(1.45, 0.8, 2)],
+    { frame: '#f3f1ec', bezel: '#1c1d1f', screen: SCREEN_OFF_COLOR },
+    { frame: 'matte', bezel: 'ceramic', screen: 'ceramic' },
+    TOGGLE,
+    [
+      // A 10.9 inch tablet, 24.9 by 17.9 cm, set into a white wall frame
+      // 28 by 21 cm that stands 1.5 cm off the wall.
+      { id: 'frame', label: 'Flush Frame', params: { width: 0.28 } },
+      {
+        id: 'portrait',
+        label: 'Slim Portrait',
+        // An 8 inch tablet, 13.7 by 20.2 cm, upright on a magnetic mount.
+        params: { width: 0.14 },
+        colors: { frame: '#2b2c2d', bezel: '#1c1d1f', screen: SCREEN_OFF_COLOR },
+        materials: { frame: 'metal', bezel: 'ceramic', screen: 'ceramic' },
+      },
+    ],
   ),
   kind(
     'soundbar',
@@ -2436,7 +2563,9 @@ export const DECORATION_KINDS: DecorationKind[] = [
     'cover',
     'Door',
     'wall',
-    [width(0.85, 0.6, 1.4), height(2.05, 1.8, 2.4), flag('flip', 'Hinge right')],
+    // A pair of terrace doors has a hinge at each jamb, so it has no side
+    // to switch.
+    [width(0.85, 0.6, 1.4), height(2.05, 1.8, 2.4), only(flag('flip', 'Hinge right'), ['flush', 'panel', 'glazed'])],
     { frame: SCANDI.offWhite, panel: SCANDI.offWhite, handle: SCANDI.charcoal },
     { frame: 'matte', panel: 'matte', handle: 'metal' },
     TOGGLE,
@@ -2452,6 +2581,15 @@ export const DECORATION_KINDS: DecorationKind[] = [
         id: 'glazed',
         label: 'Garden Lite',
         colors: { frame: SCANDI.offWhite, panel: SCANDI.offWhite, handle: '#b4b8bb', glass: SCANDI.mist },
+        materials: { frame: 'matte', panel: 'matte', handle: 'metal', glass: 'ceramic' },
+      },
+      {
+        id: 'terrace',
+        label: 'Terrace Pair',
+        // A glazed French door for a terrace: two leaves of 70 cm, 2.15 m
+        // tall, each one tall pane over a deep bottom rail, both opening.
+        params: { width: 1.4, height: 2.15 },
+        colors: { frame: SCANDI.offWhite, panel: SCANDI.offWhite, handle: '#2b2c2d', glass: SCANDI.mist },
         materials: { frame: 'matte', panel: 'matte', handle: 'metal', glass: 'ceramic' },
       },
     ],
@@ -2698,6 +2836,42 @@ export const DECORATION_KINDS: DecorationKind[] = [
       },
     ],
   ),
+  kind(
+    'printer_3d',
+    'utility',
+    '3D printer',
+    'floor',
+    // After the Bambu Lab P1S: 38.9 by 38.9 cm and 45.8 cm tall, a closed
+    // cube with a glass door and lid round its bed and toolhead.
+    [width(0.39, 0.25, 0.7), depth(0.39, 0.25, 0.7), height(0.46, 0.3, 0.8), lift(0.75)],
+    { frame: '#2e3033', glass: '#a9b4ba', bed: '#3b3d40', toolhead: '#d9dcde', print: '#e07a3f' },
+    { frame: 'matte', glass: 'ceramic', bed: 'metal', toolhead: 'matte', print: 'matte' },
+    PRINTER_SIGNALS,
+  ),
+  kind(
+    'router',
+    'utility',
+    'Router',
+    'floor',
+    // Size is the router's width. Each style starts at its own.
+    [p('size', 'Width', 0.26, 0.08, 0.5), lift(0.75)],
+    { body: '#2b2d30', antennas: '#2b2d30' },
+    { body: 'matte', antennas: 'matte' },
+    TOGGLE,
+    [
+      // After the TP-Link Archer AX55: 26.1 by 13.5 cm and 4.1 cm tall,
+      // with four antennas that stand 13 cm over it.
+      { id: 'antenna', label: 'Four Antenna' },
+      {
+        id: 'mesh',
+        label: 'Mesh Puck',
+        // After the Google Nest Wifi: Ø11 cm and 9 cm tall.
+        params: { size: 0.11 },
+        colors: { body: '#f2f1ee', top: '#e2e0db' },
+        materials: { body: 'matte', top: 'matte' },
+      },
+    ],
+  ),
 
   // Garden and outdoor
   kind(
@@ -2800,6 +2974,38 @@ export const DECORATION_KINDS: DecorationKind[] = [
         label: 'Drip Line',
         params: { size: 1.5 },
         colors: { body: '#4a3a2c', nozzle: SCANDI.ink },
+      },
+    ],
+  ),
+  kind(
+    'driveway_gate',
+    'outdoor',
+    'Driveway gate',
+    'floor',
+    // Width is the opening between the posts and height the gate's. A
+    // swing gate opens its two leaves by the cover's position, and a
+    // sliding one runs to the side along the fence.
+    [
+      width(3.6, 2, 5),
+      height(1.6, 1, 2.4),
+      only(flag('back', 'Open the other way'), ['swing']),
+      only(flag('flip', 'Slide left'), ['sliding']),
+    ],
+    { frame: '#3a3d40', infill: '#b88a5e', posts: '#3a3d40' },
+    { frame: 'metal', infill: 'wood', posts: 'metal' },
+    TOGGLE_LEVEL,
+    [
+      // A pair of 1.8 m leaves, 1.6 m tall: horizontal larch boards on an
+      // anthracite steel frame, hung on square steel posts.
+      { id: 'swing', label: 'Double Swing' },
+      {
+        id: 'sliding',
+        label: 'Sliding Bars',
+        // A 4 m cantilever gate, 1.6 m tall, of upright anthracite bars,
+        // that runs along the fence on rollers in a post beside it.
+        params: { width: 4 },
+        colors: { frame: '#2f3235', infill: '#2f3235', posts: '#2f3235' },
+        materials: { frame: 'metal', infill: 'metal', posts: 'metal' },
       },
     ],
   ),
@@ -2910,6 +3116,11 @@ export function footprint(
   // has to read the same way round or the two disagree by a right angle.
   if (kind.family === 'light' && kind.params.some(x => x.id === 'length')) {
     return [paramValue(kind, params, 'length', variant), 0.08]
+  }
+  // A quarter turn stair takes its second flight out to the side.
+  if (kind.id === 'stairs' && decorationVariant(kind, variant)?.id === 'quarter') {
+    const v = (id: string) => paramValue(kind, params, id, variant)
+    return [v('width') + v('reach'), v('length')]
   }
   const screen = kind.params.some(x => x.id === 'inches')
   const w = screen

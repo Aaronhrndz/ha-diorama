@@ -34,7 +34,7 @@ export const KELVIN_MAX = 6500
 // is as open as its position says, whatever its switch. For these the switch
 // and the position are one thing, as a cover's are in Home Assistant.
 const POSITIONED_FAMILIES = new Set(['cover'])
-const POSITIONED_KINDS = new Set(['curtain', 'projector_screen'])
+const POSITIONED_KINDS = new Set(['curtain', 'projector_screen', 'driveway_gate'])
 
 export const isPositioned = (kind: DecorationKind) =>
   POSITIONED_FAMILIES.has(kind.family) || POSITIONED_KINDS.has(kind.id)
