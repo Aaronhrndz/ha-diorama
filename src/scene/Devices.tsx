@@ -149,6 +149,7 @@ function itemState(
     levels,
     glow,
     value: v.value,
+    moisture: v.moisture,
     text: v.state,
     presses: signals.includes('press') ? countPresses(presses, entityId, v.pressed) : undefined,
     showing: showingOf(hass, entityId),

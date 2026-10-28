@@ -51,6 +51,8 @@ export function levelValues(hass: HomeAssistant, entityId: string): Record<strin
 }
 
 export type SignalValues = {
+  // How wet a plant's soil is, 0 to 100, from a moisture sensor or a plant.
+  moisture?: number
   on?: boolean
   // 0 to 1
   level?: number
@@ -102,6 +104,8 @@ export function deviceSignals(hass: HomeAssistant, entityId: string): Signal[] {
       return ['toggle', 'enum']
     case 'select':
     case 'input_select':
+    // A plant is fine or has a problem, and says which in its attributes.
+    case 'plant':
       return ['enum']
     case 'sensor':
     case 'number':
@@ -168,7 +172,32 @@ export function signalValues(hass: HomeAssistant, entityId: string): SignalValue
     case 'input_number': {
       // A sensor that is unavailable or unknown has no number to show.
       const value = Number(state)
-      return { value: Number.isFinite(value) ? value : undefined, state }
+      const known = Number.isFinite(value) ? value : undefined
+      return { value: known, state, moisture: attrs.device_class === 'moisture' ? known : undefined }
+    }
+    // A moisture binary sensor is on when it is wet. A plant says how wet
+    // its soil is when it has a sensor for it, or else only whether the
+    // moisture is its problem.
+    case 'binary_sensor':
+      return {
+        on: state === 'on',
+        state,
+        moisture:
+          attrs.device_class === 'moisture' && (state === 'on' || state === 'off')
+            ? state === 'on'
+              ? 100
+              : 0
+            : undefined,
+      }
+    case 'plant': {
+      const reading = Number(attrs.moisture)
+      if (attrs.moisture !== undefined && attrs.moisture !== null && Number.isFinite(reading))
+        return { state, moisture: reading }
+      if (state === 'problem') {
+        const problem = String(attrs.problem ?? '').toLowerCase()
+        return { state, moisture: problem.includes('moisture low') ? 0 : undefined }
+      }
+      return { state, moisture: state === 'ok' ? 100 : undefined }
     }
     // A button's and a scene's state is the time they were last pressed. A
     // script's is whether it is running, and the time is kept beside it.

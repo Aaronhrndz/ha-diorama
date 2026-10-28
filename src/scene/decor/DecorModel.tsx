@@ -1,5 +1,5 @@
 import { colorValue, decorationVariant, materialValue, paramValue, type DecorationKind } from '#/decoration/catalog.ts'
-import { useTravel } from '#/scene/decor/ease.ts'
+import { useEased, useTravel } from '#/scene/decor/ease.ts'
 import { Material, SEG, Slab, Tube } from '#/scene/decor/parts.tsx'
 import { Books, Clock, Curtain, Mirror, Rug } from '#/scene/decor/Furnishings.tsx'
 import Piano from '#/scene/decor/Piano.tsx'
@@ -7,7 +7,7 @@ import { FloorPlant, ShelfPlant, WallPlant } from '#/scene/decor/Plants.tsx'
 import type { ItemState } from '#/scene/decor/state.ts'
 import type { DecorationConfig } from '#/types.ts'
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { Euler, InstancedMesh, LatheGeometry, Matrix4, Quaternion, Vector2, Vector3 } from 'three'
+import { Color, Euler, InstancedMesh, LatheGeometry, Matrix4, Quaternion, Vector2, Vector3 } from 'three'
 
 type Props = { kind: DecorationKind; item: DecorationConfig; state: ItemState | null }
 
@@ -66,13 +66,30 @@ function Fringe({ width, depth, children }: { width: number; depth: number; chil
   )
 }
 
+// What a dry plant's soil and leaves fade toward.
+const DRY_SOIL = new Color('#9a8a72')
+const DRY_LEAF = new Color('#b39a52')
+
 // Rugs, plants, art and the soft things that make a room feel lived in.
 export default function DecorModel({ kind, item, state }: Props) {
   const p = (id: string) => paramValue(kind, item.params, id, item.variant)
   const c = (slot: string) => colorValue(kind, item.colors, slot, item.variant)
   const m = (slot: string) => materialValue(kind, slot, item.variant)
   const style = decorationVariant(kind, item.variant)?.id ?? ''
-  const paint = (slot: string, both = false) => <Material color={c(slot)} material={m(slot)} doubleSide={both} />
+  // How thirsty a plant is, 0 watered to 1 dry: it starts to wilt at its
+  // Dry below reading and is fully wilted 15 points under it. Eased, so a
+  // watering perks it up over a few seconds rather than in one frame.
+  const dry = kind.params.some(x => x.id === 'dry') ? p('dry') : undefined
+  const moisture = dry === undefined ? undefined : state?.moisture
+  const thirst = useEased(moisture === undefined ? 0 : Math.min(Math.max((dry! - moisture) / 15, 0), 1), 1.5)
+  const tinted = (slot: string) => {
+    if (thirst <= 0) return c(slot)
+    if (slot === 'soil') return new Color(c(slot)).lerp(DRY_SOIL, thirst).getStyle()
+    if (slot === 'leaves' || slot === 'stems' || slot === 'markings')
+      return new Color(c(slot)).lerp(DRY_LEAF, thirst * 0.7).getStyle()
+    return c(slot)
+  }
+  const paint = (slot: string, both = false) => <Material color={tinted(slot)} material={m(slot)} doubleSide={both} />
   // An unbound curtain hangs closed. A device with a position draws it that
   // far, one that only switches draws it all the way open or shut. Eased,
   // so it draws rather than jumps as Home Assistant reports its position on
@@ -137,11 +154,20 @@ export default function DecorModel({ kind, item, state }: Props) {
       )
     }
     case 'plant_large':
-      return <FloorPlant style={style} size={p('size')} height={p('height')} paint={paint} />
+      return <FloorPlant style={style} size={p('size')} height={p('height')} wilt={thirst} paint={paint} />
     case 'plant_small':
-      return <ShelfPlant style={style} size={p('size')} height={p('height')} trail={p('trail')} paint={paint} />
+      return (
+        <ShelfPlant
+          style={style}
+          size={p('size')}
+          height={p('height')}
+          trail={p('trail')}
+          wilt={thirst}
+          paint={paint}
+        />
+      )
     case 'plant_wall':
-      return <WallPlant style={style} width={p('width')} trail={p('trail')} paint={paint} />
+      return <WallPlant style={style} width={p('width')} trail={p('trail')} wilt={thirst} paint={paint} />
     case 'wall_mirror': {
       const s = p('size')
       return (

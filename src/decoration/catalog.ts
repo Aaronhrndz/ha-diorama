@@ -108,10 +108,11 @@ const KIND_DOMAINS: Record<string, string[]> = {
   leak_sensor: ['binary_sensor'],
   camera: ['camera'],
   alarm_panel: ['alarm_control_panel'],
-  // Soil moisture, temperature and the air's humidity round a plant.
-  plant_large: ['sensor', 'binary_sensor'],
-  plant_small: ['sensor', 'binary_sensor'],
-  plant_wall: ['sensor', 'binary_sensor'],
+  // Home Assistant's own plant, then the soil moisture, temperature and
+  // the air's humidity round it.
+  plant_large: ['plant', 'sensor', 'binary_sensor'],
+  plant_small: ['plant', 'sensor', 'binary_sensor'],
+  plant_wall: ['plant', 'sensor', 'binary_sensor'],
 }
 
 export function preferredDomains(kind: DecorationKind): string[] {
@@ -184,6 +185,8 @@ const panels = (d = 2, max = 5) => p('panels', 'Panels', d, 1, max, 1, '')
 const base = (d = 0) => p('base', 'Off floor', d, 0, 1.6)
 // Screens are sold by the diagonal, and they are all 16:9.
 const inches = (d: number, min = 24, max = 120) => p('inches', 'Screen', d, min, max, 1, '"')
+// The soil moisture a plant starts to wilt at, as its sensor reads it.
+const dryBelow = () => p('dry', 'Dry below', 20, 5, 60, 1, '%')
 // A switch: off is 0, on is 1.
 const flag = (id: string, label: string, d = 0): DecorationParam => ({
   id,
@@ -1750,10 +1753,10 @@ export const DECORATION_KINDS: DecorationKind[] = [
     'decor',
     'Floor plant',
     'floor',
-    [size(0.8, 0.3, 1.6), height(1.6, 0.6, 2.4)],
+    [size(0.8, 0.3, 1.6), height(1.6, 0.6, 2.4), dryBelow()],
     { pot: SCANDI.offWhite, soil: '#3c332b', stems: '#7a6a58', leaves: '#4f7d3c' },
     { pot: 'ceramic', soil: 'matte', stems: 'wood', leaves: 'wood' },
-    // A plant shows nothing, but its sensors can stand behind it.
+    // A plant wilts when the soil its sensor reads goes dry.
     READOUT,
     [
       { id: 'fiddle', label: 'Fiddle leaf fig' },
@@ -1811,10 +1814,11 @@ export const DECORATION_KINDS: DecorationKind[] = [
       height(0.3, 0.12, 0.9),
       lift(0.75),
       only(p('trail', 'Trail', 0.6, 0.1, 1.5, 0.05), ['pothos']),
+      dryBelow(),
     ],
     { pot: SCANDI.offWhite, soil: '#3c332b', stems: '#7aa648', leaves: '#5a9440', markings: '#e3d268' },
     { pot: 'ceramic', soil: 'matte', stems: 'matte', leaves: 'wood', markings: 'wood' },
-    // A plant shows nothing, but its sensors can stand behind it.
+    // A plant wilts when the soil its sensor reads goes dry.
     READOUT,
     [
       { id: 'pothos', label: 'Golden pothos' },
@@ -1839,10 +1843,15 @@ export const DECORATION_KINDS: DecorationKind[] = [
     'decor',
     'Wall plant',
     'wall',
-    [width(0.3, 0.2, 0.8), height(1.6, 0.6, 2.3), only(p('trail', 'Trail', 0.6, 0.1, 1.5, 0.05), ['pothos', 'pearls'])],
+    [
+      width(0.3, 0.2, 0.8),
+      height(1.6, 0.6, 2.3),
+      only(p('trail', 'Trail', 0.6, 0.1, 1.5, 0.05), ['pothos', 'pearls']),
+      dryBelow(),
+    ],
     { pot: SCANDI.offWhite, soil: '#3c332b', stems: '#7aa648', leaves: '#5a9440', markings: '#e3d268' },
     { pot: 'ceramic', soil: 'matte', stems: 'matte', leaves: 'wood', markings: 'wood' },
-    // A plant shows nothing, but its sensors can stand behind it.
+    // A plant wilts when the soil its sensor reads goes dry.
     READOUT,
     [
       { id: 'pothos', label: 'Golden pothos' },
