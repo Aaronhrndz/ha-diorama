@@ -49,6 +49,7 @@ const KIND_ICONS: Record<string, string> = {
   light_pendant: 'ph:lamp-pendant',
   light_floor: 'ph:lamp',
   light_table: 'ph:lamp',
+  light_desk: 'ph:lamp',
   light_wall: 'ph:lightbulb',
   light_strip: 'ph:lightbulb-filament',
   light_strip_ceiling: 'ph:lightbulb-filament',

@@ -449,8 +449,8 @@ export function PedestalDesk({ w, d, h, M, rise = 0 }: Size & { rise?: number })
 // After the Florence Knoll credenza: a long wooden case with four sliding
 // doors, each with a round finger pull, standing on a thin frame of square
 // steel legs tied by rails under the case.
-export function Credenza({ w, d, h, M }: Size) {
-  const legH = Math.min(0.2, h * 0.28)
+export function Credenza({ w, d, h, M, hung = false }: Size & { hung?: boolean }) {
+  const legH = hung ? 0 : Math.min(0.2, h * 0.28)
   const leg = 0.018
   const top = 0.02
   const H = h - legH
@@ -459,29 +459,43 @@ export function Credenza({ w, d, h, M }: Size) {
   const doorH = H - top - 0.03
   return (
     <group>
-      {[-1, 1].flatMap(sx =>
-        [-1, 1].map(sz => (
-          <Slab
-            key={`${sx}${sz}`}
-            size={[leg, legH, leg]}
-            radius={0.002}
-            position={[sx * (w / 2 - 0.03), 0, sz * (d / 2 - 0.03)]}
-          >
-            {M('frame')}
-          </Slab>
-        )),
+      {hung ? null : (
+        <>
+          {[-1, 1].flatMap(sx =>
+            [-1, 1].map(sz => (
+              <Slab
+                key={`${sx}${sz}`}
+                size={[leg, legH, leg]}
+                radius={0.002}
+                position={[sx * (w / 2 - 0.03), 0, sz * (d / 2 - 0.03)]}
+              >
+                {M('frame')}
+              </Slab>
+            )),
+          )}
+          {/* The rails the case sits on, along the length and across the ends. */}
+          {[-1, 1].map(sz => (
+            <Slab
+              key={`x${sz}`}
+              size={[w - 0.06, leg, leg]}
+              radius={0.002}
+              position={[0, legH - leg, sz * (d / 2 - 0.03)]}
+            >
+              {M('frame')}
+            </Slab>
+          ))}
+          {[-1, 1].map(sx => (
+            <Slab
+              key={`z${sx}`}
+              size={[leg, leg, d - 0.06]}
+              radius={0.002}
+              position={[sx * (w / 2 - 0.03), legH - leg, 0]}
+            >
+              {M('frame')}
+            </Slab>
+          ))}
+        </>
       )}
-      {/* The rails the case sits on, along the length and across the ends. */}
-      {[-1, 1].map(sz => (
-        <Slab key={`x${sz}`} size={[w - 0.06, leg, leg]} radius={0.002} position={[0, legH - leg, sz * (d / 2 - 0.03)]}>
-          {M('frame')}
-        </Slab>
-      ))}
-      {[-1, 1].map(sx => (
-        <Slab key={`z${sx}`} size={[leg, leg, d - 0.06]} radius={0.002} position={[sx * (w / 2 - 0.03), legH - leg, 0]}>
-          {M('frame')}
-        </Slab>
-      ))}
       <Slab size={[w, H, d - 0.01]} radius={0.006} bevel={0.003} position={[0, legH, -0.005]}>
         {M('cabinet')}
       </Slab>
@@ -511,25 +525,27 @@ export function Credenza({ w, d, h, M }: Size) {
 // After the IKEA Besta: a plain carcass of 60 cm units on slim metal legs,
 // with push to open fronts and no handles. The middle of three units is a
 // pair of drawers.
-export function PushSideboard({ w, d, h, M }: Size) {
-  const legH = Math.min(0.1, h * 0.15)
+export function PushSideboard({ w, d, h, M, hung = false }: Size & { hung?: boolean }) {
+  const legH = hung ? 0 : Math.min(0.1, h * 0.15)
   const H = h - legH
   const units = Math.max(1, Math.round(w / 0.6))
   const unitW = w / units
   const gap = 0.003
   return (
     <group>
-      <Legs
-        width={w}
-        depth={d}
-        height={legH}
-        inset={Math.min(0.05, d * 0.12)}
-        top={0.016}
-        bottom={0.012}
-        columns={units > 2 ? units : 2}
-      >
-        {M('legs')}
-      </Legs>
+      {hung ? null : (
+        <Legs
+          width={w}
+          depth={d}
+          height={legH}
+          inset={Math.min(0.05, d * 0.12)}
+          top={0.016}
+          bottom={0.012}
+          columns={units > 2 ? units : 2}
+        >
+          {M('legs')}
+        </Legs>
+      )}
       <Slab size={[w, H, d - 0.02]} radius={0.004} bevel={0.002} position={[0, legH, -0.01]}>
         {M('cabinet')}
       </Slab>
