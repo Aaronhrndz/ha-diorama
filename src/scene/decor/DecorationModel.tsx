@@ -5,6 +5,7 @@ import { DragBadge, DragGhost, travelOf, useDrag, type DragAction } from '#/scen
 import { grabs, type Grab } from '#/scene/drags.ts'
 import { standHeight } from '#/decoration/surfaces.ts'
 import ApplianceModel from '#/scene/decor/ApplianceModel.tsx'
+import CustomModel from '#/scene/decor/CustomModel.tsx'
 import DecorModel from '#/scene/decor/DecorModel.tsx'
 import DeviceModel from '#/scene/decor/DeviceModel.tsx'
 import FurnitureModel from '#/scene/decor/FurnitureModel.tsx'
@@ -75,6 +76,8 @@ const FAMILY_MODELS: Record<string, FamilyModel> = {
   utility: DeviceModel,
   decor: DecorModel,
   outdoor: OutdoorModel,
+  // The models imported into the catalog.
+  custom: CustomModel,
 }
 
 // Kinds drawn by a model other than their family's: the pieces that come

@@ -12,6 +12,7 @@ import { fitView, roomCenter, round, type View } from '#/editor/view.ts'
 import { snapToWall } from '#/editor/walls.ts'
 import { freePlacement, isValidRoom, pointOnBoundary, pointStrictlyInside } from '#/geometry/overlap.ts'
 import { decorationKind, type DecorationKind } from '#/decoration/catalog.ts'
+import { modelKindId, registerModels } from '#/decoration/models.ts'
 import { entityGone } from '#/devices/catalog.ts'
 import { initialTry, toggleTry, type TryState, type TryStates } from '#/editor/tryState.ts'
 import { deviceTry } from '#/scene/Devices.tsx'
@@ -40,7 +41,15 @@ import {
   EDITOR_NIGHT_HOUR,
   EDITOR_SIDEBAR_WIDTH_PX,
 } from '#/constants.ts'
-import type { CardConfig, DecorationConfig, DeviceConfig, HomeAssistant, Point, RoomConfig } from '#/types.ts'
+import type {
+  CardConfig,
+  DecorationConfig,
+  DeviceConfig,
+  HomeAssistant,
+  ModelConfig,
+  Point,
+  RoomConfig,
+} from '#/types.ts'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { EDITOR_TEXT_COMMIT_DELAY_MS } from '#/constants.ts'
@@ -53,6 +62,13 @@ type Props = {
   // Throws when the save failed, so the editor stays open with the edits.
   onSave?: () => Promise<unknown>
 }
+
+type Models = Record<string, ModelConfig> | undefined
+
+// What of the imported models counts as a change. Their shape never changes
+// once imported, so it is left out, which keeps a long one from being written
+// out again on every edit.
+const modelSummary = (models: Models) => Object.entries(models ?? {}).map(([id, m]) => [id, m.name, m.mount ?? 'floor'])
 
 function nextRoomId(rooms: RoomConfig[]) {
   let n = rooms.length + 1
@@ -224,19 +240,23 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     rooms: RoomConfig[]
     devices: DeviceConfig[]
     decorations: DecorationConfig[]
+    models: Models
   }>({
     rooms: config.rooms ?? [],
     devices: config.devices ?? [],
     decorations: config.decorations ?? [],
+    models: config.models,
   })
   const [confirmDiscard, setConfirmDiscard] = useState(false)
-  const serialize = (r: RoomConfig[], d: DeviceConfig[], x: DecorationConfig[]) =>
-    JSON.stringify({ rooms: r, devices: d, decorations: x })
-  const lastEmitted = useRef<string>(serialize(config.rooms ?? [], config.devices ?? [], config.decorations ?? []))
+  const serialize = (r: RoomConfig[], d: DeviceConfig[], x: DecorationConfig[], m: Models) =>
+    JSON.stringify({ rooms: r, devices: d, decorations: x, models: modelSummary(m) })
+  const lastEmitted = useRef<string>(
+    serialize(config.rooms ?? [], config.devices ?? [], config.decorations ?? [], config.models),
+  )
 
   // Pick up edits made outside, for example in the YAML editor.
   useEffect(() => {
-    const incoming = serialize(config.rooms ?? [], config.devices ?? [], config.decorations ?? [])
+    const incoming = serialize(config.rooms ?? [], config.devices ?? [], config.decorations ?? [], config.models)
     if (incoming === lastEmitted.current) return
     lastEmitted.current = incoming
     setRooms(config.rooms ?? [])
@@ -262,12 +282,13 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     nextRooms: RoomConfig[],
     devicesIn: DeviceConfig[] = devices,
     nextDecorations: DecorationConfig[] = decorations,
+    nextModels: Models = config.models,
   ) => {
     const nextDevices = settle(devicesIn, nextDecorations)
     setRooms(nextRooms)
     setDevices(nextDevices)
     setDecorations(nextDecorations)
-    const serialized = serialize(nextRooms, nextDevices, nextDecorations)
+    const serialized = serialize(nextRooms, nextDevices, nextDecorations, nextModels)
     if (serialized === lastEmitted.current) return
     lastEmitted.current = serialized
     const next: CardConfig = { ...config, rooms: nextRooms }
@@ -275,6 +296,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     else delete next.devices
     if (nextDecorations.length > 0) next.decorations = nextDecorations
     else delete next.decorations
+    if (nextModels && Object.keys(nextModels).length > 0) next.models = nextModels
+    else delete next.models
     onChange(next)
   }
 
@@ -290,17 +313,22 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
   // Decoration
 
   const nextDecorationId = (kindId: string) => {
+    // A model's kind says `model:` before its id, which an item's id does not need.
+    const base = kindId.replace(':', '-')
     let n = 1
-    while (decorations.some(d => d.id === `${kindId}-${n}`)) n++
-    return `${kindId}-${n}`
+    while (decorations.some(d => d.id === `${base}-${n}`)) n++
+    return `${base}-${n}`
   }
 
   // Inside the room, or on its wall for a wall item.
   const within = (p: Point, points: Point[]) => pointStrictlyInside(p, points) || pointOnBoundary(p, points)
 
-  const addDecoration = (kind: DecorationKind) => {
+  const addDecoration = (kind: DecorationKind, models: Models = config.models) => {
     const room = targetRoom()
-    if (!room) return
+    if (!room) {
+      if (models !== config.models) commit(rooms, devices, decorations, models)
+      return
+    }
     const item: DecorationConfig = {
       id: nextDecorationId(kind.id),
       kind: kind.id,
@@ -312,10 +340,85 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       item.position = snapped.point
       item.rotation = snapped.rotation
     }
-    commit(rooms, devices, [...decorations, item])
+    commit(rooms, devices, [...decorations, item], models)
     setSelection({ roomId: null, vertex: null })
     setAddRoom(room.id)
     setSelectedDecoration(item.id)
+  }
+
+  // A model imported into the catalog goes in with one of it placed, the
+  // way a click on a row of the catalog places one.
+  const importModel = (id: string, model: ModelConfig) => {
+    registerModels({ [id]: model })
+    const models = { ...config.models, [id]: model }
+    const kind = decorationKind(modelKindId(id))
+    if (kind) addDecoration(kind, models)
+    else commit(rooms, devices, decorations, models)
+  }
+
+  // A model's name and mount are the model's, so they change every piece of
+  // it. A change of mount moves them: onto the nearest wall for a wall, and
+  // off whatever they stood on for anything but the floor.
+  const updateModel = (id: string, patch: Partial<ModelConfig>) => {
+    const before = config.models?.[id]
+    if (!before) return
+    const model = { ...before, ...patch }
+    registerModels({ [id]: model })
+    const kindId = modelKindId(id)
+    const remounted = patch.mount !== undefined && patch.mount !== (before.mount ?? 'floor')
+    const next = !remounted
+      ? decorations
+      : decorations.map(d => {
+          if (d.kind !== kindId) {
+            // What stood on a piece that leaves the floor stands on the floor.
+            const below = d.on ? decorations.find(x => x.id === d.on) : undefined
+            if (below?.kind !== kindId || patch.mount === 'floor') return d
+            const { on: _on, ...rest } = d
+            return rest
+          }
+          const { on: _on, floor: _floor, ...rest } = d
+          const params = Object.fromEntries(
+            Object.entries(d.params ?? {}).filter(([key]) => ['width', 'depth', 'height'].includes(key)),
+          )
+          const moved: DecorationConfig = { ...rest, params: Object.keys(params).length > 0 ? params : undefined }
+          if (!moved.params) delete moved.params
+          const room = rooms.find(r => r.id === d.room)
+          if (patch.mount === 'wall' && room) {
+            const snapped = snapToWall(d.position, room.points)
+            moved.position = snapped.point
+            moved.rotation = snapped.rotation
+          } else if (before.mount === 'wall' && room) {
+            // Off the wall it stands where it hung, its back to the wall
+            // rather than its middle on it.
+            const half = (d.params?.depth ?? model.size[1]) / 2
+            const turn = ((d.rotation ?? 0) * Math.PI) / 180
+            const inside: Point = [
+              round(d.position[0] + Math.sin(turn) * half),
+              round(d.position[1] - Math.cos(turn) * half),
+            ]
+            if (within(inside, room.points)) moved.position = inside
+          }
+          return moved
+        })
+    commit(rooms, devices, next, { ...config.models, [id]: model })
+  }
+
+  // Taking a model out of the catalog takes every piece of it off the plan.
+  const removeModel = (id: string) => {
+    const kindId = modelKindId(id)
+    const gone = new Set(decorations.filter(d => d.kind === kindId).map(d => d.id))
+    const left = decorations
+      .filter(d => !gone.has(d.id))
+      .map(d => {
+        if (!d.on || !gone.has(d.on)) return d
+        const { on: _dropped, ...rest } = d
+        return rest
+      })
+    let list = devices
+    for (const piece of gone) list = unbindEverywhere(list, piece)
+    const { [id]: _removed, ...models } = config.models ?? {}
+    commit(rooms, list, left, models)
+    if (selectedDecoration && gone.has(selectedDecoration)) setSelectedDecoration(null)
   }
 
   const updateDecoration = (id: string, patch: Partial<DecorationConfig>) =>
@@ -612,7 +715,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     // the browser has shown it, and the editor can take its time.
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
-        setOpened({ rooms, devices, decorations })
+        setOpened({ rooms, devices, decorations, models: config.models })
         setHome(hass)
         setTries({})
         setFullscreen(true)
@@ -641,7 +744,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       return false
     }
     setSaving(null)
-    setOpened({ rooms, devices, decorations })
+    setOpened({ rooms, devices, decorations, models: config.models })
     return true
   }
 
@@ -664,7 +767,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     setDraft([])
     setSelection({ roomId: null, vertex: null })
     setSelectedDecoration(null)
-    commit(opened.rooms, opened.devices, opened.decorations)
+    registerModels(opened.models)
+    commit(opened.rooms, opened.devices, opened.decorations, opened.models)
     setConfirmDiscard(false)
     setFullscreen(false)
   }
@@ -674,7 +778,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
   const close = () => {
     const changed =
       draft.length > 0 ||
-      serialize(rooms, devices, decorations) !== serialize(opened.rooms, opened.devices, opened.decorations)
+      serialize(rooms, devices, decorations, config.models) !==
+        serialize(opened.rooms, opened.devices, opened.decorations, opened.models)
     if (changed) setConfirmDiscard(true)
     else discard()
     return !changed
@@ -921,8 +1026,12 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       rooms={rooms}
       devices={devices}
       decorations={decorations}
+      models={config.models}
       selected={selectedDecoration}
-      onAdd={addDecoration}
+      onAdd={kind => addDecoration(kind)}
+      onImportModel={importModel}
+      onUpdateModel={updateModel}
+      onRemoveModel={removeModel}
       onUpdate={updateDecoration}
       onRemove={removeDecoration}
       onBind={bindDecoration}

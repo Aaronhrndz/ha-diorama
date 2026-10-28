@@ -13,6 +13,8 @@ import {
   type DecorationKind,
 } from '#/decoration/catalog.ts'
 import { levelsAt } from '#/decoration/surfaces.ts'
+import { isModelKind, MODEL_FAMILY, modelIdOf, modelKinds } from '#/decoration/models.ts'
+import { heavyNote, importFiles, importLink, sizeNote } from '#/editor/importModel.ts'
 import { placeableEntities } from '#/devices/catalog.ts'
 import ModelPreview from '#/editor/ModelPreview.tsx'
 import TrySection from '#/editor/TrySection.tsx'
@@ -33,12 +35,14 @@ import { cn } from '#/lib/utils.ts'
 import { deviceSignals, levelChannels } from '#/signals.ts'
 import { EDITOR_BOUND_COLOR, EDITOR_TINT_COLOR, ROOM_COLORS } from '#/theme.ts'
 import { colorWell, deleteButton, field, group, groupTitle, iconButton, note, plainButton, row } from '#/editor/look.ts'
-import type { DecorationConfig, DeviceConfig, HomeAssistant, RoomConfig } from '#/types.ts'
+import type { DecorationConfig, DeviceConfig, HomeAssistant, ModelConfig, RoomConfig } from '#/types.ts'
 import { decorationIcon, FAMILY_LABELS } from '#/decoration/icons.ts'
 import {
   faArrowsRotate,
   faChevronDown,
   faChevronUp,
+  faFileImport,
+  faLink,
   faMagnifyingGlass,
   faMinus,
   faPlus,
@@ -53,8 +57,13 @@ type Props = {
   rooms: RoomConfig[]
   devices: DeviceConfig[]
   decorations: DecorationConfig[]
+  // The models imported into the catalog, by id.
+  models: Record<string, ModelConfig> | undefined
   selected: string | null
   onAdd: (kind: DecorationKind) => void
+  onImportModel: (id: string, model: ModelConfig) => void
+  onUpdateModel: (id: string, patch: Partial<ModelConfig>) => void
+  onRemoveModel: (id: string) => void
   onUpdate: (id: string, patch: Partial<DecorationConfig>) => void
   onRemove: (id: string) => void
   onBind: (id: string, entityId: string | null) => void
@@ -84,8 +93,12 @@ export default function DecorationPanel({
   rooms,
   devices,
   decorations,
+  models,
   selected,
   onAdd,
+  onImportModel,
+  onUpdateModel,
+  onRemoveModel,
   onUpdate,
   onRemove,
   onBind,
@@ -116,6 +129,28 @@ export default function DecorationPanel({
   // The item a trash icon in the device's list was clicked on, waiting for
   // the yes.
   const [unbinding, setUnbinding] = useState<DecorationConfig | null>(null)
+  // The model whose bin was clicked in the catalog, waiting for the yes.
+  const [removing, setRemoving] = useState<DecorationKind | null>(null)
+  // A model on its way in, and what went wrong with the last one.
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  const [linking, setLinking] = useState(false)
+  const [link, setLink] = useState('')
+  const fileInput = useRef<HTMLInputElement>(null)
+  const bring = async (work: () => Promise<{ id: string; model: ModelConfig }>) => {
+    setImporting(true)
+    setImportError(null)
+    try {
+      const { id, model } = await work()
+      onImportModel(id, model)
+      setLinking(false)
+      setLink('')
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : 'The model could not be imported.')
+    } finally {
+      setImporting(false)
+    }
+  }
   const item = selected ? decorations.find(d => d.id === selected) : undefined
   const kind = item ? decorationKind(item.kind) : undefined
 
@@ -359,6 +394,48 @@ export default function DecorationPanel({
           )}
         </div>
 
+        {/* An imported model's name and mount are the model's own, so
+            they change every piece placed from it. */}
+        {isModelKind(kind) &&
+          (() => {
+            const id = modelIdOf(kind.id)
+            const model = id ? models?.[id] : undefined
+            if (!id || !model) return null
+            const heavy = heavyNote(model)
+            return (
+              <div className={group}>
+                <p className={groupTitle}>Model</p>
+                <label className={cn(row, 'grid-cols-[96px_1fr]')}>
+                  Name
+                  <input
+                    className={field}
+                    aria-label="Model name"
+                    value={model.name}
+                    onChange={e => onUpdateModel(id, { name: e.target.value })}
+                    onBlur={e => {
+                      if (!e.target.value.trim()) onUpdateModel(id, { name: 'Model' })
+                    }}
+                  />
+                </label>
+                <label className={cn(row, 'grid-cols-[96px_1fr]')}>
+                  Mount
+                  <Select
+                    aria-label="Mount"
+                    value={model.mount ?? 'floor'}
+                    options={[
+                      { value: 'floor', label: 'On the floor' },
+                      { value: 'wall', label: 'On a wall' },
+                      { value: 'ceiling', label: 'From the ceiling' },
+                    ]}
+                    onChange={v => onUpdateModel(id, { mount: v as ModelConfig['mount'] })}
+                  />
+                </label>
+                <p className={note}>Every piece of this model changes with its name and mount. {sizeNote(model)}</p>
+                {heavy && <p className="text-xs leading-snug text-[var(--warning-color,#ffa600)]">{heavy}</p>}
+              </div>
+            )
+          })()}
+
         {/* Up and down through the heights there are where it stands. With
             only one, there is nothing to step through. */}
         {levels.length > 1 && levelAt >= 0 && (
@@ -574,6 +651,8 @@ export default function DecorationPanel({
   }
 
   const families = [...new Set(DECORATION_KINDS.map(k => k.family))]
+  const mine = modelKinds(models)
+  const piecesOf = (kind: DecorationKind) => decorations.filter(d => d.kind === kind.id).length
   const previewItem: DecorationConfig | null = hovered
     ? { id: 'preview', kind: hovered.id, room: '', position: [0, 0] }
     : null
@@ -620,6 +699,138 @@ export default function DecorationPanel({
           )}
         </div>
       </Sticky>
+
+      {/* The models brought in from a file, first since they are the
+          viewer's own, with the way to bring in another under them. */}
+      {(() => {
+        const q = query.trim().toLowerCase()
+        const familyMatch = !!q && 'my models'.includes(q)
+        const shown = mine.filter(k => !q || familyMatch || k.label.toLowerCase().includes(q))
+        if (q && shown.length === 0) return null
+        return (
+          <div className="flex flex-col gap-1.5">
+            <p className={cn(groupTitle, 'px-2')}>{FAMILY_LABELS[MODEL_FAMILY]}</p>
+            <div className="bg-fill flex flex-col overflow-hidden rounded-xl p-1">
+              {shown.map(k => (
+                <div
+                  key={k.id}
+                  className={cn(
+                    'grid grid-cols-[minmax(0,1fr)_auto] items-center rounded-lg transition-colors',
+                    hovered?.id === k.id && 'bg-fill-strong',
+                  )}
+                  onMouseEnter={() => setHovered(k)}
+                  onMouseLeave={() => setHovered(h => (h?.id === k.id ? null : h))}
+                >
+                  <button
+                    type="button"
+                    disabled={rooms.length === 0}
+                    aria-label={`Add ${k.label}`}
+                    onClick={() => onAdd(k)}
+                    className="active:bg-fill-stronger grid w-full grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors disabled:cursor-default"
+                  >
+                    <span className="bg-fill-strong flex size-7 items-center justify-center rounded-[7px]">
+                      <FontAwesomeIcon icon={decorationIcon(k.id, k.family)} className="text-label-2 size-3.5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] text-(--primary-text-color)">{k.label}</p>
+                      <p className="text-label-2 truncate text-[11px] capitalize">{k.mount}</p>
+                    </div>
+                    {rooms.length > 0 ? (
+                      <span
+                        className={cn(
+                          'flex size-6 items-center justify-center rounded-full transition-colors',
+                          hovered?.id === k.id ? 'bg-tint/22' : 'bg-tint/12',
+                        )}
+                        style={{ color: accent }}
+                      >
+                        <FontAwesomeIcon icon={faPlus} className="size-3" />
+                      </span>
+                    ) : (
+                      <span />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${k.label} from my models`}
+                    title="Remove from my models"
+                    onClick={() => setRemoving(k)}
+                    className="text-label-2 hover:bg-danger/10 hover:text-danger mr-1 flex size-7 items-center justify-center rounded-lg transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faTrash} className="size-3" />
+                  </button>
+                </div>
+              ))}
+              {!q && (
+                <div className={cn('flex flex-col gap-2 p-1', shown.length > 0 && 'pt-2')}>
+                  <div className="grid grid-cols-[1fr_auto] gap-1.5">
+                    <button
+                      type="button"
+                      disabled={importing}
+                      onClick={() => fileInput.current?.click()}
+                      className={cn(plainButton, 'w-full')}
+                    >
+                      <FontAwesomeIcon icon={faFileImport} className="size-3" />
+                      {importing ? 'Importing...' : 'Import a model'}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Link to a model file"
+                      title="Link to a file in your www folder"
+                      aria-pressed={linking}
+                      disabled={importing}
+                      onClick={() => setLinking(on => !on)}
+                      className={cn(plainButton, 'w-9 px-0', linking && 'bg-tint/22')}
+                    >
+                      <FontAwesomeIcon icon={faLink} className="size-3" />
+                    </button>
+                  </div>
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    multiple
+                    accept=".glb,.gltf,.bin,model/gltf-binary,model/gltf+json,image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const files = [...(e.target.files ?? [])]
+                      e.target.value = ''
+                      if (files.length > 0) void bring(() => importFiles(files, models))
+                    }}
+                  />
+                  {linking && (
+                    <form
+                      className="grid grid-cols-[1fr_auto] gap-1.5"
+                      onSubmit={e => {
+                        e.preventDefault()
+                        if (link.trim()) void bring(() => importLink(link, models))
+                      }}
+                    >
+                      <input
+                        className={field}
+                        aria-label="Model link"
+                        placeholder="/local/models/chair.glb"
+                        value={link}
+                        onChange={e => setLink(e.target.value)}
+                      />
+                      <button type="submit" disabled={importing || !link.trim()} className={plainButton}>
+                        Add
+                      </button>
+                    </form>
+                  )}
+                  {importError ? (
+                    <p className="text-danger text-xs leading-snug">{importError}</p>
+                  ) : (
+                    <p className={note}>
+                      {linking
+                        ? 'A file in your Home Assistant www folder, read by every screen that shows the card.'
+                        : "A .glb or .gltf file, kept in the card so it shows on every screen. It is drawn in the card's own colors, a color for each of its parts."}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
 
       {families.map(family => {
         // A family name matches everything in it, so searching kitchen
@@ -679,6 +890,30 @@ export default function DecorationPanel({
           </div>
         )
       })}
+
+      <AlertDialog open={removing !== null} onOpenChange={open => !open && setRemoving(null)}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remove {removing?.label ?? 'this model'}?</AlertDialogTitle>
+          <AlertDialogDescription>
+            {removing && piecesOf(removing) > 0
+              ? `It leaves your models, and the ${piecesOf(removing) === 1 ? 'piece' : `${piecesOf(removing)} pieces`} of it on the plan go with it.`
+              : 'It leaves your models. Nothing on the plan uses it.'}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setRemoving(null)}>Keep it</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            onClick={() => {
+              const id = removing ? modelIdOf(removing.id) : null
+              if (id) onRemoveModel(id)
+              setRemoving(null)
+            }}
+          >
+            Remove
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialog>
     </div>
   )
 }

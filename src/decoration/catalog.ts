@@ -1,5 +1,6 @@
 import { EDITOR_DEVICE_GRID_M } from '#/constants.ts'
 import { SOFA_DEPTH, SOFA_REACH, SOFA_WIDTH } from '#/scene/decor/sofaSpecs.ts'
+import { isModelKind, modelKind } from '#/decoration/models.ts'
 import type { Signal } from '#/signals.ts'
 import { CEILING_HEIGHT_M, LIGHT_BASE_COLOR, LIGHT_SHADE_COLOR, SCANDI, SCREEN_OFF_COLOR } from '#/theme.ts'
 
@@ -3013,7 +3014,8 @@ export const DECORATION_KINDS: DecorationKind[] = [
   ),
 ]
 
-export const decorationKind = (id: string) => DECORATION_KINDS.find(k => k.id === id)
+// A kind from the catalog, or one made from a model the card imported.
+export const decorationKind = (id: string) => DECORATION_KINDS.find(k => k.id === id) ?? modelKind(id)
 
 // A saved size onto the stops its slider actually offers. A plan written
 // before a slider's steps changed can hold a value between two of them, or
@@ -3158,6 +3160,8 @@ export function mountHeight(kind: DecorationKind, params: Record<string, number>
   // A towel rail hangs by its top, its own height above how far off the
   // floor it starts.
   if (kind.id === 'towel_rail') return paramValue(kind, params, 'sill') + paramValue(kind, params, 'height')
+  // An imported model hangs by its bottom edge, its height being its size.
+  if (isModelKind(kind)) return paramValue(kind, params, 'sill')
   return paramValue(kind, params, 'height')
 }
 

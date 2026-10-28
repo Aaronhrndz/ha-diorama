@@ -167,11 +167,35 @@ export type DecorationConfig = {
   variant?: string
 }
 
+// A 3D model imported into the editor's catalog, by id. Pieces placed from
+// it name it in their kind as `model:<id>`, so it is kept once however many
+// times it is placed.
+export type ModelConfig = {
+  // What the catalog calls it, the file's name to start with.
+  name: string
+  // Its own size in meters, as width, depth and height, after the unit it
+  // was made in is guessed. Its sliders start here.
+  size: [number, number, number]
+  // Where it goes: on the floor, the default, on a wall or from the ceiling.
+  mount?: 'floor' | 'wall' | 'ceiling'
+  // How many triangles it has, all its parts together.
+  triangles: number
+  // Its parts, each one a color the item panel can set. A part's shape is
+  // kept here, `vertices` as three 16 bit numbers per corner across the
+  // model's own box and `triangles` as indexes into them, both base64.
+  parts: { name: string; vertices?: string; triangles?: string }[]
+  // A file to read the shape from instead, like one in /config/www, which
+  // Home Assistant serves as /local/. The parts then only name the colors.
+  url?: string
+}
+
 export type CardConfig = {
   type: string
   rooms?: RoomConfig[]
   devices?: DeviceConfig[]
   decorations?: DecorationConfig[]
+  // Models imported into the editor's catalog, by id.
+  models?: Record<string, ModelConfig>
   // Corner radius in meters applied to rooms without their own.
   radius?: number
   // Gap in meters between adjacent rooms.
