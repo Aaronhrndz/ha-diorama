@@ -75,11 +75,19 @@ export default function Overlay({ children }: { children: ReactNode }) {
 
   useLayoutEffect(() => {
     document.body.appendChild(dialog)
+    // Older Home Assistant opens its dialogs with a polyfill that marks
+    // everything else on the page inert, even elements added after it, which
+    // left the editor unable to take a single click. Nothing should.
+    const live = new MutationObserver(() => {
+      if (dialog.inert) dialog.inert = false
+    })
+    live.observe(dialog, { attributes: true, attributeFilter: ['inert'] })
     dialog.showModal()
     // The cards under it stop drawing while it covers them.
     const release = holdEditorOpen()
     return () => {
       release()
+      live.disconnect()
       dialog.close()
       dialog.remove()
     }

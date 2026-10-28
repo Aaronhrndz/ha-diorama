@@ -26,6 +26,8 @@ Everything is built inside Home Assistant, in the card's own full-screen editor.
 
 ## Install
 
+Diorama needs Home Assistant 2024.6 or newer.
+
 1. In Home Assistant open **HACS**, open the three-dot menu in the top right and choose **Custom repositories**.
 2. Paste `https://github.com/CarlesRojas/ha-diorama`, pick the **Dashboard** type and add it.
 3. Search for **Diorama** in HACS and download it. HACS registers the card's resource for you.
