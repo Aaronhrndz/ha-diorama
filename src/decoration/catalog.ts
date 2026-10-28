@@ -2950,7 +2950,9 @@ export function cycleLength(kind: DecorationKind, params: Record<string, number>
 
 // Items with a flat top that other things can stand on, and how high that
 // top is: their own height parameter, or a fixed height when they have none.
-const SURFACE_TOPS: Record<string, string | number> = {
+// A parameter, a height, or a height for each style. A wall shelf's top is
+// its board, up from the height it hangs at.
+const SURFACE_TOPS: Record<string, string | number | Record<string, number>> = {
   dining_table: 'height',
   coffee_table: 'height',
   side_table: 'height',
@@ -2968,6 +2970,7 @@ const SURFACE_TOPS: Record<string, string | number> = {
   pouf: 'height',
   piano: 'height',
   basin: 'height',
+  wall_shelf: { floating: 0.05, ledge: 0.035, string: 0.034 },
 }
 
 // Items let into a worktop rather than set on it, and how far their origin
@@ -2987,7 +2990,9 @@ export const builtInDepth = (kind: DecorationKind) => BUILT_IN[kind.id] ?? 0
 // Height of an item's top surface above its own base.
 export function surfaceTop(kind: DecorationKind, params: Record<string, number> | undefined, variant?: string) {
   const top = SURFACE_TOPS[kind.id]
-  return typeof top === 'number' ? top : paramValue(kind, params, top, variant)
+  if (typeof top === 'number') return top
+  if (typeof top === 'string') return paramValue(kind, params, top, variant)
+  return top[decorationVariant(kind, variant)?.id ?? ''] ?? 0
 }
 
 // Usable area of a top, inset so things do not hang over the edge.

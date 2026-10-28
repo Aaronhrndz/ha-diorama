@@ -2,6 +2,7 @@ import {
   builtInDepth,
   canRide,
   decorationKind,
+  footprint,
   isSupport,
   liveParam,
   mountHeight,
@@ -48,7 +49,10 @@ export function onSurface(point: Point, support: DecorationConfig): boolean {
   const dy = point[1] - support.position[1]
   const lx = dx * Math.cos(a) - dy * Math.sin(a)
   const ly = dx * Math.sin(a) + dy * Math.cos(a)
-  return Math.abs(lx) <= w / 2 && Math.abs(ly) <= d / 2
+  // A wall shelf's top reaches out from the wall into the room, which is
+  // the way its local y runs down, rather than sitting round the wall line.
+  const out = kind.mount === 'wall' ? footprint(kind, support.params, support.variant)[1] / 2 : 0
+  return Math.abs(lx) <= w / 2 && Math.abs(ly + out) <= d / 2
 }
 
 // A height a piece can stand at where it is: on the floor, at the height it
