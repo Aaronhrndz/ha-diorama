@@ -36,12 +36,14 @@ const roundTo = (value: number, step: number) => Math.round(value / step) * step
 
 // Snaps a plan point to nearby vertices, then to their x or y lines, then to
 // the grid. `ignore` skips one vertex so a dragged point does not snap to itself.
+// `grid` is the grid step, finer while Shift is held.
 export function snap(
   point: Point,
   view: View,
   rooms: RoomConfig[],
   ignore?: { roomId: string; index: number },
   extra: Point[] = [],
+  grid = EDITOR_GRID_M,
 ): Point {
   const radius = EDITOR_SNAP_PX / view.scale
   const candidates: Point[] = [...extra]
@@ -63,8 +65,8 @@ export function snap(
   }
   if (best) return [best[0], best[1]]
 
-  let x = roundTo(point[0], EDITOR_GRID_M)
-  let y = roundTo(point[1], EDITOR_GRID_M)
+  let x = roundTo(point[0], grid)
+  let y = roundTo(point[1], grid)
   let dx = radius
   let dy = radius
   for (const c of candidates) {

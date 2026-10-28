@@ -112,7 +112,7 @@ const KIND_DOMAINS: Record<string, string[]> = {
   vacuum_robot: ['vacuum'],
   water_heater: ['water_heater'],
   motion_sensor: ['binary_sensor'],
-  smoke_detector: ['binary_sensor'],
+  smoke_detector: ['binary_sensor', 'sensor'],
   leak_sensor: ['binary_sensor'],
   camera: ['camera'],
   alarm_panel: ['alarm_control_panel'],
@@ -2715,7 +2715,9 @@ export const DECORATION_KINDS: DecorationKind[] = [
     [size(0.14, 0.08, 0.25)],
     { body: SCANDI.offWhite, vents: SCANDI.slate },
     { body: 'matte', vents: 'matte' },
-    TOGGLE,
+    // A smoke binary sensor, or a sensor that reads carbon monoxide or says
+    // in words that it has found something.
+    ['toggle', 'value', 'enum'],
   ),
   kind(
     'leak_sensor',

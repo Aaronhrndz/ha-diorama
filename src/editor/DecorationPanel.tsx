@@ -332,6 +332,31 @@ export default function DecorationPanel({
               onReset={() => onUpdate(item.id, { rotation: defaultRotation })}
             />
           </label>
+          {/* The four square turns in one press. A wall piece faces its wall
+              whichever way it is turned, so it has none. */}
+          {kind.mount !== 'wall' && (
+            <div className={cn(row, 'grid-cols-[96px_1fr_56px_24px]')}>
+              Turn
+              <div className="bg-fill-strong col-span-2 flex rounded-[8px] p-0.5">
+                {[0, 90, 180, 270].map(angle => (
+                  <button
+                    key={angle}
+                    type="button"
+                    aria-pressed={(item.rotation ?? 0) === angle}
+                    onClick={() => onUpdate(item.id, { rotation: angle })}
+                    className={cn(
+                      'flex-1 rounded-[6px] py-1 text-xs font-medium tabular-nums transition-colors',
+                      (item.rotation ?? 0) === angle
+                        ? 'bg-raised text-(--primary-text-color) shadow-[0_1px_3px_rgba(0,0,0,0.2)]'
+                        : 'text-label-2 hover:text-(--primary-text-color)',
+                    )}
+                  >
+                    {angle}°
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Up and down through the heights there are where it stands. With

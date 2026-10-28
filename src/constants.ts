@@ -92,6 +92,9 @@ export const DAYLIGHT_EASE_S = 1.2
 
 // Grid step for snapping.
 export const EDITOR_GRID_M = 0.2
+// The step instead while Shift is held, for drawing and placing to the
+// centimeter.
+export const EDITOR_FINE_GRID_M = 0.01
 // How close, on screen, a point must be to snap to another vertex.
 export const EDITOR_SNAP_PX = 10
 // How close, on screen, a click must be to hit a vertex handle.
