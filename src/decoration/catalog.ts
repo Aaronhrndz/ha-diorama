@@ -27,6 +27,9 @@ export type DecorationParam = {
   variants?: string[]
   // Kept out of the editor: the piece has the value, with no slider for it.
   hidden?: boolean
+  // A switch of the same kind this only means something with: shown while
+  // it is on, and counted as nothing while it is off.
+  when?: string
 }
 
 // One style of a kind. A pendant is a pendant whichever one it is, so the
@@ -217,11 +220,19 @@ const adjust = (id: string, label: string): DecorationParam => ({
 
 // A parameter only some of the kind's styles have.
 const only = (param: DecorationParam, variants: string[]): DecorationParam => ({ ...param, variants })
+// A parameter that only means something while one of the kind's switches is on.
+const whenOn = (param: DecorationParam, toggle: string): DecorationParam => ({ ...param, when: toggle })
 
-// The parameters the editor shows for a style.
-export function styleParams(kind: DecorationKind, variant?: string) {
+// The parameters the editor shows for a style, and for the switches the
+// item has on.
+export function styleParams(kind: DecorationKind, variant?: string, params?: Record<string, number>) {
   const style = decorationVariant(kind, variant)?.id
-  return kind.params.filter(p => !p.hidden && (!p.variants || (style !== undefined && p.variants.includes(style))))
+  return kind.params.filter(
+    p =>
+      !p.hidden &&
+      (!p.variants || (style !== undefined && p.variants.includes(style))) &&
+      (!p.when || paramValue(kind, params, p.when, variant) > 0.5),
+  )
 }
 
 // Signal sets.
@@ -300,6 +311,27 @@ const TABLE_CESTITA: DecorationVariant = {
   params: { size: 0.22, height: 0.36 },
   colors: { globe: PENDANT_OPAL_COLOR, basket: '#b97a4a' },
   materials: { globe: 'matte', basket: 'wood' },
+}
+
+// The desk lamp's first style, the balanced arm lamp in its usual white
+// on black arms.
+const DESK_ARM: DecorationVariant = {
+  id: 'balanced_arm',
+  label: 'Balanced Arm',
+  params: { size: 0.4, height: 0.43 },
+  colors: { shade: '#ece8df', inside: '#f6f4ef', arms: PENDANT_BLACK_COLOR, base: '#ece8df' },
+  materials: { shade: 'matte', inside: 'matte', arms: 'metal', base: 'matte' },
+}
+
+// The piano's first style, an upright in oak, which is also the kind's own
+// slots.
+const PIANO_UPRIGHT: DecorationVariant = {
+  id: 'upright',
+  label: 'Oak Upright',
+  // 150 by 60 cm and 125 cm tall.
+  params: { width: 1.5, depth: 0.6, height: 1.25 },
+  colors: { case: SCANDI.oak, keys: '#f4f1ea', sharps: '#1d1e20', fittings: '#c8ad72' },
+  materials: { case: 'wood', keys: 'matte', sharps: 'matte', fittings: 'metal' },
 }
 
 // The floor lamp's first style, which keeps the kind's old slots, so a saved
@@ -545,6 +577,28 @@ export const DECORATION_KINDS: DecorationKind[] = [
         params: { size: 0.12, height: 0.3 },
         colors: { shade: '#e6d6b4', column: '#e8d3ad', base: '#4b3a2a', stitching: '#5a3b25' },
         materials: { shade: 'fabric', column: 'wood', base: 'metal', stitching: 'fabric' },
+      },
+    ],
+  ),
+  kind(
+    'light_desk',
+    'light',
+    'Desk lamp',
+    'floor',
+    // Size is the square the lamp stands in, its arm and shade included, and
+    // height its height. Each style starts at its lamp's own.
+    [size(0.4, 0.15, 0.8), height(0.43, 0.2, 1), lift(0.75)],
+    DESK_ARM.colors ?? {},
+    DESK_ARM.materials ?? {},
+    LIGHT_SIGNALS,
+    [
+      DESK_ARM,
+      {
+        id: 'banker',
+        label: 'Green Glass Banker',
+        params: { size: 0.28, height: 0.41 },
+        colors: { shade: '#2f6a4f', diffuser: PENDANT_OPAL_COLOR, base: '#b89a5e' },
+        materials: { shade: 'ceramic', diffuser: 'matte', base: 'metal' },
       },
     ],
   ),
@@ -1000,7 +1054,14 @@ export const DECORATION_KINDS: DecorationKind[] = [
     'storage',
     'Sideboard',
     'floor',
-    [width(1.6, 0.9, 2.6), depth(0.42, 0.3, 0.6), height(0.75, 0.6, 1)],
+    // Hung on the wall it loses its legs, and the case keeps its height.
+    [
+      width(1.6, 0.9, 2.6),
+      depth(0.42, 0.3, 0.6),
+      height(0.75, 0.6, 1),
+      flag('wall', 'Wall mounted'),
+      whenOn(base(0.4), 'wall'),
+    ],
     { cabinet: SCANDI.oak, fronts: SCANDI.offWhite, handles: SCANDI.slate },
     { cabinet: 'wood', fronts: 'matte', handles: 'metal' },
     undefined,
@@ -1806,6 +1867,36 @@ export const DECORATION_KINDS: DecorationKind[] = [
         colors: { rim: '#6f5236', face: '#2b2c2d', hands: '#1f2123', accent: '#c8553d' },
         materials: { rim: 'wood', face: 'metal', hands: 'matte', accent: 'matte' },
         params: { size: 0.33 },
+      },
+    ],
+  ),
+  kind(
+    'piano',
+    'decor',
+    'Piano',
+    'floor',
+    // Width runs along the keyboard, and depth back from it.
+    [width(1.5, 1, 1.8), depth(0.6, 0.35, 2.2), height(1.25, 0.8, 1.4)],
+    PIANO_UPRIGHT.colors ?? {},
+    PIANO_UPRIGHT.materials ?? {},
+    NONE,
+    [
+      PIANO_UPRIGHT,
+      {
+        id: 'grand',
+        label: 'Black Baby Grand',
+        // 150 by 160 cm, its lid down at 100 cm.
+        params: { width: 1.5, depth: 1.6, height: 1 },
+        colors: { case: '#26272a', keys: '#f4f1ea', sharps: '#1d1e20', fittings: '#c8ad72' },
+        materials: { case: 'ceramic', keys: 'matte', sharps: 'matte', fittings: 'metal' },
+      },
+      {
+        id: 'digital',
+        label: 'Slim Digital',
+        // 136 by 42 cm and 86 cm tall.
+        params: { width: 1.36, depth: 0.42, height: 0.86 },
+        colors: { case: '#f3f1ec', keys: '#f4f1ea', sharps: '#1d1e20', fittings: '#8a8f92' },
+        materials: { case: 'matte', keys: 'matte', sharps: 'matte', fittings: 'metal' },
       },
     ],
   ),
@@ -2680,6 +2771,20 @@ export function snapParam(spec: DecorationParam, value: number) {
   return round2(spec.min + stops * spec.step)
 }
 
+// A parameter's value where it counts, which is nothing for one whose
+// switch is off: a sideboard on its legs is not off the floor, whatever its
+// hanging height was left at.
+export function liveParam(
+  kind: DecorationKind,
+  params: Record<string, number> | undefined,
+  id: string,
+  variant?: string,
+) {
+  const when = kind.params.find(p => p.id === id)?.when
+  if (when && paramValue(kind, params, when, variant) <= 0.5) return 0
+  return paramValue(kind, params, id, variant)
+}
+
 export function paramValue(
   kind: DecorationKind,
   params: Record<string, number> | undefined,
@@ -2861,6 +2966,7 @@ const SURFACE_TOPS: Record<string, string | number> = {
   half_wall: 'height',
   bench: 'height',
   pouf: 'height',
+  piano: 'height',
   basin: 'height',
 }
 

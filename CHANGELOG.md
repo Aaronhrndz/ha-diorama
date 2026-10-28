@@ -9,6 +9,10 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- A piano in three styles, a desk lamp in two, and a switch to hang the sideboard on the wall at any height.
+
 ## [1.8.29] - 2026-10-21
 
 ### Fixed

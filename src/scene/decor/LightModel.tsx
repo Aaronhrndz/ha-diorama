@@ -1,4 +1,6 @@
 import { colorValue, decorationVariant, materialValue, paramValue, type DecorationKind } from '#/decoration/catalog.ts'
+import DeskLamp from '#/scene/decor/DeskLamps.tsx'
+import { DESK_LAMPS } from '#/scene/decor/deskLampSpecs.ts'
 import FloorLamp from '#/scene/decor/FloorLamps.tsx'
 import { FLOOR_LAMPS } from '#/scene/decor/floorLampSpecs.ts'
 import { BaseMaterial, ShadeMaterial, type LightState } from '#/scene/decor/lightMaterials.tsx'
@@ -230,6 +232,16 @@ export default function LightModel({ kind, item, state }: Props) {
       const up = Math.max(p('height') / k - spec.height, -spec.shrink)
       glowAt = [0, (spec.glow + spec.rise * up) * k, 0]
       body = <TableLamp style={style} k={k} up={up} c={c} m={m} state={state} />
+      break
+    }
+    case 'light_desk': {
+      const style = decorationVariant(kind, item.variant)?.id ?? 'balanced_arm'
+      const spec = DESK_LAMPS[style] ?? DESK_LAMPS.balanced_arm
+      const k = size / spec.size
+      const up = Math.max(p('height') / k - spec.height, -spec.shrink)
+      // The light is out over the desk, in front of the lamp's middle.
+      glowAt = [0, (spec.glow[0] + spec.rise[0] * up) * k, (spec.glow[1] + spec.rise[1] * up) * k]
+      body = <DeskLamp style={style} k={k} up={up} c={c} m={m} state={state} />
       break
     }
     case 'light_wall': {

@@ -3,6 +3,7 @@ import {
   canRide,
   decorationKind,
   isSupport,
+  liveParam,
   mountHeight,
   paramValue,
   surfaceRect,
@@ -26,7 +27,7 @@ export function standHeight(item: DecorationConfig, all: DecorationConfig[], dep
   if (kind.mount !== 'floor') return mountHeight(kind, item.params)
   // Some things are built into a run of units rather than standing on the
   // floor: an oven halfway up a tall cabinet, a radiator off the skirting.
-  const base = kind.params.some(x => x.id === 'base') ? paramValue(kind, item.params, 'base') : 0
+  const base = kind.params.some(x => x.id === 'base') ? liveParam(kind, item.params, 'base', item.variant) : 0
   const support = item.on ? all.find(d => d.id === item.on) : undefined
   const supportKind = support ? decorationKind(support.kind) : undefined
   if (!support || !supportKind || !isSupport(supportKind) || depth >= MAX_DEPTH) {
