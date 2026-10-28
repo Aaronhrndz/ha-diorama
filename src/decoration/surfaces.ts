@@ -2,7 +2,9 @@ import {
   builtInDepth,
   canRide,
   decorationKind,
+  footprint,
   isSupport,
+  liveParam,
   mountHeight,
   paramValue,
   surfaceRect,
@@ -26,7 +28,7 @@ export function standHeight(item: DecorationConfig, all: DecorationConfig[], dep
   if (kind.mount !== 'floor') return mountHeight(kind, item.params)
   // Some things are built into a run of units rather than standing on the
   // floor: an oven halfway up a tall cabinet, a radiator off the skirting.
-  const base = kind.params.some(x => x.id === 'base') ? paramValue(kind, item.params, 'base') : 0
+  const base = kind.params.some(x => x.id === 'base') ? liveParam(kind, item.params, 'base', item.variant) : 0
   const support = item.on ? all.find(d => d.id === item.on) : undefined
   const supportKind = support ? decorationKind(support.kind) : undefined
   if (!support || !supportKind || !isSupport(supportKind) || depth >= MAX_DEPTH) {
@@ -47,7 +49,10 @@ export function onSurface(point: Point, support: DecorationConfig): boolean {
   const dy = point[1] - support.position[1]
   const lx = dx * Math.cos(a) - dy * Math.sin(a)
   const ly = dx * Math.sin(a) + dy * Math.cos(a)
-  return Math.abs(lx) <= w / 2 && Math.abs(ly) <= d / 2
+  // A wall shelf's top reaches out from the wall into the room, which is
+  // the way its local y runs down, rather than sitting round the wall line.
+  const out = kind.mount === 'wall' ? footprint(kind, support.params, support.variant)[1] / 2 : 0
+  return Math.abs(lx) <= w / 2 && Math.abs(ly + out) <= d / 2
 }
 
 // A height a piece can stand at where it is: on the floor, at the height it

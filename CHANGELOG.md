@@ -9,6 +9,11 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+### Added
+
+- A piano in three styles, a desk lamp in two, three more ceiling lights, and a switch to hang the sideboard on the wall at any height.
+- Plants, vases, books and other small pieces can stand on a wall shelf, and a plant can stand in for its soil moisture, temperature or humidity sensor.
+
 ### Fixed
 
 - On older Home Assistant versions the editor responds to clicks again, where it opened but nothing in it could be clicked, and on 2024.6 the side panel shows its widgets again.

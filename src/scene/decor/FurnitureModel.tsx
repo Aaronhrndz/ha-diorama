@@ -278,8 +278,11 @@ export default function FurnitureModel({ kind, item, state }: Props) {
     case 'wardrobe': {
       const style = decorationVariant(kind, item.variant)?.id
       const size = { w: p('width'), d: p('depth'), h: p('height'), M }
-      if (style === 'credenza') return <Credenza {...size} />
-      if (style === 'besta') return <PushSideboard {...size} />
+      // A sideboard on the wall hangs at its height off the floor, with
+      // nothing under it.
+      const hung = kind.id === 'sideboard' && p('wall') > 0.5
+      if (style === 'credenza') return <Credenza {...size} hung={hung} />
+      if (style === 'besta') return <PushSideboard {...size} hung={hung} />
       if (style === 'malm') return <PlainDresser {...size} />
       if (style === 'hemnes') return <PaintedDresser {...size} />
       if (style === 'sliding') return <SlidingWardrobe {...size} />
@@ -291,7 +294,7 @@ export default function FurnitureModel({ kind, item, state }: Props) {
       const d = p('depth')
       const h = p('height')
       const onLegs = kind.id === 'sideboard'
-      const legH = Math.min(onLegs ? 0.15 : 0.07, h * 0.2)
+      const legH = hung ? 0 : Math.min(onLegs ? 0.15 : 0.07, h * 0.2)
       const boxH = h - legH
       const front = () => <Material color={c('fronts')} material={m('fronts')} />
       const pull = () => <Material color={c('handles')} material="metal" />
@@ -299,7 +302,7 @@ export default function FurnitureModel({ kind, item, state }: Props) {
       const inset = Math.min(0.06, w * 0.08, d * 0.15)
       return (
         <group>
-          {onLegs ? (
+          {hung ? null : onLegs ? (
             // A long sideboard grows a middle pair of legs.
             <Legs
               width={w - inset * 2}

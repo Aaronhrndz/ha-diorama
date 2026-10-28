@@ -208,7 +208,7 @@ export default function DecorationPanel({
             </label>
           )}
 
-          {styleParams(kind, item.variant).map(p => {
+          {styleParams(kind, item.variant, item.params).map(p => {
             // Read through the catalog, so a size saved before this slider's
             // steps changed shows on a stop rather than between two of them.
             const value = paramValue(kind, item.params, p.id, item.variant)
