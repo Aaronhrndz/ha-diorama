@@ -22,7 +22,8 @@ type Look = {
 type Vec3 = [number, number, number]
 
 // The larger pieces of a garden: a pergola whose roof of blades turns open
-// and shut, and a sauna that glows and breathes out vapor while it heats.
+// and shut, a sauna that glows and breathes out vapor while it heats, and a
+// driveway gate that opens by its cover's position.
 export default function GardenModel({ kind, item, state }: Props) {
   const p = (id: string) => paramValue(kind, item.params, id, item.variant)
   const c = (slot: string) => colorValue(kind, item.colors, slot, item.variant)
@@ -30,7 +31,8 @@ export default function GardenModel({ kind, item, state }: Props) {
   const on = state?.on ?? false
   // How far open the item is: the percentage feeding it, or its switch when
   // it has none, so a roof bound to a plain switch still opens.
-  const level = useTravel(state ? (state.levels.open ?? state.level ?? (on ? 1 : 0)) : 0)
+  // A cover being dragged follows the finger with no easing.
+  const level = useTravel(state ? (state.levels.open ?? state.level ?? (on ? 1 : 0)) : 0, undefined, state?.dragged)
   const look: Look = {
     p,
     c,
@@ -44,6 +46,8 @@ export default function GardenModel({ kind, item, state }: Props) {
       return <LouvredPergola {...look} />
     case 'sauna':
       return look.style === 'cabin' ? <CabinSauna {...look} /> : <BarrelSauna {...look} />
+    case 'driveway_gate':
+      return look.style === 'sliding' ? <SlidingGate {...look} /> : <SwingGate {...look} />
     default:
       return null
   }
@@ -663,6 +667,158 @@ function CabinSauna({ p, c, M, on }: Look) {
       <DoorWisps on={on} x={gx1 - dw / 2} y={gy1} z={d / 2 + 0.05} w={dw} out={ohF} head={top(d / 2) - gy1} />
       <Halo on={on} position={[0, y0 + 1.2, 0]} color={FIRE} intensity={0.7} distance={2.8} />
       <Halo on={on} position={[0, y0 + 1, d / 2 + 0.5]} color={FIRE} intensity={0.4} distance={2.5} />
+    </group>
+  )
+}
+
+// A driveway gate stands across its opening along x, between two square
+// steel posts, its street side toward -z. How far it is open is the cover's
+// position, eased along its travel the way the other covers are.
+const GATE_POST = 0.12
+// How far the leaves clear the ground.
+const GATE_FOOT = 0.06
+
+function GatePost({ x, h, M }: { x: number; h: number; M: Look['M'] }) {
+  return (
+    <group position={[x, 0, 0]}>
+      <Slab size={[GATE_POST, h, GATE_POST]} radius={0.008} bevel={0.004}>
+        {M('posts')}
+      </Slab>
+      {/* A flat cap over the top of the tube. */}
+      <Slab size={[GATE_POST + 0.02, 0.012, GATE_POST + 0.02]} radius={0.008} bevel={0.003} position={[0, h, 0]}>
+        {M('posts')}
+      </Slab>
+    </group>
+  )
+}
+
+// A frame of square tube round a rectangle `w` by `h` standing on its
+// bottom edge, centered on x and on its own thickness.
+function TubeFrame({ w, h, t, M }: { w: number; h: number; t: number; M: Look['M'] }) {
+  return (
+    <group>
+      <Slab size={[w, t, t]} radius={0.004} bevel={0.002}>
+        {M('frame')}
+      </Slab>
+      <Slab size={[w, t, t]} radius={0.004} bevel={0.002} position={[0, h - t, 0]}>
+        {M('frame')}
+      </Slab>
+      {[-1, 1].map(s => (
+        <Slab key={s} size={[t, h - t * 2, t]} radius={0.004} bevel={0.002} position={[(s * (w - t)) / 2, t, 0]}>
+          {M('frame')}
+        </Slab>
+      ))}
+    </group>
+  )
+}
+
+// A pair of leaves hung on the posts, each a steel frame filled with
+// horizontal boards with a finger's gap between them. They swing into the
+// drive, toward +z, or out to the street with the switch.
+function SwingGate({ p, M, level }: Look) {
+  const w = p('width')
+  const h = p('height')
+  const way = p('back') > 0.5 ? -1 : 1
+  const t = 0.05
+  // A hand's gap at each post and between the leaves.
+  const lw = w / 2 - 0.045
+  const lh = h - GATE_FOOT
+  const boards = Math.max(3, Math.round((lh - t * 2) / 0.1))
+  const pitch = (lh - t * 2) / boards
+  const leaf = (
+    <group>
+      <TubeFrame w={lw} h={lh} t={t} M={M} />
+      {Array.from({ length: boards }, (_, i) => (
+        <mesh key={i} position={[0, t + pitch * (i + 0.5), 0]} castShadow receiveShadow>
+          <boxGeometry args={[lw - t * 2, pitch - 0.018, 0.022]} />
+          {M('infill')}
+        </mesh>
+      ))}
+      {/* A diagonal brace in the frame would show through the gaps, so the
+          leaf is held square by a middle rail instead. */}
+      <Slab size={[lw - t * 2, t * 0.7, t * 0.7]} radius={0.004} bevel={0.002} position={[0, lh / 2, -t * 0.4]}>
+        {M('frame')}
+      </Slab>
+    </group>
+  )
+  return (
+    <group>
+      {[-1, 1].map(s => (
+        <GatePost key={s} x={s * (w / 2 + GATE_POST / 2)} h={h + 0.08} M={M} />
+      ))}
+      {/* Each leaf turns on its post, square to the opening when open. */}
+      {[1, -1].map(side => (
+        <group
+          key={side}
+          position={[(-side * w) / 2, GATE_FOOT, 0]}
+          rotation={[0, -side * way * (Math.PI / 2) * level, 0]}
+        >
+          <group position={[side * (0.03 + lw / 2), 0, 0]}>{leaf}</group>
+          {/* The hinge pins on the post side. */}
+          {[0.15, lh - 0.15].map(y => (
+            <mesh key={y} position={[side * 0.015, y, 0]}>
+              <cylinderGeometry args={[0.014, 0.014, 0.09, 12]} />
+              {M('posts')}
+            </mesh>
+          ))}
+        </group>
+      ))}
+    </group>
+  )
+}
+
+// A cantilever gate: one long leaf of upright bars on a deep bottom beam,
+// that runs on the rollers of the post beside the opening, out along the
+// fence behind it, to the right or to the left with the switch.
+function SlidingGate({ p, M, level }: Look) {
+  const w = p('width')
+  const h = p('height')
+  // 1 slides to the right, -1 to the left.
+  const side = p('flip') > 0.5 ? -1 : 1
+  const t = 0.06
+  const beam = 0.14
+  // The leaf reaches past the opening at its tail, where the rollers hold it.
+  const tail = Math.min(1.2, w * 0.3)
+  const lw = w + tail
+  const lh = h - GATE_FOOT
+  const bars = Math.max(4, Math.round((lw - t) / 0.12))
+  const pitch = (lw - t * 2) / bars
+  // The leaf runs behind the posts, on the street side.
+  const z = -GATE_POST / 2 - t / 2 - 0.02
+  // Shut, it spans the opening from post to post with its tail past the
+  // post on the side it opens to, behind the fence there. Open, it has run
+  // that way by the whole opening.
+  const x = side * (lw / 2 - w / 2 + w * level)
+  return (
+    <group>
+      {[-1, 1].map(s => (
+        <GatePost key={s} x={s * (w / 2 + GATE_POST / 2)} h={h + 0.08} M={M} />
+      ))}
+      {/* The roller post the leaf runs through, past the near post, and the
+          carriage on the ground under it. */}
+      <GatePost x={side * (w / 2 + tail - 0.1)} h={h * 0.6} M={M} />
+      {[w / 2 + 0.25, w / 2 + tail - 0.1].map(at => (
+        <Slab key={at} size={[0.22, 0.08, 0.16]} radius={0.01} bevel={0.004} position={[side * at, 0, z]}>
+          {M('posts')}
+        </Slab>
+      ))}
+      <group position={[x, GATE_FOOT, z]}>
+        <TubeFrame w={lw} h={lh} t={t} M={M} />
+        <Slab size={[lw, beam, t + 0.01]} radius={0.006} bevel={0.003} position={[0, 0.02, 0]}>
+          {M('frame')}
+        </Slab>
+        {Array.from({ length: bars - 1 }, (_, i) => (
+          <mesh
+            key={i}
+            position={[-lw / 2 + t + pitch * (i + 1), beam + (lh - beam - t) / 2, 0]}
+            castShadow
+            receiveShadow
+          >
+            <boxGeometry args={[0.03, lh - beam - t, 0.03]} />
+            {M('infill')}
+          </mesh>
+        ))}
+      </group>
     </group>
   )
 }

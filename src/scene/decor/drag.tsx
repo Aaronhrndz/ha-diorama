@@ -39,6 +39,15 @@ export function travelOf(kind: DecorationKind, item: DecorationConfig): Travel |
     }
     case 'garage_door':
       return { shut: [0, 0, 0.12], open: [0, p('height'), 0.12], span: [p('width') / 2, 0, 0] }
+    case 'driveway_gate': {
+      // The front end of a sliding gate, which runs the width of the
+      // opening. A swing gate swings, like a door.
+      if (style !== 'sliding') return null
+      const side = p('flip') > 0.5 ? -1 : 1
+      const w = p('width')
+      const h = p('height')
+      return { shut: [(-side * w) / 2, h / 2, -0.15], open: [(side * w) / 2, h / 2, -0.15], span: [0, h / 2, 0] }
+    }
     case 'awning': {
       // The front profile, out along the arms at the awning's pitch.
       const pitch = style === 'pergola' ? 0.1 : 0.25

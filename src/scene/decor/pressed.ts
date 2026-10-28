@@ -35,6 +35,7 @@ const PRESS_SECONDS: Record<string, number> = {
   // These travel the whole way at nearly one length a second.
   curtain: 1.6,
   projector_screen: 1.6,
+  driveway_gate: 1.6,
   // One turn at the speed each runs at when nothing sets it.
   fan_ceiling: (Math.PI * 2) / FAN_SPEED.fan_ceiling,
   fan_floor: (Math.PI * 2) / FAN_SPEED.fan_floor,

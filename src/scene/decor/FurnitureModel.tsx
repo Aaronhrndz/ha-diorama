@@ -10,6 +10,7 @@ import Bench from '#/scene/decor/Benches.tsx'
 import DiningChair from '#/scene/decor/DiningChairs.tsx'
 import DiningTable from '#/scene/decor/DiningTables.tsx'
 import OfficeChair from '#/scene/decor/OfficeChairs.tsx'
+import SimRig from '#/scene/decor/SimRig.tsx'
 import { Pouf, Sofa } from '#/scene/decor/Sofas.tsx'
 import Stool from '#/scene/decor/Stools.tsx'
 import {
@@ -76,6 +77,10 @@ export default function FurnitureModel({ kind, item, state }: Props) {
     case 'office_chair': {
       const style = decorationVariant(kind, item.variant)?.id ?? 'teck'
       return <OfficeChair style={style} w={p('width')} d={p('depth')} h={p('height')} M={M} />
+    }
+    case 'sim_rig': {
+      const style = decorationVariant(kind, item.variant)?.id ?? 'tube'
+      return <SimRig style={style} w={p('width')} d={p('depth')} M={M} />
     }
     case 'stool': {
       const style = decorationVariant(kind, item.variant)?.id ?? 'lauta'

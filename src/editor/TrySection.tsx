@@ -31,6 +31,7 @@ const SWITCH_LABELS: Record<string, string> = {
   vacuum_robot: 'Running',
   sprinkler: 'Watering',
   desk: 'Standing',
+  printer_3d: 'Printing',
 }
 
 // What a press does on each piece that takes one.

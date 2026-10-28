@@ -90,9 +90,22 @@ export const BASICA_SHADE: [number, number] = [0.18, 0.3]
 export const BASICA_SHADE_R: [number, number] = [0.06, 0.05]
 export const BASICA_STITCH = 0.01
 
+// Hue Iris: 18.8 cm wide, 19.4 cm tall and 20.4 cm deep, from Philips'
+// stated size. The disc is tilted back so its face looks up into the room,
+// and the parts in it are measured off the product photos: an opal dome in
+// a ring of frosted glass, a white shell behind them and a small round
+// foot under its lower edge.
+export const IRIS_R = 0.094
+export const IRIS_THICK = 0.032
+export const IRIS_DOME_R = 0.064
+export const IRIS_TILT = (34 * Math.PI) / 180
+export const IRIS_FOOT: [number, number] = [0.045, 0.012]
+export const IRIS_CENTER = 0.1
+
 export const TABLE_LAMPS: Record<string, TableLampSpec> = {
   cestita: { size: 0.22, height: 0.36, glow: 0.186, shrink: 0.07, rise: 0 },
   sylvestrina: { size: 0.13, height: 0.36, glow: 0.138, shrink: 0.1, rise: 0.5 },
   maija: { size: 0.21, height: 0.33, glow: 0.195, shrink: 0.04, rise: 1 },
   basica_minima: { size: 0.12, height: 0.3, glow: 0.235, shrink: 0.1, rise: 1 },
+  iris: { size: 0.188, height: 0.194, glow: 0.11, shrink: 0.04, rise: 1 },
 }
