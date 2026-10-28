@@ -9,6 +9,7 @@ import {
   EDITOR_AUTOPAN_SPEED_PX_S,
   EDITOR_CANVAS_HEIGHT_PX,
   EDITOR_DEVICE_GRID_M,
+  EDITOR_FINE_GRID_M,
   EDITOR_DEVICE_RADIUS_PX,
   EDITOR_GRID_M,
   EDITOR_HANDLE_PX,
@@ -141,6 +142,27 @@ export default function Canvas({
   })
   const [hover, setHover] = useState<Point | null>(null)
   const drag = useRef<Drag | null>(null)
+  // Shift held, to draw and place to the centimeter instead of on the grid.
+  // Kept from the last pointer or key event, so an autopan keeps it too.
+  const fine = useRef(false)
+  const grid = () => (fine.current ? EDITOR_FINE_GRID_M : EDITOR_GRID_M)
+  // The same for the point drawn under the pointer, which is drawn from it.
+  const [fineShown, setFineShown] = useState(false)
+  useEffect(() => {
+    // Caught on the way down, since the editor's dialog stops keys from
+    // going any further up.
+    const track = (e: KeyboardEvent) => {
+      if (e.key !== 'Shift') return
+      fine.current = e.type === 'keydown'
+      setFineShown(fine.current)
+    }
+    window.addEventListener('keydown', track, true)
+    window.addEventListener('keyup', track, true)
+    return () => {
+      window.removeEventListener('keydown', track, true)
+      window.removeEventListener('keyup', track, true)
+    }
+  }, [])
   // Where on the canvas the last press landed, to tell a click from a drag.
   const pressed = useRef<Point | null>(null)
   // Where clicking down through a pile reached the room, on the plan.
@@ -329,7 +351,7 @@ export default function Canvas({
       case 'vertex': {
         const room = currentRooms.find(r => r.id === d.roomId)!
         const current = room.points[d.index]
-        const snapped = snap(p, v, currentRooms, { roomId: d.roomId, index: d.index })
+        const snapped = snap(p, v, currentRooms, { roomId: d.roomId, index: d.index }, [], grid())
         patch(
           d.roomId,
           axisOrder(snapped[0] - current[0], snapped[1] - current[1]).map(([dx, dy]) =>
@@ -349,7 +371,7 @@ export default function Canvas({
         const t = (p[0] - d.start[0]) * nx + (p[1] - d.start[1]) * ny
         const others = currentRooms.filter(r => r.id !== d.roomId)
         const moved: Point = [a[0] + nx * t, a[1] + ny * t]
-        const snapped = snap(moved, v, others)
+        const snapped = snap(moved, v, others, undefined, [], grid())
         const ts = (snapped[0] - a[0]) * nx + (snapped[1] - a[1]) * ny
         patch(d.roomId, [
           d.origin.map((q, i) =>
@@ -365,7 +387,7 @@ export default function Canvas({
         const dy = p[1] - d.start[1]
         // Snap the moved first corner, then apply the same offset to the rest.
         const first: Point = [d.origin[0][0] + dx, d.origin[0][1] + dy]
-        const snapped = snap(first, v, others)
+        const snapped = snap(first, v, others, undefined, [], grid())
         const ox = snapped[0] - d.origin[0][0]
         const oy = snapped[1] - d.origin[0][1]
         // Where the room is right now, as an offset from where the drag began.
@@ -400,7 +422,7 @@ export default function Canvas({
         const item = current.find(x => x.id === d.id)
         if (!item) break
         const kind = decorationKind(item.kind)
-        const g = EDITOR_DEVICE_GRID_M
+        const g = fine.current ? EDITOR_FINE_GRID_M : EDITOR_DEVICE_GRID_M
         const target: Point = [
           Math.round((d.origin[0] + p[0] - d.start[0]) / g) * g,
           Math.round((d.origin[1] + p[1] - d.start[1]) / g) * g,
@@ -627,12 +649,13 @@ export default function Canvas({
           return
         }
       }
-      const next = snap(p, view, rooms, undefined, draft)
+      const next = snap(p, view, rooms, undefined, draft, grid())
       if (draftPointValid(next)) onDraftPoint(next)
     }
   }
 
   const onPointerDown = (e: React.PointerEvent) => {
+    fine.current = e.shiftKey
     // A right button press must not capture the pointer, or the context
     // menu event that follows is redirected to the canvas.
     if (e.button === 2) return
@@ -705,6 +728,8 @@ export default function Canvas({
   }
 
   const onPointerMove = (e: React.PointerEvent) => {
+    fine.current = e.shiftKey
+    setFineShown(e.shiftKey)
     const screen = screenPoint(e)
     lastScreen.current = screen
     setHover(toPlan(view, screen))
@@ -861,13 +886,16 @@ export default function Canvas({
   const insertVertex = (roomId: string, index: number, point: Point) => {
     const room = rooms.find(r => r.id === roomId)
     if (!room) return
-    const p = snap(point, view, rooms).map(round) as Point
+    const p = snap(point, view, rooms, undefined, [], grid()).map(round) as Point
     updateRoom(roomId, [...room.points.slice(0, index + 1), p, ...room.points.slice(index + 1)], true)
     onSelect({ roomId, vertex: index + 1 })
   }
 
   const cursor = tool === 'draw' ? 'crosshair' : panning ? 'grabbing' : 'default'
-  const hoverSnapped = tool === 'draw' && hover ? snap(hover, view, rooms, undefined, draft) : null
+  const hoverSnapped =
+    tool === 'draw' && hover
+      ? snap(hover, view, rooms, undefined, draft, fineShown ? EDITOR_FINE_GRID_M : EDITOR_GRID_M)
+      : null
   const polygon = (points: Point[]) => points.map(p => toScreen(view, p).join(',')).join(' ')
 
   const edgeCursor = (a: Point, b: Point) => {
