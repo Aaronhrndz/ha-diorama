@@ -1,5 +1,6 @@
 import Card from '#/Card.tsx'
 import { decorationKind } from '#/decoration/catalog.ts'
+import { modelIdOf, registerModels, validModel } from '#/decoration/models.ts'
 import Editor from '#/editor/Editor.tsx'
 import { persistCard } from '#/editor/persist.ts'
 import { ReactHost } from '#/host.tsx'
@@ -89,11 +90,19 @@ function migrate(config: CardConfig): CardConfig {
   const rooms = Array.isArray(config.rooms) ? config.rooms : []
   const known = new Set(rooms.map(r => r.id))
   const next = { ...config }
+  // The card's own models are made into kinds first, so its pieces find them.
+  registerModels(config.models)
+  const models = config.models && typeof config.models === 'object' ? config.models : {}
+  // A piece of a model the card no longer has, or one it cannot read.
+  const lost = (kind: string) => {
+    const id = modelIdOf(kind)
+    return id !== null && !validModel(models[id])
+  }
   if (Array.isArray(config.decorations)) {
     next.decorations = config.decorations
       // A piece whose room is gone has nowhere to be drawn. It is left out
       // rather than taken as a reason to refuse the whole card.
-      .filter(d => known.has(d.room) && !DROPPED.has(d.kind))
+      .filter(d => known.has(d.room) && !DROPPED.has(d.kind) && !lost(d.kind))
       .map(d => {
         const now = RENAMED[d.kind]
         if (!now) return d
@@ -155,6 +164,8 @@ function validate(config: CardConfig) {
   }
   if (config.decorations !== undefined && !Array.isArray(config.decorations))
     throw new Error('decorations must be a list')
+  if (config.models !== undefined && (typeof config.models !== 'object' || Array.isArray(config.models)))
+    throw new Error('models must be a map of model ids')
   for (const item of config.decorations ?? []) {
     if (!item.id) throw new Error('Every decoration needs an id')
     if (!item.kind) throw new Error(`Decoration ${item.id} needs a kind`)

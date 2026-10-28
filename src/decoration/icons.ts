@@ -12,6 +12,7 @@ import {
   faChair,
   faClock,
   faComputer,
+  faCube,
   faCouch,
   faDoorClosed,
   faDoorOpen,
@@ -154,6 +155,7 @@ const BY_FAMILY: Record<string, IconDefinition> = {
   security: faBell,
   utility: faPlug,
   outdoor: faTree,
+  custom: faCube,
 }
 
 export const decorationIcon = (kindId: string, family: string) => BY_KIND[kindId] ?? BY_FAMILY[family] ?? faBoxArchive
@@ -174,4 +176,5 @@ export const FAMILY_LABELS: Record<string, string> = {
   security: 'Security and sensors',
   utility: 'Smart home',
   outdoor: 'Garden and outdoor',
+  custom: 'My models',
 }
