@@ -108,6 +108,10 @@ const KIND_DOMAINS: Record<string, string[]> = {
   leak_sensor: ['binary_sensor'],
   camera: ['camera'],
   alarm_panel: ['alarm_control_panel'],
+  // Soil moisture, temperature and the air's humidity round a plant.
+  plant_large: ['sensor', 'binary_sensor'],
+  plant_small: ['sensor', 'binary_sensor'],
+  plant_wall: ['sensor', 'binary_sensor'],
 }
 
 export function preferredDomains(kind: DecorationKind): string[] {
@@ -252,6 +256,9 @@ const NO_PRESS = new Set([
   'smart_lock',
   'air_quality',
   'thermostat',
+  'plant_large',
+  'plant_small',
+  'plant_wall',
 ])
 
 // Everything else that switches also does one thing for a press: it runs for
@@ -1717,7 +1724,8 @@ export const DECORATION_KINDS: DecorationKind[] = [
     [size(0.8, 0.3, 1.6), height(1.6, 0.6, 2.4)],
     { pot: SCANDI.offWhite, soil: '#3c332b', stems: '#7a6a58', leaves: '#4f7d3c' },
     { pot: 'ceramic', soil: 'matte', stems: 'wood', leaves: 'wood' },
-    undefined,
+    // A plant shows nothing, but its sensors can stand behind it.
+    READOUT,
     [
       { id: 'fiddle', label: 'Fiddle leaf fig' },
       {
@@ -1777,7 +1785,8 @@ export const DECORATION_KINDS: DecorationKind[] = [
     ],
     { pot: SCANDI.offWhite, soil: '#3c332b', stems: '#7aa648', leaves: '#5a9440', markings: '#e3d268' },
     { pot: 'ceramic', soil: 'matte', stems: 'matte', leaves: 'wood', markings: 'wood' },
-    undefined,
+    // A plant shows nothing, but its sensors can stand behind it.
+    READOUT,
     [
       { id: 'pothos', label: 'Golden pothos' },
       {
@@ -1804,7 +1813,8 @@ export const DECORATION_KINDS: DecorationKind[] = [
     [width(0.3, 0.2, 0.8), height(1.6, 0.6, 2.3), only(p('trail', 'Trail', 0.6, 0.1, 1.5, 0.05), ['pothos', 'pearls'])],
     { pot: SCANDI.offWhite, soil: '#3c332b', stems: '#7aa648', leaves: '#5a9440', markings: '#e3d268' },
     { pot: 'ceramic', soil: 'matte', stems: 'matte', leaves: 'wood', markings: 'wood' },
-    undefined,
+    // A plant shows nothing, but its sensors can stand behind it.
+    READOUT,
     [
       { id: 'pothos', label: 'Golden pothos' },
       {
