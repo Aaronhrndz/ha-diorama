@@ -13,6 +13,8 @@ moves that section under the new version and uses it as the release notes.
 
 - A piano in three styles, a desk lamp in two, three more ceiling lights, and a switch to hang the sideboard on the wall at any height.
 - Plants, vases, books and other small pieces can stand on a wall shelf, and a plant can stand in for its sensors or Home Assistant plant, wilting and yellowing when its soil runs dry.
+- Hold Shift to draw rooms and place pieces to the centimeter, and turn a piece a quarter at a time from buttons in its panel.
+- A smoke detector can stand in for a carbon monoxide sensor or a sensor that reports smoke in words, and anything that switches can stand in for a group.
 
 ### Changed
 
@@ -21,6 +23,7 @@ moves that section under the new version and uses it as the release notes.
 ### Fixed
 
 - On older Home Assistant versions the editor responds to clicks again, where it opened but nothing in it could be clicked, and on 2024.6 the side panel shows its widgets again.
+- The catalog keeps its place after adding an item, and the arrow into the next room no longer hides behind a window or curtain on that wall.
 
 ## [1.8.29] - 2026-10-21
 

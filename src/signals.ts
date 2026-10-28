@@ -69,6 +69,11 @@ export type SignalValues = {
 
 const domainOf = (entityId: string) => entityId.split('.')[0]
 
+// Carbon monoxide a smoke detector alarms at, and the words a sensor that
+// watches for smoke, gas or water says when it has found some.
+const CO_ALARM_PPM = 50
+const ALARM_WORDS = new Set(['detected', 'alarm', 'alarming', 'smoke', 'fire', 'emergency', 'warning', 'leak', 'wet'])
+
 const COLOR_MODES_WITH_COLOR = new Set(['hs', 'rgb', 'rgbw', 'rgbww', 'xy'])
 const COLOR_MODES_WITH_LEVEL = new Set(['brightness', 'color_temp', 'hs', 'rgb', 'rgbw', 'rgbww', 'xy', 'white'])
 
@@ -85,6 +90,8 @@ export function deviceSignals(hass: HomeAssistant, entityId: string): Signal[] {
     }
     case 'switch':
     case 'input_boolean':
+    // A group of switches or lights is switched as one.
+    case 'group':
     case 'humidifier':
     case 'lock':
     case 'binary_sensor':
@@ -173,7 +180,18 @@ export function signalValues(hass: HomeAssistant, entityId: string): SignalValue
       // A sensor that is unavailable or unknown has no number to show.
       const value = Number(state)
       const known = Number.isFinite(value) ? value : undefined
-      return { value: known, state, moisture: attrs.device_class === 'moisture' ? known : undefined }
+      // A smoke or gas sensor that reads a number, or says what it found in
+      // words, is on while it alarms, so a smoke detector bound to it flashes.
+      const alarm =
+        attrs.device_class === 'carbon_monoxide'
+          ? known !== undefined && known >= CO_ALARM_PPM
+          : ALARM_WORDS.has(state.toLowerCase())
+      return {
+        value: known,
+        state,
+        moisture: attrs.device_class === 'moisture' ? known : undefined,
+        ...(alarm && { on: true }),
+      }
     }
     // A moisture binary sensor is on when it is wet. A plant says how wet
     // its soil is when it has a sensor for it, or else only whether the
@@ -209,6 +227,9 @@ export function signalValues(hass: HomeAssistant, entityId: string): SignalValue
       const last = attrs.last_triggered
       return { on: state === 'on', pressed: typeof last === 'string' ? last : undefined, state }
     }
+    // A group of covers is open rather than on.
+    case 'group':
+      return { on: state === 'on' || state === 'open', state }
     default:
       return { on: state === 'on', state }
   }
@@ -252,6 +273,10 @@ export function clickAction(
     case 'cover':
     case 'humidifier':
       return { domain, service: 'toggle' }
+    // A group has no toggle of its own, so Home Assistant's toggles every
+    // member.
+    case 'group':
+      return { domain: 'homeassistant', service: 'toggle' }
     case 'vacuum':
       return { domain, service: state === 'cleaning' ? 'return_to_base' : 'start' }
     // A lock is locked or unlocked by what it is now, so a click on an
