@@ -29,6 +29,12 @@ import {
   CESTITA_SHORT_POST,
   CESTITA_STRIP_W,
   CESTITA_TALL_POST,
+  IRIS_CENTER,
+  IRIS_DOME_R,
+  IRIS_FOOT,
+  IRIS_R,
+  IRIS_THICK,
+  IRIS_TILT,
   MAIJA_BALL_R,
   MAIJA_DIFFUSER,
   MAIJA_FOOT_R,
@@ -522,11 +528,60 @@ function BasicaMinima({ c, m, state, up }: ModelProps) {
   )
 }
 
+// Hue Iris: a disc tilted back on a small round foot, its face an opal dome
+// in a ring of frosted glass that both light up in the lamp's color, and a
+// white shell closing it behind. Both stay solid when lit, since the light
+// fills them rather than shining through from a bulb. A taller one stands
+// higher on its foot.
+
+function Iris({ c, m, state, up }: ModelProps) {
+  const [footR, footH] = IRIS_FOOT
+  const center = IRIS_CENTER + up
+  const t = IRIS_THICK
+  // The disc's lower edge, where it rests in the foot, as the tilt puts it.
+  const lowZ = (-IRIS_R * 0.55 + -t * 0.2) * Math.sin(IRIS_TILT)
+  return (
+    <group>
+      <mesh position={[0, footH / 2, lowZ - 0.01]}>
+        <cylinderGeometry args={[footR, footR * 1.04, footH, SEG * 2]} />
+        <BaseMaterial color={c('body')} material={m('body')} />
+      </mesh>
+      {/* The neck from the foot up into the back of the shell. */}
+      <mesh position={[0, (footH + center) / 2, lowZ - 0.015]} rotation={[-IRIS_TILT * 0.5, 0, 0]}>
+        <cylinderGeometry args={[0.014, 0.018, center - footH, SEG]} />
+        <BaseMaterial color={c('body')} material={m('body')} />
+      </mesh>
+      <group position={[0, center, 0]} rotation={[-IRIS_TILT, 0, 0]}>
+        {/* The shell, a shallow dish behind the glass. */}
+        <mesh position={[0, 0, -t / 2]} scale={[1, 1, 0.42]}>
+          <sphereGeometry args={[IRIS_R * 0.94, SEG * 2, SEG]} />
+          <BaseMaterial color={c('body')} material={m('body')} />
+        </mesh>
+        {/* The frosted ring round the face, and the dome in it. */}
+        <mesh rotation={[Math.PI / 2, 0, 0]} userData={{ transmits: true }}>
+          <cylinderGeometry args={[IRIS_R, IRIS_R, t, SEG * 3]} />
+          <ShadeMaterial color={c('ring')} material={m('ring')} state={state} solid />
+        </mesh>
+        <mesh
+          position={[0, 0, t / 2 - 0.004]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={[1, 0.3, 1]}
+          userData={{ transmits: true }}
+        >
+          <sphereGeometry args={[IRIS_DOME_R, SEG * 2, SEG, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <ShadeMaterial color={c('diffuser')} material={m('diffuser')} state={state} solid />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
 const MODELS: Record<string, (props: ModelProps) => ReactNode> = {
   cestita: Cestita,
   sylvestrina: Sylvestrina,
   maija: Maija,
   basica_minima: BasicaMinima,
+  iris: Iris,
 }
 
 export default function TableLamp({ style, k, ...props }: ModelProps & { style: string; k: number }) {

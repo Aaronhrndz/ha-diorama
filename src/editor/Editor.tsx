@@ -50,7 +50,7 @@ import type {
   Point,
   RoomConfig,
 } from '#/types.ts'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { EDITOR_TEXT_COMMIT_DELAY_MS } from '#/constants.ts'
 
@@ -1010,6 +1010,16 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       />
     ) : null
 
+  // The catalog keeps its place. Adding an item opens that item in the
+  // sidebar, and coming back to the list finds it scrolled where it was
+  // rather than back at the top.
+  const catalogShown = !roomInfo && !selectedDecoration
+  const sidebar = useRef<HTMLDivElement>(null)
+  const catalogScroll = useRef(0)
+  useLayoutEffect(() => {
+    if (catalogShown && sidebar.current) sidebar.current.scrollTop = catalogScroll.current
+  }, [catalogShown])
+
   const panels = (
     <DecorationPanel
       hass={hass}
@@ -1178,7 +1188,14 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
             >
               <span className="bg-fill-stronger group-hover:bg-label-2 h-10 w-[5px] rounded-full transition-colors" />
             </div>
-            <div className="flex shrink-0 flex-col gap-3 overflow-y-auto pr-1 pl-1" style={{ width: sidebarWidth }}>
+            <div
+              ref={sidebar}
+              onScroll={e => {
+                if (catalogShown) catalogScroll.current = e.currentTarget.scrollTop
+              }}
+              className="flex shrink-0 flex-col gap-3 overflow-y-auto pr-1 pl-1"
+              style={{ width: sidebarWidth }}
+            >
               {roomInfo ?? panels}
             </div>
           </div>

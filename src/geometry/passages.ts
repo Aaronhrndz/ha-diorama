@@ -1,4 +1,5 @@
 import { betweenOf } from '#/decoration/between.ts'
+import { decorationKind, footprint } from '#/decoration/catalog.ts'
 import { ensureCounterClockwise } from '#/geometry/polygon.ts'
 import type { DecorationConfig, Point, RoomConfig } from '#/types.ts'
 
@@ -33,9 +34,38 @@ export const DOOR_KINDS = new Set(['door', 'sliding_door', 'garage_door'])
 // vector on the plan.
 export type Passage = { from: string; to: string; at: Point; out: Point }
 
+// The sign's width across the way it points, and how near a wall piece has
+// to hang to a stretch to stand in front of its sign.
+const ARROW_WIDTH_M = 0.86
+const HANGS_ON_M = 0.15
+
+// A piece on a wall, a window or a curtain, as where it hangs and how wide.
+type Hung = { at: Point; width: number }
+
+// Where along a stretch from `start` to `end` of an edge the sign goes: the
+// middle of the widest gap the pieces hung there leave it, so a window in the
+// middle of an opening does not stand in front of it. `blocked` is where the
+// sign's middle would put it behind one. The middle of the stretch when
+// nothing is in the way, or when there is no gap at all.
+function clearOf(start: number, end: number, blocked: [number, number][]) {
+  // The sign kept wholly on the stretch where it is long enough for that.
+  const half = Math.min(ARROW_WIDTH_M / 2, (end - start) / 2)
+  const low = start + half
+  const high = end - half
+  let cursor = low
+  let best = { from: low, to: low }
+  for (const [from, to] of [...blocked].sort((x, y) => x[0] - y[0])) {
+    if (Math.min(from, high) - cursor > best.to - best.from) best = { from: cursor, to: Math.min(from, high) }
+    cursor = Math.max(cursor, to)
+  }
+  if (high - cursor > best.to - best.from) best = { from: cursor, to: high }
+  return best.to > best.from ? (best.from + best.to) / 2 : (start + end) / 2
+}
+
 // The middle of the longest stretch of `a`'s outline that `b`'s runs along,
-// and the way out of `a` there. Null when they share none long enough.
-function sharedStretch(a: Point[], b: Point[]): { at: Point; out: Point } | null {
+// kept clear of the pieces hung there, and the way out of `a` there. Null
+// when they share none long enough.
+function sharedStretch(a: Point[], b: Point[], hung: Hung[] = []): { at: Point; out: Point } | null {
   const outline = ensureCounterClockwise(a)
   let best: { at: Point; out: Point; length: number } | null = null
   for (let i = 0; i < outline.length; i++) {
@@ -55,7 +85,14 @@ function sharedStretch(a: Point[], b: Point[]): { at: Point; out: Point } | null
       const start = Math.max(0, Math.min(along(r), along(s)))
       const end = Math.min(length, Math.max(along(r), along(s)))
       if (end - start < MIN_STRETCH_M || (best && end - start <= best.length)) continue
-      const middle = (start + end) / 2
+      const blocked = hung.flatMap(item => {
+        if (off(item.at) > HANGS_ON_M) return []
+        const t = along(item.at)
+        return t + item.width / 2 > start && t - item.width / 2 < end
+          ? [[t - item.width / 2 - ARROW_WIDTH_M / 2, t + item.width / 2 + ARROW_WIDTH_M / 2] as [number, number]]
+          : []
+      })
+      const middle = clearOf(start, end, blocked)
       // Outward from a counter clockwise outline is to the right of its edges.
       best = { at: [p[0] + dx * middle, p[1] + dy * middle], out: [dy, -dx], length: end - start }
     }
@@ -93,11 +130,15 @@ export function neighboursOf(room: RoomConfig, rooms: RoomConfig[], decorations:
     .filter(item => DOOR_KINDS.has(item.kind))
     .map(item => ({ kind: item.kind, position: item.position, rooms: betweenOf(item, rooms)?.rooms ?? [] }))
     .filter(door => door.rooms.includes(room.id))
+  const hung = decorations.flatMap(item => {
+    const kind = decorationKind(item.kind)
+    return kind?.mount === 'wall' ? [{ at: item.position, width: footprint(kind, item.params, item.variant)[0] }] : []
+  })
   const result: Neighbour[] = []
   for (const other of rooms) {
     if (other.id === room.id) continue
     const door = doors.find(d => d.rooms.includes(other.id))
-    const stretch = door ? nearestEdge(room.points, door.position) : sharedStretch(room.points, other.points)
+    const stretch = door ? nearestEdge(room.points, door.position) : sharedStretch(room.points, other.points, hung)
     if (!stretch) continue
     result.push({ id: other.id, door: door?.kind ?? null, passage: { from: room.id, to: other.id, ...stretch } })
   }

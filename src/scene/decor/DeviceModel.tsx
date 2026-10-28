@@ -1005,7 +1005,9 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
       const h = p('height')
       // 1 hinges on the left, -1 on the right.
       const hinge = p('flip') > 0.5 ? -1 : 1
-      const pair = w > 1.2
+      // A terrace pair always opens both its leaves.
+      const terrace = style === 'terrace'
+      const pair = w > 1.2 || terrace
       const lw = pair ? w / 2 : w
       const leaf = 0.042
       const jamb = 0.05
@@ -1022,7 +1024,7 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
         const z = face > 0 ? leaf : 0
         const out = (d: number) => z + face * d
         return (
-          <group position={[side * (lw - (classic ? 0.065 : 0.085)), h * 0.47, 0]}>
+          <group position={[side * (lw - (classic ? 0.065 : terrace ? 0.045 : 0.085)), h * 0.47, 0]}>
             <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, out(0.0035)]}>
               <cylinderGeometry args={[classic ? 0.028 : 0.025, classic ? 0.03 : 0.025, 0.007, SEG * 2]} />
               {metal}
@@ -1112,6 +1114,36 @@ export default function DeviceModel({ kind, item, state, room, all }: Props) {
                 </group>
               )),
             )}
+          </>
+        )
+      } else if (terrace) {
+        // After a terrace French door: slim stiles and a deep bottom rail
+        // round one tall pane, with nothing across the glass.
+        const [stile, top, bottom] = [0.075, 0.09, 0.18]
+        const gw = LW - stile * 2
+        const gh = H - top - bottom
+        body = (
+          <>
+            {framed(stile, top, bottom)}
+            <mesh position={[0, bottom + gh / 2, leaf / 2]}>
+              <planeGeometry args={[gw + 0.01, gh + 0.01]} />
+              <Glass color={c('glass')} />
+            </mesh>
+            {/* The glazing beads round the pane, on both faces. */}
+            {[-1, 1].map(face => (
+              <group key={face} position={[0, 0, leaf / 2 + (face * leaf) / 2]}>
+                {[
+                  [0, bottom, gw, 0.014],
+                  [0, H - top - 0.014, gw, 0.014],
+                  [-gw / 2 + 0.007, bottom, 0.014, gh],
+                  [gw / 2 - 0.007, bottom, 0.014, gh],
+                ].map(([x, y, bw, bh], i) => (
+                  <Slab key={i} size={[bw, bh, 0.012]} radius={0.003} bevel={0.002} position={[x, y, 0]}>
+                    {M('panel')}
+                  </Slab>
+                ))}
+              </group>
+            ))}
           </>
         )
       } else if (style === 'glazed') {
