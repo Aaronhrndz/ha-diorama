@@ -466,6 +466,13 @@ const WALL_TMM: DecorationVariant = {
 // The stairs' first style, an open riser flight: 4 cm oak treads on two
 // white steel strings, 90 cm wide, with a black steel handrail 90 cm over
 // the nosings on its open side.
+const STAIRS_FLOATING: DecorationVariant = {
+  id: 'floating',
+  label: 'Floating Cantilever',
+  colors: { treads: SCANDI.oak },
+  materials: { treads: 'wood' },
+}
+
 const STAIRS_OPEN: DecorationVariant = {
   id: 'open',
   label: 'Open Oak',
@@ -1786,8 +1793,8 @@ export const DECORATION_KINDS: DecorationKind[] = [
     // rise, each as close to 18 cm as a whole number of them comes.
     [
       width(0.9, 0.6, 1.6),
-      length(3.25, 1.2, 6),
-      p('height', 'Rise', CEILING_HEIGHT_M, 1, 3),
+      length(3.25, 0.3, 6),
+      p('height', 'Rise', CEILING_HEIGHT_M, 0.15, 4),
       only(p('reach', 'Second flight', 1.6, 0.5, 4), ['quarter']),
       only(flag('flip', 'Turn left'), ['quarter']),
       only(flag('rail', 'Rail on left'), ['open', 'closed']),
@@ -1796,6 +1803,7 @@ export const DECORATION_KINDS: DecorationKind[] = [
     STAIRS_OPEN.materials ?? {},
     NONE,
     [
+      STAIRS_FLOATING,
       STAIRS_OPEN,
       {
         id: 'closed',

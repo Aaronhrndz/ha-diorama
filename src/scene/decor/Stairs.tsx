@@ -119,10 +119,11 @@ function Straight({ style, w, l, h, flip, paint }: Omit<Props, 'reach'>) {
   const pitch = (z: number) => rise + ((front - z) * rise) / going
   // The rail runs on the right, or on the left with its switch.
   const side = flip ? -1 : 1
-  const open = style === 'open'
-  const string = open ? 0.015 : 0.03
-  const tread = open ? 0.04 : 0.028
-  const inner = w - string * 2
+  const floating = style === 'floating'
+  const open = style === 'open' || floating
+  const string = floating ? 0 : open ? 0.015 : 0.03
+  const tread = floating ? 0.06 : open ? 0.04 : 0.028
+  const inner = floating ? w : w - string * 2
   // The strings run along the pitch, a hand above the nosings and a deep
   // board below them, cut level at the floor and at the floor above.
   const below = open ? 0.24 : 0.2
@@ -180,12 +181,12 @@ function Straight({ style, w, l, h, flip, paint }: Omit<Props, 'reach'>) {
           {paint('risers')}
         </Slab>
       )}
-      {sides.map((x, i) => (
+      {!floating && sides.map((x, i) => (
         <Side key={i} points={band(0.05, below)} x={x} t={string}>
           {paint(open ? 'strings' : 'sides')}
         </Side>
       ))}
-      {open ? (
+      {!floating && (open ? (
         <OpenRail side={side} w={w} h={h} front={front} treads={treads} nosing={nosing} pitch={pitch} paint={paint} />
       ) : (
         <>
@@ -207,7 +208,7 @@ function Straight({ style, w, l, h, flip, paint }: Omit<Props, 'reach'>) {
             {paint('rail')}
           </Rail>
         </>
-      )}
+      ))}
     </group>
   )
 }
