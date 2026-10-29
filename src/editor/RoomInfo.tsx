@@ -70,13 +70,13 @@ export default function RoomInfo({
   )
   const neighbours = neighboursOf(room, rooms, decorations)
   // A setting of the floor put back to what the material comes with.
-  const resetFloor = (key: 'color' | 'scale' | 'intensity' | 'rotation') => {
+  const resetFloor = (key: 'color' | 'scale' | 'intensity' | 'rotation' | 'elevation') => {
     if (!room.floor) return
     const { [key]: _, ...rest } = room.floor
     onFloor(room.id, rest)
   }
-  const slider = (label: string, key: 'scale' | 'intensity' | 'rotation', min: number, max: number, step: number) => {
-    const initial = key === 'rotation' ? 0 : 1
+  const slider = (label: string, key: 'scale' | 'intensity' | 'rotation' | 'elevation', min: number, max: number, step: number) => {
+    const initial = key === 'rotation' || key === 'elevation' ? 0 : 1
     const value = room.floor?.[key] ?? initial
     return (
       <label className={cn(row, 'grid-cols-[96px_1fr_56px_24px]')}>
@@ -89,7 +89,7 @@ export default function RoomInfo({
           onChange={e => onFloor(room.id, { ...room.floor!, [key]: Number(e.target.value) })}
         />
         <span className="text-label-2 text-right text-xs tabular-nums">
-          {key === 'rotation' ? `${value}°` : `${value.toFixed(2)}x`}
+          {key === 'rotation' ? `${value}°` : key === 'elevation' ? `${Math.round(value * 100)} cm` : `${value.toFixed(2)}x`}
         </span>
         <ResetButton label={label} changed={value !== initial} onReset={() => resetFloor(key)} />
       </label>
@@ -156,6 +156,7 @@ export default function RoomInfo({
             {slider('Pattern size', 'scale', 0.25, 4, 0.05)}
             {slider('Pattern depth', 'intensity', 0, 2, 0.05)}
             {slider('Pattern angle', 'rotation', 0, 175, 5)}
+            {slider('Floor elevation', 'elevation', -5, 8, 0.05)}
           </>
         )}
       </div>

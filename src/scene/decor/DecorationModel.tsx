@@ -152,7 +152,7 @@ function DecorationModel({
   if (!Model) return null
 
   const rotation = MathUtils.degToRad(item.rotation ?? 0)
-  const lift = standHeight(item, all) + rise
+  const lift = standHeight(item, all) + rise + (room?.floor?.elevation ?? room?.elevation ?? 0)
   // A piece told to hang on the other side of its wall is turned round where
   // it meets the wall. The piece itself keeps facing its room, so it is still
   // in that room and its clicks still go where they did.

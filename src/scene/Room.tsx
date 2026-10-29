@@ -52,6 +52,7 @@ function Room({ room, rooms, index, radius, gap }: Props) {
     <mesh
       // Named so the outline and the press fallback can find the room.
       name={`room:${room.id}`}
+      position={[0, room.floor?.elevation ?? room.elevation ?? 0, 0]}
       geometry={geometry}
       castShadow
       receiveShadow
