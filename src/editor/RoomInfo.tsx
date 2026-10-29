@@ -156,7 +156,7 @@ export default function RoomInfo({
             {slider('Pattern size', 'scale', 0.25, 4, 0.05)}
             {slider('Pattern depth', 'intensity', 0, 2, 0.05)}
             {slider('Pattern angle', 'rotation', 0, 175, 5)}
-            {slider('Floor elevation', 'elevation', -5, 8, 0.05)}
+            {slider('Floor elevation', 'elevation', -5, 8, 0.01)}
           </>
         )}
       </div>
