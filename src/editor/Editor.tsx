@@ -109,8 +109,15 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
   }
 
   const reorderFloors = (nextFloors: FloorConfig[]) => {
-    setFloors(nextFloors)
-    onChange({ ...config, floors: nextFloors })
+    // Collect the sorted elevations from lowest to highest
+    const sortedElevations = [...floors].map(f => f.elevation).sort((a, b) => a - b)
+    // Assign sorted elevations according to the new visual order (left-to-right = bottom-to-top)
+    const withUpdatedElevations = nextFloors.map((floor, index) => ({
+      ...floor,
+      elevation: sortedElevations[index] ?? floor.elevation,
+    }))
+    setFloors(withUpdatedElevations)
+    onChange({ ...config, floors: withUpdatedElevations })
   }
 
   const updateFloor = (floorId: string, patch: Partial<FloorConfig>) => {
