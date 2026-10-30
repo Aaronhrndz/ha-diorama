@@ -26,7 +26,7 @@ type Props = {
 // under a press once the pieces around it have had their turn.
 function Room({ room, rooms, index, radius, gap, floors }: Props) {
   const elevation = elevationOf(room, floors)
-  const defaultFloorId = floors?.[0]?.id ?? 'floor-0'
+  const defaultFloorId = 'floor-0'
   const roomFloorId = room.floor_id ?? defaultFloorId
   const floorRooms = rooms.filter(r => (r.floor_id ?? defaultFloorId) === roomFloorId)
   const [lowestRoomElevation] = elevationRange(

@@ -2,7 +2,7 @@ import type { FloorConfig, RoomConfig } from '#/types.ts'
 
 export function getFloorElevation(floorId: string | undefined, floors?: FloorConfig[]): number {
   if (!floors || floors.length === 0) return 0
-  const targetId = floorId ?? floors[0]?.id ?? 'floor-0'
+  const targetId = floorId ?? 'floor-0'
   const floor = floors.find(f => f.id === targetId)
   return floor?.elevation ?? 0
 }
