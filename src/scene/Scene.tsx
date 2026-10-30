@@ -153,6 +153,7 @@ export default function Scene({
           handle={cameraRef}
           onAway={onCameraAway}
           wheelZoom={wheelZoom}
+          floors={config.floors}
         />
         <Devices
           hass={hass}

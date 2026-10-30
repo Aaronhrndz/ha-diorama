@@ -26,10 +26,13 @@ type Props = {
 // under a press once the pieces around it have had their turn.
 function Room({ room, rooms, index, radius, gap, floors }: Props) {
   const elevation = elevationOf(room, floors)
-  // For slabs on different floors, reach down to floor slab thickness rather than all the way to ground 0
-  const floorRooms = rooms.filter(r => (r.floor_id ?? 'floor-0') === (room.floor_id ?? 'floor-0'))
-  const [lowestOnFloor] = elevationRange(floorRooms)
-  const lowest = lowestOnFloor + getFloorElevation(room.floor_id, floors)
+  const defaultFloorId = floors?.[0]?.id ?? 'floor-0'
+  const roomFloorId = room.floor_id ?? defaultFloorId
+  const floorRooms = rooms.filter(r => (r.floor_id ?? defaultFloorId) === roomFloorId)
+  const [lowestRoomElevation] = elevationRange(
+    floorRooms.map(r => ({ ...r, floor_id: undefined }))
+  )
+  const lowest = lowestRoomElevation + getFloorElevation(room.floor_id, floors)
   const geometry = useMemo(() => {
     const points = inset(ensureCounterClockwise(room.points), gap / 2)
     const cornerRadius = room.radius ?? radius
@@ -57,7 +60,7 @@ function Room({ room, rooms, index, radius, gap, floors }: Props) {
       higherNeighbours,
       ROOM_SLAB_EDGE_RADIUS_M,
       touchesLower
-        ? ROOM_SLAB_THICKNESS_M + Math.max(0, (room.elevation ?? 0) - lowestOnFloor)
+        ? ROOM_SLAB_THICKNESS_M + Math.max(0, (room.elevation ?? 0) - lowestRoomElevation)
         : ROOM_SLAB_THICKNESS_M,
       SLAB_BEVEL_SEGMENTS,
       FLOOR_PATTERN_SHIFT_M,

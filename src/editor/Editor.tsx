@@ -105,7 +105,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     const nextFloors = [...floors, newFloor]
     setFloors(nextFloors)
     setActiveFloorId(id)
-    onChange({ ...config, floors: nextFloors })
+    setFloors(nextFloors)
+    commit(rooms, devices, decorations, config.models, nextFloors)
   }
 
   const reorderFloors = (nextFloors: FloorConfig[]) => {
@@ -117,13 +118,15 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       elevation: sortedElevations[index] ?? floor.elevation,
     }))
     setFloors(withUpdatedElevations)
-    onChange({ ...config, floors: withUpdatedElevations })
+    setFloors(withUpdatedElevations)
+    commit(rooms, devices, decorations, config.models, withUpdatedElevations)
   }
 
   const updateFloor = (floorId: string, patch: Partial<FloorConfig>) => {
     const nextFloors = floors.map(f => (f.id === floorId ? { ...f, ...patch } : f))
     setFloors(nextFloors)
-    onChange({ ...config, floors: nextFloors })
+    setFloors(nextFloors)
+    commit(rooms, devices, decorations, config.models, nextFloors)
   }
 
   const deleteFloor = (floorId: string) => {
@@ -133,7 +136,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     if (activeFloorId === floorId) {
       setActiveFloorId(nextFloors[0]?.id ?? 'floor-0')
     }
-    onChange({ ...config, floors: nextFloors })
+    setFloors(nextFloors)
+    commit(rooms, devices, decorations, config.models, nextFloors)
   }
   const [selection, setSelection] = useState<Selection>({ roomId: null, vertex: null })
   const [draft, setDraft] = useState<Point[]>([])
