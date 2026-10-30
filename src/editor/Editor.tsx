@@ -291,27 +291,30 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     devices: DeviceConfig[]
     decorations: DecorationConfig[]
     models: Models
+    floors?: FloorConfig[]
   }>({
     rooms: config.rooms ?? [],
     devices: config.devices ?? [],
     decorations: config.decorations ?? [],
     models: config.models,
+    floors: config.floors,
   })
   const [confirmDiscard, setConfirmDiscard] = useState(false)
-  const serialize = (r: RoomConfig[], d: DeviceConfig[], x: DecorationConfig[], m: Models) =>
-    JSON.stringify({ rooms: r, devices: d, decorations: x, models: modelSummary(m) })
+  const serialize = (r: RoomConfig[], d: DeviceConfig[], x: DecorationConfig[], m: Models, fl?: FloorConfig[]) =>
+    JSON.stringify({ rooms: r, devices: d, decorations: x, models: modelSummary(m), floors: fl })
   const lastEmitted = useRef<string>(
-    serialize(config.rooms ?? [], config.devices ?? [], config.decorations ?? [], config.models),
+    serialize(config.rooms ?? [], config.devices ?? [], config.decorations ?? [], config.models, config.floors),
   )
 
   // Pick up edits made outside, for example in the YAML editor.
   useEffect(() => {
-    const incoming = serialize(config.rooms ?? [], config.devices ?? [], config.decorations ?? [], config.models)
+    const incoming = serialize(config.rooms ?? [], config.devices ?? [], config.decorations ?? [], config.models, config.floors)
     if (incoming === lastEmitted.current) return
     lastEmitted.current = incoming
     setRooms(config.rooms ?? [])
     setDevices(config.devices ?? [])
     setDecorations(config.decorations ?? [])
+    if (config.floors) setFloors(config.floors)
   }, [config])
 
   // A device is only ever a binding: one with nothing standing in for it is
@@ -333,12 +336,13 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     devicesIn: DeviceConfig[] = devices,
     nextDecorations: DecorationConfig[] = decorations,
     nextModels: Models = config.models,
+    nextFloors: FloorConfig[] = floors,
   ) => {
     const nextDevices = settle(devicesIn, nextDecorations)
     setRooms(nextRooms)
     setDevices(nextDevices)
     setDecorations(nextDecorations)
-    const serialized = serialize(nextRooms, nextDevices, nextDecorations, nextModels)
+    const serialized = serialize(nextRooms, nextDevices, nextDecorations, nextModels, nextFloors)
     if (serialized === lastEmitted.current) return
     lastEmitted.current = serialized
     const next: CardConfig = { ...config, rooms: nextRooms }
@@ -348,6 +352,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     else delete next.decorations
     if (nextModels && Object.keys(nextModels).length > 0) next.models = nextModels
     else delete next.models
+    if (nextFloors && nextFloors.length > 0) next.floors = nextFloors
+    else delete next.floors
     onChange(next)
   }
 
@@ -775,7 +781,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     // the browser has shown it, and the editor can take its time.
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
-        setOpened({ rooms, devices, decorations, models: config.models })
+        setOpened({ rooms, devices, decorations, models: config.models, floors })
         setHome(hass)
         setTries({})
         setFullscreen(true)
@@ -804,7 +810,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       return false
     }
     setSaving(null)
-    setOpened({ rooms, devices, decorations, models: config.models })
+    setOpened({ rooms, devices, decorations, models: config.models, floors })
     return true
   }
 
@@ -828,7 +834,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     setSelection({ roomId: null, vertex: null })
     setSelectedDecoration(null)
     registerModels(opened.models)
-    commit(opened.rooms, opened.devices, opened.decorations, opened.models)
+    if (opened.floors) setFloors(opened.floors)
+    commit(opened.rooms, opened.devices, opened.decorations, opened.models, opened.floors ?? floors)
     setConfirmDiscard(false)
     setFullscreen(false)
   }
@@ -838,8 +845,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
   const close = () => {
     const changed =
       draft.length > 0 ||
-      serialize(rooms, devices, decorations, config.models) !==
-        serialize(opened.rooms, opened.devices, opened.decorations, opened.models)
+      serialize(rooms, devices, decorations, config.models, floors) !==
+        serialize(opened.rooms, opened.devices, opened.decorations, opened.models, opened.floors)
     if (changed) setConfirmDiscard(true)
     else discard()
     return !changed
@@ -1216,7 +1223,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
                     </div>
                     <Scene
                       hass={home ?? hass}
-                      config={{ ...config, rooms, devices, decorations }}
+                      config={{ ...config, rooms, devices, decorations, floors }}
                       sky={hour}
                       wheelZoom
                       onPickDecoration={pickDecoration}
