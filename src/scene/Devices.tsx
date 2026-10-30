@@ -356,7 +356,12 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
                 // The editor only tries a device, and leaves the real one be.
                 if (onTry) {
                   if (tried && !(device && roomFirst?.(roomOf()))) onTry(item.id)
-                } else if (device && !roomFirst?.(roomOf())) act(device.entity_id)
+                } else if (device && !roomFirst?.(roomOf())) {
+                  // A piece set to only show its device opens its dialog
+                  // instead of switching it.
+                  if (item.show_only) openMoreInfo(device.entity_id)
+                  else act(device.entity_id)
+                }
               }
             : covers.length > 0 && !leads
               ? at => {
@@ -380,21 +385,22 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
               : undefined
         // A drag never flies to the room first. Where a click would, it is
         // left to turn the camera.
-        const drag: DragAction | undefined = draggable(device)
-          ? {
-              may: () => !roomFirst?.(roomOf(), true),
-              drop: level =>
-                hass!
-                  .callService(
-                    'cover',
-                    'set_cover_position',
-                    { entity_id: device!.entity_id, position: Math.round(level * 100) },
-                    undefined,
-                    false,
-                  )
-                  .catch(() => {}),
-            }
-          : undefined
+        const drag: DragAction | undefined =
+          draggable(device) && !item.show_only
+            ? {
+                may: () => !roomFirst?.(roomOf(), true),
+                drop: level =>
+                  hass!
+                    .callService(
+                      'cover',
+                      'set_cover_position',
+                      { entity_id: device!.entity_id, position: Math.round(level * 100) },
+                      undefined,
+                      false,
+                    )
+                    .catch(() => {}),
+              }
+            : undefined
         // A drag on the window is a drag on the cover over where it landed,
         // as a click on it is, when that cover can be dragged.
         const pass: Grab | undefined =

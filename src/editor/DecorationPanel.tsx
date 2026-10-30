@@ -610,9 +610,19 @@ export default function DecorationPanel({
                       })}
                     </div>
                   )}
+                  <label className={cn(row, 'grid-cols-[1fr_auto]')}>
+                    Only show its state
+                    <Switch
+                      checked={!!item.show_only}
+                      accent={accent}
+                      label="Only show its state"
+                      onChange={on => onUpdate(item.id, { show_only: on || undefined })}
+                    />
+                  </label>
                   <p className={note}>
-                    Clicking this item in 3D acts on the device. Right click it, or hold it on a touch screen, for the
-                    device's own dialog in Home Assistant, where brightness, color and the rest live.
+                    {item.show_only
+                      ? "Clicking this item in 3D opens the device's own dialog in Home Assistant, and never switches it."
+                      : "Clicking this item in 3D acts on the device. Right click it, or hold it on a touch screen, for the device's own dialog in Home Assistant, where brightness, color and the rest live."}
                   </p>
                 </>
               )}

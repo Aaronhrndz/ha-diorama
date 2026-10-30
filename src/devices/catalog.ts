@@ -19,11 +19,36 @@ const PLACEABLE_DOMAINS = [
   'input_button',
 ]
 
-// Sensors are noisy. Only these device classes are offered.
-const SENSOR_CLASSES: Record<string, string[]> = {
-  sensor: ['temperature', 'humidity'],
-  binary_sensor: ['door', 'window', 'opening', 'motion', 'occupancy'],
-}
+// Sensors are many, and these kinds of reading are what a home has dozens
+// of and no piece could show: meters, radio and battery levels, clocks.
+// Every other sensor is offered, and every binary sensor, whatever its
+// class, a washing machine's door among them.
+const NOISY_SENSORS = new Set([
+  'power',
+  'energy',
+  'voltage',
+  'current',
+  'frequency',
+  'power_factor',
+  'apparent_power',
+  'reactive_power',
+  'signal_strength',
+  'data_rate',
+  'data_size',
+  'timestamp',
+  'duration',
+  'distance',
+  'speed',
+  'gas',
+  'water',
+  'volume',
+  'weight',
+  'monetary',
+  'battery',
+])
+// The entities a device keeps for its settings and its diagnostics are left
+// out, except the sensors among them: a door left open is often one.
+const READINGS = ['sensor', 'binary_sensor']
 
 export const domainOf = (entityId: string) => entityId.split('.')[0]
 
@@ -58,16 +83,17 @@ export function entityArea(hass: HomeAssistant, entityId: string): string | null
 
 // Every entity a decoration item can be bound to, from the entity registry.
 // Areas are not required: Home Assistant does not force one on anything.
+// Hidden entities are in too: Home Assistant hides the lights in a group,
+// and each spot of a ceiling may stand on the plan on its own.
 export function placeableEntities(hass: HomeAssistant): EntityInfo[] {
   const out: EntityInfo[] = []
   for (const entry of Object.values(hass.entities ?? {})) {
-    if (entry.hidden || entry.entity_category) continue
     const domain = domainOf(entry.entity_id)
     if (!PLACEABLE_DOMAINS.includes(domain)) continue
-    const classes = SENSOR_CLASSES[domain]
-    if (classes) {
+    if (entry.entity_category && !READINGS.includes(domain)) continue
+    if (domain === 'sensor') {
       const deviceClass = hass.states[entry.entity_id]?.attributes.device_class
-      if (typeof deviceClass !== 'string' || !classes.includes(deviceClass)) continue
+      if (typeof deviceClass === 'string' && NOISY_SENSORS.has(deviceClass)) continue
     }
     out.push({
       entity_id: entry.entity_id,

@@ -2117,7 +2117,14 @@ export const DECORATION_KINDS: DecorationKind[] = [
     'decor',
     'Curtain',
     'wall',
-    [width(1.4, 0.6, 3), height(2.3, 1.2, 2.6), p('hem', 'Off floor', 0.02, 0, 1.5)],
+    [
+      width(1.4, 0.6, 3),
+      height(2.3, 1.2, 2.6),
+      p('hem', 'Off floor', 0.02, 0, 1.5),
+      // One panel drawn to one side instead of a pair parting in the middle.
+      flag('single', 'One panel'),
+      whenOn(flag('left', 'Opens to the left'), 'single'),
+    ],
     { fabric: '#f4f1ea', rail: '#e9e7e2' },
     { fabric: 'fabric', rail: 'matte' },
     TOGGLE_LEVEL,
@@ -3052,6 +3059,315 @@ export const DECORATION_KINDS: DecorationKind[] = [
         params: { width: 4 },
         colors: { frame: '#2f3235', infill: '#2f3235', posts: '#2f3235' },
         materials: { frame: 'metal', infill: 'metal', posts: 'metal' },
+      },
+    ],
+  ),
+
+  // Asked for in #108: a nursery, a loft bed, a rocking chair, string
+  // lights, a fan with a light, a bathroom fan, a chest freezer and a
+  // kennel.
+  kind(
+    'crib',
+    'bed',
+    'Crib',
+    'floor',
+    // Around a 60 by 120 cm mattress, its top rail 90 cm up.
+    [width(1.26, 0.9, 1.5), depth(0.66, 0.5, 0.8), height(0.9, 0.3, 1.6)],
+    { frame: SCANDI.oak, mattress: '#f4f1ea' },
+    { frame: 'wood', mattress: 'fabric' },
+    NONE,
+    [
+      // Oak posts and rails with upright slats on every side.
+      { id: 'slatted', label: 'Oak Slatted' },
+      {
+        id: 'panel',
+        label: 'White Panel',
+        // Solid ends between round topped posts, slats along the sides.
+        colors: { frame: '#f3f1ec', mattress: '#dfe6ea' },
+        materials: { frame: 'matte', mattress: 'fabric' },
+      },
+      {
+        id: 'house',
+        label: 'Montessori House',
+        // A mattress on a low frame under the outline of a house, open to
+        // climb in and out of.
+        params: { height: 1.45 },
+        colors: { frame: SCANDI.birch, mattress: '#efe7da' },
+        materials: { frame: 'wood', mattress: 'fabric' },
+      },
+    ],
+  ),
+  kind(
+    'bassinet',
+    'bed',
+    'Bassinet',
+    'floor',
+    [width(0.85, 0.6, 1.1), depth(0.5, 0.35, 0.7), height(0.82, 0.3, 1)],
+    { basket: '#d9c39b', stand: SCANDI.walnut, mattress: '#f4f1ea' },
+    { basket: 'fabric', stand: 'wood', mattress: 'fabric' },
+    NONE,
+    [
+      // An oval woven basket on a crossed wooden stand.
+      { id: 'woven', label: 'Woven Moses' },
+      {
+        id: 'bedside',
+        label: 'Bedside Sleeper',
+        // A soft walled box on four legs, its side to the bed let down.
+        colors: { basket: '#cfd3d4', stand: '#f3f1ec', mattress: '#f4f1ea' },
+        materials: { basket: 'fabric', stand: 'matte', mattress: 'fabric' },
+      },
+      {
+        id: 'cradle',
+        label: 'Rocking Cradle',
+        // A wooden box on two rockers, low to the floor.
+        params: { height: 0.55 },
+        colors: { basket: SCANDI.oak, stand: SCANDI.oak, mattress: '#f4f1ea' },
+        materials: { basket: 'wood', stand: 'wood', mattress: 'fabric' },
+      },
+    ],
+  ),
+  kind(
+    'loft_bed',
+    'bed',
+    'Loft bed',
+    'floor',
+    // A 90 by 200 cm mattress up on a frame, with room to stand under it.
+    [width(2.07, 1.5, 2.3), depth(0.97, 0.8, 1.5), height(1.8, 1.3, 2.2)],
+    { frame: '#f3f1ec', mattress: '#e6ded1', desk: SCANDI.oak },
+    { frame: 'metal', mattress: 'fabric', desk: 'wood' },
+    NONE,
+    [
+      // White steel, a ladder at the end and a desk underneath.
+      { id: 'desk', label: 'Loft With Desk' },
+      {
+        id: 'pine',
+        label: 'Pine Loft',
+        // Square pine posts and slatted guards, the ladder on the front.
+        colors: { frame: '#e3c99a', mattress: '#e6ded1', desk: '#e3c99a' },
+        materials: { frame: 'wood', mattress: 'fabric', desk: 'wood' },
+      },
+    ],
+  ),
+  kind(
+    'kids_sofa',
+    'seating',
+    'Kids sofa',
+    'floor',
+    [width(1.5, 0.6, 2), depth(0.68, 0.4, 0.9), height(0.45, 0.25, 0.7)],
+    { base: '#7fa3b8', cushions: '#e8b77a' },
+    { base: 'fabric', cushions: 'fabric' },
+    NONE,
+    [
+      // Foam blocks after the Nugget: a base, a seat and two triangle
+      // pillows against the back, in two colors.
+      { id: 'blocks', label: 'Play Couch' },
+      {
+        id: 'mini',
+        label: 'Little Sofa',
+        // A small upholstered sofa on short oak legs.
+        params: { width: 0.9, height: 0.5 },
+        colors: { base: '#d9cfc0', cushions: '#e8e1d5' },
+        materials: { base: 'fabric', cushions: 'fabric' },
+      },
+      {
+        id: 'bean',
+        label: 'Kids Beanbag',
+        params: { width: 0.7, depth: 0.7, height: 0.5 },
+        colors: { base: '#c98f6e', cushions: '#c98f6e' },
+        materials: { base: 'fabric', cushions: 'fabric' },
+      },
+    ],
+  ),
+  kind(
+    'rocking_chair',
+    'seating',
+    'Rocking chair',
+    'floor',
+    [width(0.65, 0.5, 1), depth(0.85, 0.6, 1.1), height(1.05, 0.8, 1.3)],
+    { frame: SCANDI.oak, seat: SCANDI.linen },
+    { frame: 'wood', seat: 'fabric' },
+    NONE,
+    [
+      // A wooden rocker with a spindle back and curved arms.
+      { id: 'windsor', label: 'Windsor Rocker' },
+      {
+        id: 'glider',
+        label: 'Nursery Glider',
+        // An upholstered chair on curved wooden rockers.
+        params: { width: 0.75, height: 1.0 },
+        colors: { frame: SCANDI.walnut, seat: '#cdd6d8' },
+        materials: { frame: 'wood', seat: 'fabric' },
+      },
+      {
+        id: 'recliner',
+        label: 'Wingback Recliner',
+        // A deep fabric armchair with wings, on a plinth instead of rockers.
+        params: { width: 0.85, depth: 0.9, height: 1.05 },
+        colors: { frame: SCANDI.charcoal, seat: '#9aa3a8' },
+        materials: { frame: 'matte', seat: 'fabric' },
+      },
+    ],
+  ),
+  kind(
+    'sound_machine',
+    'media',
+    'Sound machine',
+    'floor',
+    [p('size', 'Width', 0.14, 0.08, 0.25), lift(0.75)],
+    { body: '#f2efe9', top: '#f6e7cf' },
+    { body: 'matte', top: 'matte' },
+    TOGGLE_LEVEL,
+    [
+      // After the Hatch Rest: a round base with a glowing dome on top.
+      { id: 'nightlight', label: 'Glow Dome' },
+      {
+        id: 'pixel',
+        label: 'Pixel Player',
+        // After the Yoto Player: a box with a pixel screen and two knobs.
+        params: { size: 0.11 },
+        colors: { body: '#f06a3a', top: '#2b2e31' },
+        materials: { body: 'matte', top: 'matte' },
+      },
+      {
+        id: 'cube',
+        label: 'Story Cube',
+        // After the Toniebox: a soft cube with a figure stood on top.
+        params: { size: 0.12 },
+        colors: { body: '#e6627a', top: '#f2c14e' },
+        materials: { body: 'fabric', top: 'matte' },
+      },
+    ],
+  ),
+  kind(
+    'light_string',
+    'light',
+    'String lights',
+    'floor',
+    // Hung between two points the length apart, at the height, sagging
+    // between them.
+    [length(3, 0.5, 10), height(2.2, 0.5, 3), p('sag', 'Sag', 0.25, 0, 1)],
+    { cable: '#2b2c2d', bulbs: '#fff4dc' },
+    { cable: 'matte', bulbs: 'ceramic' },
+    LIGHT_SIGNALS,
+    [
+      // Large round bulbs on a black cable, between two posts.
+      { id: 'festoon', label: 'Festoon Posts' },
+      {
+        id: 'fairy',
+        label: 'Fairy Wire',
+        // Tiny warm points along a thin copper wire.
+        params: { sag: 0.15 },
+        colors: { cable: '#b87333', bulbs: '#fff1cc' },
+        materials: { cable: 'metal', bulbs: 'ceramic' },
+      },
+      {
+        id: 'globes',
+        label: 'Paper Globes',
+        // White paper globes on a white cord.
+        colors: { cable: '#f2efe9', bulbs: '#fbf7ef' },
+        materials: { cable: 'matte', bulbs: 'fabric' },
+      },
+    ],
+  ),
+  kind(
+    'light_fan',
+    'light',
+    'Ceiling fan light',
+    'ceiling',
+    // A ceiling fan with a light in it, standing for the light.
+    [size(1.1, 0.6, 1.6), p('drop', 'Drop', 0.35, 0.1, 1)],
+    { housing: SCANDI.offWhite, blades: SCANDI.oak, light: LIGHT_SHADE_COLOR },
+    { housing: 'matte', blades: 'wood', light: 'ceramic' },
+    LIGHT_SIGNALS,
+    [
+      {
+        id: 'bowl',
+        label: 'Bowl Light',
+        // Five wooden paddles over a frosted glass bowl.
+        params: { size: 1.3, drop: 0.4 },
+        colors: { housing: '#9a8466', blades: '#5b4432', light: '#f1ede4' },
+        materials: { housing: 'metal', blades: 'wood', light: 'ceramic' },
+      },
+      // Three slim blades round an LED disc.
+      { id: 'disc', label: 'LED Disc' },
+      {
+        id: 'globe',
+        label: 'Loft Globe',
+        // Four black blades over a schoolhouse globe.
+        colors: { housing: '#2b2c2d', blades: '#2b2c2d', light: '#f4f1ea' },
+        materials: { housing: 'metal', blades: 'matte', light: 'ceramic' },
+      },
+    ],
+  ),
+  kind(
+    'bath_fan',
+    'climate',
+    'Bathroom fan',
+    'ceiling',
+    [size(0.3, 0.15, 0.5)],
+    { grille: '#f4f3ef', light: LIGHT_SHADE_COLOR },
+    { grille: 'matte', light: 'ceramic' },
+    TOGGLE,
+    [
+      // A square grille of slots.
+      { id: 'grille', label: 'Square Grille' },
+      // The grille with a round light in its middle, lit while it runs.
+      { id: 'light', label: 'Grille With Light' },
+      {
+        id: 'round',
+        label: 'Round LED Ring',
+        // A round plate with a ring of light round its rim.
+        params: { size: 0.25 },
+      },
+    ],
+  ),
+  kind(
+    'chest_freezer',
+    'kitchen',
+    'Chest freezer',
+    'floor',
+    [width(0.9, 0.5, 1.6), depth(0.65, 0.5, 0.8), height(0.85, 0.6, 0.95)],
+    { body: '#f4f3ef', lid: '#f4f3ef', handle: '#9aa3a8' },
+    { body: 'ceramic', lid: 'ceramic', handle: 'metal' },
+    TOGGLE,
+    [
+      // A white chest with a recessed handle along its lid.
+      { id: 'white', label: 'Classic Chest' },
+      {
+        id: 'compact',
+        label: 'Compact Steel',
+        params: { width: 0.55, height: 0.84 },
+        colors: { body: '#c9ccce', lid: '#c9ccce', handle: '#2b2c2d' },
+        materials: { body: 'metal', lid: 'metal', handle: 'matte' },
+      },
+    ],
+  ),
+  kind(
+    'dog_kennel',
+    'decor',
+    'Dog kennel',
+    'floor',
+    [width(0.7, 0.4, 1.2), depth(0.9, 0.5, 1.4), height(0.75, 0.4, 1.1)],
+    { body: SCANDI.oak, roof: '#7d8a8f' },
+    { body: 'wood', roof: 'matte' },
+    NONE,
+    [
+      // A wooden house with a pitched roof and a round topped door.
+      { id: 'house', label: 'Wooden House' },
+      {
+        id: 'crate',
+        label: 'Wire Crate',
+        params: { width: 0.6, depth: 0.9, height: 0.65 },
+        colors: { body: '#2b2c2d', roof: '#4a4f52' },
+        materials: { body: 'metal', roof: 'matte' },
+      },
+      {
+        id: 'table',
+        label: 'Crate Table',
+        // A crate that is furniture: a solid top, slatted sides and door.
+        params: { width: 0.9, depth: 0.6, height: 0.7 },
+        colors: { body: SCANDI.walnut, roof: SCANDI.walnut },
+        materials: { body: 'wood', roof: 'wood' },
       },
     ],
   ),

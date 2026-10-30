@@ -635,6 +635,17 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       }),
     )
 
+  // Sets the sensor that says someone is in a room and the filter laid over
+  // its floor while it does, or takes it away.
+  const setPresence = (roomId: string, presence: RoomConfig['presence']) =>
+    commit(
+      rooms.map(r => {
+        if (r.id !== roomId) return r
+        const { presence: _dropped, ...rest } = r
+        return presence ? { ...rest, presence } : rest
+      }),
+    )
+
   // Shows or hides, in a room's view, the sign on the floor into a room
   // open beside it.
   const setArrow = (roomId: string, other: string, shown: boolean) =>
@@ -1010,6 +1021,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
         onAssignArea={assignArea}
         onFloor={setFloor}
         onElevation={setElevation}
+        hass={hass}
+        onPresence={setPresence}
         decorations={decorations}
         onArrow={setArrow}
         onSaveCamera={saveRoomCamera}
