@@ -1,6 +1,6 @@
 import { Select } from '#/components/ui/select.tsx'
 import { decorationKind } from '#/decoration/catalog.ts'
-import { ResetButton, SelectedHeader, Slider, Switch } from '#/editor/panel.tsx'
+import { EditableValue, ResetButton, SelectedHeader, Slider, Switch } from '#/editor/panel.tsx'
 import { neighboursOf } from '#/geometry/passages.ts'
 import {
   EDITOR_TINT_COLOR,
@@ -167,7 +167,12 @@ export default function RoomInfo({
             value={elevation}
             onChange={e => onElevation(room.id, Number(e.target.value) || undefined)}
           />
-          <span className="text-label-2 text-right text-xs tabular-nums">{Math.round(elevation * 100)} cm</span>
+          <EditableValue
+            value={Math.round(elevation * 100)}
+            display={`${Math.round(elevation * 100)} cm`}
+            onChange={val => onElevation(room.id, val === 0 ? undefined : val / 100)}
+            className="text-label-2 text-right text-xs tabular-nums"
+          />
           <ResetButton label="Elevation" changed={elevation !== 0} onReset={() => onElevation(room.id, undefined)} />
         </label>
         {onThickness && (
@@ -180,9 +185,12 @@ export default function RoomInfo({
               value={room.thickness ?? ROOM_SLAB_THICKNESS_M}
               onChange={e => onThickness(room.id, Number(e.target.value) || undefined)}
             />
-            <span className="text-label-2 text-right text-xs tabular-nums">
-              {Math.round((room.thickness ?? ROOM_SLAB_THICKNESS_M) * 100)} cm
-            </span>
+            <EditableValue
+              value={Math.round((room.thickness ?? ROOM_SLAB_THICKNESS_M) * 100)}
+              display={`${Math.round((room.thickness ?? ROOM_SLAB_THICKNESS_M) * 100)} cm`}
+              onChange={val => onThickness(room.id, val === Math.round(ROOM_SLAB_THICKNESS_M * 100) ? undefined : val / 100)}
+              className="text-label-2 text-right text-xs tabular-nums"
+            />
             <ResetButton
               label="Thickness"
               changed={room.thickness !== undefined && room.thickness !== ROOM_SLAB_THICKNESS_M}

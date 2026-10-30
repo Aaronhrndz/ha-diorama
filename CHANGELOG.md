@@ -16,7 +16,9 @@ moves that section under the new version and uses it as the release notes.
 - Per-room custom floor slab thickness slider (
 oom.thickness, 1 cm to 100 cm).
 - Per-floor isolated trace images for blueprint alignment across storeys.
-- Expanded room elevation range (-10 m to +25 m) and stair rise range (up to 8 m).
+- Expanded room elevation range (-10 m to +25 m) and stair rise range (up to 8 m, unlocking vertical ceiling clamping).
+- Interactive stairs with lighting support: bind light/switch entities, glow and toggle stairs directly.
+- Direct numeric input on sliders: click any parameter, elevation, thickness, or rotation value to type exact numbers.
 - Free camera orbit angle allowing views from below floor level.
 
 ### Changed
@@ -31,7 +33,8 @@ oom.thickness, 1 cm to 100 cm).
 - Between-wall decorations (windows, doors, openings) isolated strictly by floor so items on one floor do not punch openings into walls on another.
 - Floorless rooms strictly resolve to base floor loor-0 during floor reordering without mutating active floor assignment.
 
-### Added
+### Added
+
 
 - A piano in three styles, a desk lamp in two, three more ceiling lights, and a switch to hang the sideboard on the wall at any height.
 - Stairs that climb a full storey or a few steps, including a floating style with only its treads, a railing in steel, glass or oak spindles for the edge of a raised floor, a 3D printer that lights its chamber while it prints, a router, a wall tablet that shows a dashboard, a sim racing cockpit, a driveway gate that opens with its cover, a terrace door whose two leaves both swing open, and a Hue style tilted ring table lamp.
