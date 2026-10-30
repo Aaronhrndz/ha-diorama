@@ -33,26 +33,32 @@ function Room({ room, rooms, index, radius, gap, floors }: Props) {
   const geometry = useMemo(() => {
     const points = inset(ensureCounterClockwise(room.points), gap / 2)
     const cornerRadius = room.radius ?? radius
-    // With no gap, floors that touch meet flat and square: the edge is only
-    // rounded over, and a corner only rounded off, where it stands free.
-    // With a gap every floor stands free, and so does a floor along a lower
-    // one, where it is rounded over as a step down.
-    const neighbours =
+    // Neighbours at the same or higher elevation, where slabs meet flat
+    const higherNeighbours =
       gap > TOUCHING_GAP_M
         ? []
         : floorRooms.filter(other => other.id !== room.id && elevationOf(other, floors) >= elevation).map(r => r.points)
-    // A concave corner wraps around a neighbour's convex corner. For the two
-    // arcs to be concentric its radius grows by the gap.
-    const outline = roundedShape(points, cornerRadius, cornerRadius + gap, i => touchesNeighbour(points[i], neighbours))
+
+    // Neighbours at lower elevation, touching this room to form a step
+    const lowerNeighbours =
+      gap > TOUCHING_GAP_M
+        ? []
+        : floorRooms.filter(other => other.id !== room.id && elevationOf(other, floors) < elevation).map(r => r.points)
+
+    const outline = roundedShape(points, cornerRadius, cornerRadius + gap, i => touchesNeighbour(points[i], higherNeighbours))
       .getPoints(SLAB_CURVE_SEGMENTS)
       .map((p): Point => [p.x, p.y])
+
+    // Solid step down only applies if this room actually borders a lower room in the same layout
+    const touchesLower = points.some(p => touchesNeighbour(p, lowerNeighbours))
+
     return slabGeometry(
       outline,
-      neighbours,
+      higherNeighbours,
       ROOM_SLAB_EDGE_RADIUS_M,
-      // Only split-level offsets within the same floor make a solid step.
-      // Slabs of elevated upper floors stay standard thickness so they don't block rooms below.
-      ROOM_SLAB_THICKNESS_M + Math.max(0, (room.elevation ?? 0) - lowestOnFloor),
+      touchesLower
+        ? ROOM_SLAB_THICKNESS_M + Math.max(0, (room.elevation ?? 0) - lowestOnFloor)
+        : ROOM_SLAB_THICKNESS_M,
       SLAB_BEVEL_SEGMENTS,
       FLOOR_PATTERN_SHIFT_M,
     )
