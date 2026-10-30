@@ -312,8 +312,12 @@ export default function Canvas({
     // furthest valid point on the way to one, so a blocked room still slides
     // along the free axis and lands right against its neighbour on release.
     const patch = (roomId: string, candidates: Point[][]) => {
-      const others = currentRooms.filter(r => r.id !== roomId && r.id !== duplicateSource.current).map(r => r.points)
-      const from = currentRooms.find(r => r.id === roomId)!.points
+      const roomTarget = currentRooms.find(r => r.id === roomId)
+      const targetFloorId = roomTarget?.floor_id ?? 'floor-0'
+      const others = currentRooms
+        .filter(r => r.id !== roomId && r.id !== duplicateSource.current && (r.floor_id ?? 'floor-0') === targetFloorId)
+        .map(r => r.points)
+      const from = roomTarget!.points
       let resolved: Point[] = from
       for (const target of candidates) {
         if (isValidRoom(target, others)) {
@@ -850,7 +854,10 @@ export default function Canvas({
     duplicateSource.current = null
     if (copied) {
       const copy = landed.find(r => r.id === copied)
-      const others = landed.filter(r => r.id !== copied).map(r => r.points)
+      const targetFloorId = copy?.floor_id ?? 'floor-0'
+      const others = landed
+        .filter(r => r.id !== copied && (r.floor_id ?? 'floor-0') === targetFloorId)
+        .map(r => r.points)
       if (copy && !isValidRoom(copy.points, others)) {
         const placed = freePlacement(copy.points, others)
         landed = placed
@@ -880,7 +887,10 @@ export default function Canvas({
   const canDeleteVertex = (roomId: string, index: number) => {
     const room = rooms.find(r => r.id === roomId)
     if (!room || room.points.length <= 3) return false
-    const others = rooms.filter(r => r.id !== roomId).map(r => r.points)
+    const targetFloorId = room.floor_id ?? 'floor-0'
+    const others = rooms
+      .filter(r => r.id !== roomId && (r.floor_id ?? 'floor-0') === targetFloorId)
+      .map(r => r.points)
     return isValidRoom(
       room.points.filter((_, i) => i !== index),
       others,
@@ -1139,7 +1149,7 @@ export default function Canvas({
             draggingId === room.id &&
             !isValidRoom(
               room.points,
-              rooms.filter(r => r.id !== room.id).map(r => r.points),
+              activeRooms.filter(r => r.id !== room.id).map(r => r.points),
             )
           return (
             <polygon
