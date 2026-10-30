@@ -124,8 +124,10 @@ export type TileChoices = Record<string, TileChoice | TileChoice[]>
 
 // The background laid behind the view the card is in, for a light and for
 // a dark dashboard: one of the card's own by its id, or `theme` to leave
-// the dashboard's. Graphite when not set.
+// the dashboard's. Graphite when not set. With `show` false the card lays
+// none at all and the dashboard keeps its own, whatever the two say.
 export type BackgroundConfig = {
+  show?: boolean
   light?: string
   dark?: string
 }

@@ -156,7 +156,7 @@ commands:
 
 The diorama card can bring its own tiles. Turn on **Show widgets beside the 3D view** in the card's settings, or set `side_panel: true` in its YAML, and the diorama takes the left two thirds of the card with its tiles on the right third. When the card is narrower than 900 pixels, the tiles go under the diorama instead. This works in any view. In a panel view the diorama fills its column from the top of the screen to the bottom, whatever its `aspect_ratio`. On a phone it is square, with the tiles under it. In a sections view the card takes the full width of its section.
 
-The card also lays a background behind the view it is in, graphite by default. The card's editor has a Background section with a row of swatches for a light dashboard and another for a dark one, so each can have its own: graphite, dusk, ocean, forest or ember, each a dark version and a pale version of the same colors, or Plain to keep the dashboard's own background. In YAML:
+The card also lays a background behind the view it is in, graphite by default. The card's editor has a Background section with a row of swatches for a light dashboard and another for a dark one, so each can have its own: graphite, dusk, ocean, forest or ember, each a dark version and a pale version of the same colors, or Plain to keep the dashboard's own background. Above them, **Use a background** turns it off altogether, hiding the swatches and leaving the dashboard's own background in both. In YAML that is `show: false`, and the colors picked stay for when it is turned on again:
 
 ```yaml
 background:
