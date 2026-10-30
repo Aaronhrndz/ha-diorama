@@ -821,11 +821,12 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
   useBackButton(fullscreen, close)
 
   const closeDraft = () => {
+    const activeRooms = rooms.filter(r => (r.floor_id ?? 'floor-0') === activeFloorId)
     if (
       draft.length < 3 ||
       !isValidRoom(
         draft,
-        rooms.map(r => r.points),
+        activeRooms.map(r => r.points),
       )
     )
       return

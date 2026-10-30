@@ -651,7 +651,9 @@ export default function Canvas({
       if (draft.length >= 3) {
         const [fx, fy] = toScreen(view, draft[0])
         const [sx, sy] = screenPoint(e)
-        if (Math.hypot(fx - sx, fy - sy) < HANDLE * 2) {
+        // Check distance to the starting handle (or if snapped point equals starting point)
+        const hitStart = Math.hypot(fx - sx, fy - sy) < Math.max(HANDLE * 3.5, 24) || (p[0] === draft[0][0] && p[1] === draft[0][1])
+        if (hitStart) {
           if (draftClosable) onCloseDraft()
           return
         }
