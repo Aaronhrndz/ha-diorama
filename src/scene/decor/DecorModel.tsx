@@ -269,6 +269,8 @@ export default function DecorModel({ kind, item, state }: Props) {
           height={p('height')}
           hem={p('hem')}
           level={level}
+          single={p('single') > 0.5}
+          left={p('left') > 0.5}
           paint={paint}
           sheer={<Material color={c('fabric')} material={m('fabric')} doubleSide opacity={0.55} />}
         />

@@ -14,7 +14,9 @@ import {
   ROOM_THICKNESS_MIN_M,
   ROOM_THICKNESS_STEP_M,
 } from '#/theme.ts'
-import type { Area, DecorationConfig, RoomConfig } from '#/types.ts'
+import type { Area, DecorationConfig, HomeAssistant, RoomConfig } from '#/types.ts'
+import { entityName } from '#/devices/catalog.ts'
+import { PRESENCE_COLOR, PRESENCE_STRENGTH } from '#/scene/presence.ts'
 import { useFlash } from '#/lib/flash.ts'
 import { cn } from '#/lib/utils.ts'
 import { colorWell, deleteButton, field, group, groupTitle, note, plainButton, row } from '#/editor/look.ts'
@@ -32,6 +34,12 @@ type Props = {
   // Raises or lowers the room's floor, in meters, `undefined` for level.
   onElevation: (roomId: string, elevation: number | undefined) => void
   onThickness?: (roomId: string, thickness: number | undefined) => void
+  floors?: { id: string; name: string; elevation: number }[]
+  onAssignFloor?: (roomId: string, floorId: string) => void
+  // The sensor that says someone is in the room, and the filter over its
+  // floor while it does.
+  hass: HomeAssistant | null
+  onPresence: (roomId: string, presence: RoomConfig['presence']) => void
   // Every piece of the home, to tell which rooms beside this one a door
   // leads into.
   decorations: DecorationConfig[]
@@ -44,8 +52,6 @@ type Props = {
   onClearCamera: (roomId: string) => void
   // Whether there is a 3D view to take the camera from.
   hasPreview: boolean
-  floors?: { id: string; name: string; elevation: number }[]
-  onAssignFloor?: (roomId: string, floorId: string) => void
   onDelete: (roomId: string) => void
   onDeselect: () => void
 }
@@ -64,15 +70,17 @@ export default function RoomInfo({
   onAssignArea,
   onFloor,
   onElevation,
+  onThickness,
+  floors,
+  onAssignFloor,
+  hass,
+  onPresence,
   decorations,
   onArrow,
   onSaveCamera,
   onShowCamera,
   onClearCamera,
   hasPreview,
-  floors,
-  onAssignFloor,
-  onThickness,
   onDelete,
   onDeselect,
 }: Props) {
@@ -96,6 +104,19 @@ export default function RoomInfo({
     onFloor(room.id, rest)
   }
   const elevation = room.elevation ?? 0
+  // Sensors that tell someone is there: occupancy, presence and motion
+  // sensors, and people and trackers, which are home or away.
+  const presenceSensors = Object.values(hass?.states ?? {})
+    .filter(s => {
+      const domain = s.entity_id.split('.')[0]
+      if (domain === 'person' || domain === 'device_tracker') return true
+      const cls = s.attributes.device_class
+      return domain === 'binary_sensor' && (cls === 'occupancy' || cls === 'presence' || cls === 'motion')
+    })
+    .map(s => ({ value: s.entity_id, label: hass ? entityName(hass, s.entity_id) : s.entity_id }))
+    .sort((a, b) => a.label.localeCompare(b.label))
+  const presence = room.presence
+  const strength = presence?.strength ?? PRESENCE_STRENGTH
   const slider = (label: string, key: 'scale' | 'intensity' | 'rotation', min: number, max: number, step: number) => {
     const initial = key === 'rotation' ? 0 : 1
     const value = room.floor?.[key] ?? initial
@@ -167,11 +188,11 @@ export default function RoomInfo({
             value={elevation}
             onChange={e => onElevation(room.id, Number(e.target.value) || undefined)}
           />
-          <EditableValue
-            value={Math.round(elevation * 100)}
-            display={`${Math.round(elevation * 100)} cm`}
-            onChange={val => onElevation(room.id, val === 0 ? undefined : val / 100)}
-            className="text-label-2 text-right text-xs tabular-nums"
+          <EditableValue
+            value={Math.round(elevation * 100)}
+            display={`${Math.round(elevation * 100)} cm`}
+            onChange={val => onElevation(room.id, val === 0 ? undefined : val / 100)}
+            className="text-label-2 text-right text-xs tabular-nums"
           />
           <ResetButton label="Elevation" changed={elevation !== 0} onReset={() => onElevation(room.id, undefined)} />
         </label>
@@ -228,6 +249,53 @@ export default function RoomInfo({
             {slider('Pattern size', 'scale', 0.25, 4, 0.05)}
             {slider('Pattern depth', 'intensity', 0, 2, 0.05)}
             {slider('Pattern angle', 'rotation', 0, 175, 5)}
+          </>
+        )}
+      </div>
+      <div className={group}>
+        <label className={cn(row, 'grid-cols-[96px_1fr_24px]')}>
+          Presence
+          <Select
+            aria-label="Presence"
+            value={presence?.entity ?? ''}
+            options={[{ value: '', label: 'None' }, ...presenceSensors]}
+            onChange={v => onPresence(room.id, v ? { ...presence, entity: v } : undefined)}
+          />
+          <ResetButton label="Presence" changed={!!presence} onReset={() => onPresence(room.id, undefined)} />
+        </label>
+        {presence && (
+          <>
+            <label className={cn(row, 'grid-cols-[96px_1fr_24px]')}>
+              Filter
+              <input
+                type="color"
+                className={colorWell}
+                value={presence.color ?? PRESENCE_COLOR}
+                onChange={e => onPresence(room.id, { ...presence, color: e.target.value })}
+              />
+              <ResetButton
+                label="Filter"
+                changed={presence.color !== undefined}
+                onReset={() => onPresence(room.id, { ...presence, color: undefined })}
+              />
+            </label>
+            <label className={cn(row, 'grid-cols-[96px_1fr_56px_24px]')}>
+              Strength
+              <Slider
+                min={0.05}
+                max={0.9}
+                step={0.05}
+                value={strength}
+                onChange={e => onPresence(room.id, { ...presence, strength: Number(e.target.value) })}
+              />
+              <span className="text-label-2 text-right text-xs tabular-nums">{Math.round(strength * 100)}%</span>
+              <ResetButton
+                label="Strength"
+                changed={presence.strength !== undefined}
+                onReset={() => onPresence(room.id, { ...presence, strength: undefined })}
+              />
+            </label>
+            <p className={note}>While someone is in the room, its floor is seen through this filter.</p>
           </>
         )}
       </div>

@@ -93,6 +93,10 @@ export type RoomConfig = {
   // Everything in the room stands on it.
   elevation?: number
   thickness?: number
+  // A sensor that says someone is in the room. While it does, the floor is
+  // seen through a filter of `color`, black by default, laid over it at
+  // `strength`, from 0 to 1.
+  presence?: { entity: string; color?: string; strength?: number }
   // Floor material from the theme's list, with an optional color tint.
   floor?: { material: string; color?: string; scale?: number; rotation?: number; intensity?: number }
   // Where the camera goes when the room is clicked in the card. A room
@@ -170,6 +174,9 @@ export type DecorationConfig = {
   // Id of the item this one stands on, for example the table under a lamp.
   // Its height follows that item's top, and it moves when that item moves.
   on?: string
+  // Shows its device's state and does not act on it: a click opens the
+  // device's dialog in Home Assistant instead of switching it.
+  show_only?: boolean
   // Stands on the floor, where it would stand at the height of its own
   // otherwise. Only read while it stands on nothing.
   floor?: boolean

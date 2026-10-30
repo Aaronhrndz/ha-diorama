@@ -534,6 +534,8 @@ export function Curtain({
   height,
   hem,
   level,
+  single = false,
+  left = false,
   paint,
   sheer,
 }: {
@@ -542,15 +544,22 @@ export function Curtain({
   height: number
   hem: number
   level: number
+  // One panel across the whole window instead of a pair meeting in the
+  // middle, and the side it is drawn back to.
+  single?: boolean
+  left?: boolean
   paint: Paint
   sheer: ReactNode
 }) {
   const drop = Math.max(height - hem, 0.2)
   const z = 0.075
   // Each panel, laid out from its outer end, reaches the middle when shut
-  // and bunches to a third of that when open.
-  const full = w / 2 + 0.06
+  // and bunches to a third of that when open. A single panel reaches the
+  // other end instead, from the side it opens to.
+  const full = single ? w + 0.12 : w / 2 + 0.06
   const gather = 1 - 0.66 * level
+  const ends = single ? [left ? -1 : 1] : [-1, 1]
+  const outer = (s: number) => s * (single ? full / 2 : full)
   if (style === 'eyelet') {
     const waves = Math.max(3, Math.round(full / 0.16))
     const rod = w + 0.24
@@ -571,9 +580,9 @@ export function Curtain({
             </mesh>
           </group>
         ))}
-        {[-1, 1].map(s => {
-          const x0 = s * full
-          const x1 = s * (full - full * gather)
+        {ends.map(s => {
+          const x0 = outer(s)
+          const x1 = x0 - s * full * gather
           return (
             <group key={s}>
               <Drape x0={x0} x1={x1} top={0.065} bottom={-drop} z={z} cloth={full * 1.7} waves={waves}>
@@ -604,11 +613,11 @@ export function Curtain({
           {paint('rail')}
         </mesh>
       ))}
-      {[-1, 1].map(s => (
+      {ends.map(s => (
         <Drape
           key={s}
-          x0={s * full}
-          x1={s * (full - full * gather)}
+          x0={outer(s)}
+          x1={outer(s) - s * full * gather}
           top={0.004}
           bottom={-drop}
           z={z}

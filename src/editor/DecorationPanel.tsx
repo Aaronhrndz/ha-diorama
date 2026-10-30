@@ -19,7 +19,7 @@ import { placeableEntities } from '#/devices/catalog.ts'
 import ModelPreview from '#/editor/ModelPreview.tsx'
 import TrySection from '#/editor/TrySection.tsx'
 import { canTry, type TryState, type TryStates } from '#/editor/tryState.ts'
-import { PreviewHandle, EditableValue, ResetButton, SelectedHeader, Signals, Slider, Sticky, Switch } from '#/editor/panel.tsx'
+import { EditableValue, PreviewHandle, ResetButton, SelectedHeader, Signals, Slider, Sticky, Switch } from '#/editor/panel.tsx'
 import { snapToWall } from '#/editor/walls.ts'
 import { Select } from '#/components/ui/select.tsx'
 import {
@@ -362,11 +362,11 @@ export default function DecorationPanel({
               value={item.rotation ?? 0}
               onChange={e => onUpdate(item.id, { rotation: Number(e.target.value) })}
             />
-            <EditableValue
-              value={item.rotation ?? 0}
-              display={`${item.rotation ?? 0}°`}
-              onChange={val => onUpdate(item.id, { rotation: ((Math.round(val) % 360) + 360) % 360 })}
-              className="text-label-2 text-right text-xs tabular-nums"
+            <EditableValue
+              value={item.rotation ?? 0}
+              display={`${item.rotation ?? 0}°`}
+              onChange={val => onUpdate(item.id, { rotation: ((Math.round(val) % 360) + 360) % 360 })}
+              className="text-label-2 text-right text-xs tabular-nums"
             />
             <ResetButton
               label="Rotation"
@@ -617,9 +617,19 @@ export default function DecorationPanel({
                       })}
                     </div>
                   )}
+                  <label className={cn(row, 'grid-cols-[1fr_auto]')}>
+                    Only show its state
+                    <Switch
+                      checked={!!item.show_only}
+                      accent={accent}
+                      label="Only show its state"
+                      onChange={on => onUpdate(item.id, { show_only: on || undefined })}
+                    />
+                  </label>
                   <p className={note}>
-                    Clicking this item in 3D acts on the device. Right click it, or hold it on a touch screen, for the
-                    device's own dialog in Home Assistant, where brightness, color and the rest live.
+                    {item.show_only
+                      ? "Clicking this item in 3D opens the device's own dialog in Home Assistant, and never switches it."
+                      : "Clicking this item in 3D acts on the device. Right click it, or hold it on a touch screen, for the device's own dialog in Home Assistant, where brightness, color and the rest live."}
                   </p>
                 </>
               )}

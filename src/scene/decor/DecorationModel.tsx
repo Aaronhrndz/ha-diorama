@@ -7,6 +7,8 @@ import { standHeight } from '#/decoration/surfaces.ts'
 import { elevationOf } from '#/geometry/elevation.ts'
 import ApplianceModel from '#/scene/decor/ApplianceModel.tsx'
 import CustomModel from '#/scene/decor/CustomModel.tsx'
+import HouseholdModel from '#/scene/decor/Household.tsx'
+import NurseryModel from '#/scene/decor/Nursery.tsx'
 import DecorModel from '#/scene/decor/DecorModel.tsx'
 import DeviceModel from '#/scene/decor/DeviceModel.tsx'
 import FurnitureModel from '#/scene/decor/FurnitureModel.tsx'
@@ -109,6 +111,15 @@ const KIND_MODELS: Record<string, FamilyModel> = {
   louvred_pergola: GardenModel,
   sauna: GardenModel,
   driveway_gate: GardenModel,
+  crib: NurseryModel,
+  bassinet: NurseryModel,
+  loft_bed: NurseryModel,
+  kids_sofa: NurseryModel,
+  rocking_chair: NurseryModel,
+  sound_machine: NurseryModel,
+  bath_fan: HouseholdModel,
+  chest_freezer: HouseholdModel,
+  dog_kennel: HouseholdModel,
 }
 
 // The models that read the rest of the plan, not just the piece they stand

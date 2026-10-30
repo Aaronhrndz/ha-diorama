@@ -13,8 +13,7 @@ moves that section under the new version and uses it as the release notes.
 
 - Multi-floor management: create, reorder, rename and assign elevations to floors with drag-and-drop handles and double-click configuration.
 - 2D onion-skin reference mode displaying room outlines of other floors while drawing or editing.
-- Per-room custom floor slab thickness slider (
-oom.thickness, 1 cm to 100 cm).
+- Per-room custom floor slab thickness slider (`room.thickness`, 1 cm to 100 cm).
 - Per-floor isolated trace images for blueprint alignment across storeys.
 - Expanded room elevation range (-10 m to +25 m) and stair rise range (up to 8 m, unlocking vertical ceiling clamping).
 - Interactive stairs with lighting support: bind light/switch entities, glow and toggle stairs directly.
@@ -31,10 +30,9 @@ oom.thickness, 1 cm to 100 cm).
 - Item drag-and-drop in 2D editor strictly scoped to active floor rooms, preventing items from jumping to onion-skin rooms on other floors.
 - Room polygon vertex and edge dragging collision checks scoped to the active floor, enabling rooms on different storeys to overlap freely in 2D space without false invalid collision errors.
 - Between-wall decorations (windows, doors, openings) isolated strictly by floor so items on one floor do not punch openings into walls on another.
-- Floorless rooms strictly resolve to base floor loor-0 during floor reordering without mutating active floor assignment.
+- Floorless rooms strictly resolve to base floor `floor-0` during floor reordering without mutating active floor assignment.
 
 ### Added
-
 
 - A piano in three styles, a desk lamp in two, three more ceiling lights, and a switch to hang the sideboard on the wall at any height.
 - Stairs that climb a full storey or a few steps, including a floating style with only its treads, a railing in steel, glass or oak spindles for the edge of a raised floor, a 3D printer that lights its chamber while it prints, a router, a wall tablet that shows a dashboard, a sim racing cockpit, a driveway gate that opens with its cover, a terrace door whose two leaves both swing open, and a Hue style tilted ring table lamp.
@@ -44,13 +42,19 @@ oom.thickness, 1 cm to 100 cm).
 - Your own 3D models can be imported into the editor's catalog from a .glb or .gltf file, under My models, and placed, sized, recolored part by part and hung on a wall or a ceiling like any other piece, drawn in the card's own colors.
 - A Use a background switch at the top of the editor's Background section turns the card's background off, leaving the dashboard's own.
 - A room's floor can be raised or sunk from its block in the editor, for a platform, a step or a sunken living room, and everything in the room goes up or down with it.
+- A crib, a bassinet, a loft bed, a kids sofa, a rocking chair, a sound machine, string lights, a ceiling fan with a light, a bathroom fan, a chest freezer and a dog kennel, each in two or three styles.
+- A room can take a presence sensor, and while someone is in it its floor is seen through a filter in a color of your choice, a soft darkening to start with.
+- A piece can be set to only show its device's state, so a click on it opens the device's dialog instead of switching it.
+- A curtain can be a single panel that opens to the left or to the right.
 
 ### Changed
 
 - Diorama needs Home Assistant 2024.6 or newer, and HACS says so before installing it.
+- Ceiling lights glow on top too, so from above you can see they are on and in what color.
 
 ### Fixed
 
+- Lights in a group, a device's own sensors such as a washing machine's door, and binary sensors of every kind can be picked for a piece.
 - On older Home Assistant versions the editor responds to clicks again, where it opened but nothing in it could be clicked, and on 2024.6 the side panel shows its widgets again.
 - The catalog keeps its place after adding an item, and the arrow into the next room no longer hides behind a window or curtain on that wall.
 

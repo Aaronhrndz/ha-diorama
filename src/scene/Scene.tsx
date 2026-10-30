@@ -22,6 +22,7 @@ import Shadows from '#/scene/shadows.tsx'
 import Sky, { type SkyMode } from '#/scene/Sky.tsx'
 import type { TryStates } from '#/editor/tryState.ts'
 import { FpsTicker, type FpsTicks } from '#/scene/FpsMeter.tsx'
+import { occupied } from '#/scene/presence.ts'
 import type { CardConfig, HomeAssistant } from '#/types.ts'
 import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
@@ -182,7 +183,16 @@ export default function Scene({
           the picked thing outlined. */}
         <Effects selected={selected} focus={focus} />
         {rooms.map((room, i) => (
-          <Room key={room.id} room={room} rooms={rooms} index={i} radius={radius} gap={gap} floors={config.floors} />
+          <Room
+            key={room.id}
+            room={room}
+            rooms={rooms}
+            index={i}
+            radius={radius}
+            gap={gap}
+            occupied={occupied(hass, room)}
+            floors={config.floors}
+          />
         ))}
         {frame && (
           <OrbitControls
