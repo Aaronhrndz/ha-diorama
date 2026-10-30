@@ -83,8 +83,8 @@ function GlassRailing({ w, h, paint, glass }: Omit<Props, 'style'>) {
   )
 }
 
-// Painted timber: a square newel at each end with a capped top, square
-// spindles between a base rail and an oak handrail.
+// Solid timber: a square newel at each end with a capped top, square
+// spindles between a base rail and a handrail.
 function SpindleRailing({ w, h, paint }: Omit<Props, 'style' | 'glass'>) {
   const newel = 0.09
   const end = w / 2 - newel / 2

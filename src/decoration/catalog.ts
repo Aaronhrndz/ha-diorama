@@ -1853,10 +1853,10 @@ export const DECORATION_KINDS: DecorationKind[] = [
       {
         id: 'spindle',
         label: 'Oak Spindle',
-        // White square newels and spindles under an oak handrail, the
+        // Square newels, spindles and handrail all in bare oak, the
         // classic timber balustrade.
-        colors: { posts: '#f3f1ec', spindles: '#f3f1ec', rail: SCANDI.oak },
-        materials: { posts: 'matte', spindles: 'matte', rail: 'wood' },
+        colors: { posts: SCANDI.oak, spindles: SCANDI.oak, rail: SCANDI.oak },
+        materials: { posts: 'wood', spindles: 'wood', rail: 'wood' },
       },
     ],
   ),
