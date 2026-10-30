@@ -107,6 +107,27 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     setActiveFloorId(id)
     onChange({ ...config, floors: nextFloors })
   }
+
+  const reorderFloors = (nextFloors: FloorConfig[]) => {
+    setFloors(nextFloors)
+    onChange({ ...config, floors: nextFloors })
+  }
+
+  const updateFloor = (floorId: string, patch: Partial<FloorConfig>) => {
+    const nextFloors = floors.map(f => (f.id === floorId ? { ...f, ...patch } : f))
+    setFloors(nextFloors)
+    onChange({ ...config, floors: nextFloors })
+  }
+
+  const deleteFloor = (floorId: string) => {
+    if (floors.length <= 1) return
+    const nextFloors = floors.filter(f => f.id !== floorId)
+    setFloors(nextFloors)
+    if (activeFloorId === floorId) {
+      setActiveFloorId(nextFloors[0]?.id ?? 'floor-0')
+    }
+    onChange({ ...config, floors: nextFloors })
+  }
   const [selection, setSelection] = useState<Selection>({ roomId: null, vertex: null })
   const [draft, setDraft] = useState<Point[]>([])
   const [view, setView] = useState<View | null>(null)
@@ -1006,6 +1027,9 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
         activeFloorId={activeFloorId}
         onSelectFloor={setActiveFloorId}
         onAddFloor={addFloor}
+        onReorderFloors={reorderFloors}
+        onUpdateFloor={updateFloor}
+        onDeleteFloor={deleteFloor}
         onFit={() => setView(null)}
         showLengths={showLengths}
         onShowLengths={setShowLengths}

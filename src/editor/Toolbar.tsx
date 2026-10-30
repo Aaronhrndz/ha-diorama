@@ -1,3 +1,14 @@
+import {
+  ContextMenu,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  type ContextMenuPosition,
+} from '#/components/ui/context-menu.tsx'
+import {
+  faArrowLeft,
+  faArrowRight,
+  faTrash,
+} from '@fortawesome/free-solid-svg-icons'
 import { Select } from '#/components/ui/select.tsx'
 import type { Trace, TraceMode } from '#/editor/trace.ts'
 import type { Tool } from '#/editor/types.ts'
@@ -53,6 +64,9 @@ type Props = {
   activeFloorId?: string
   onSelectFloor?: (floorId: string) => void
   onAddFloor?: () => void
+  onReorderFloors?: (nextFloors: FloorConfig[]) => void
+  onUpdateFloor?: (floorId: string, patch: Partial<FloorConfig>) => void
+  onDeleteFloor?: (floorId: string) => void
   onFit: () => void
   showLengths: boolean
   onShowLengths: (value: boolean) => void
@@ -72,6 +86,9 @@ export default function Toolbar({
   activeFloorId,
   onSelectFloor,
   onAddFloor,
+  onReorderFloors,
+  onUpdateFloor,
+  onDeleteFloor,
   onFit,
   showLengths,
   onShowLengths,
@@ -93,35 +110,16 @@ export default function Toolbar({
         ))}
       </div>
       <span className="bg-separator mx-2 h-4 w-px" />
-      {/* Floor selector pills */}
-      <div className="bg-fill-strong flex items-center gap-0.5 rounded-[10px] p-0.5">
-        {(floors.length === 0 ? [{ id: 'floor-0', name: 'Floor 0', elevation: 0 }] : floors).map(f => {
-          const isActive = (activeFloorId ?? (floors[0]?.id ?? 'floor-0')) === f.id
-          return (
-            <button
-              key={f.id}
-              type="button"
-              className={cn(
-                'px-2.5 py-1 text-xs font-medium rounded-[8px] transition-colors',
-                isActive ? 'bg-fill text-(--primary-text-color) shadow-sm' : 'text-(--secondary-text-color) hover:text-(--primary-text-color)'
-              )}
-              onClick={() => onSelectFloor?.(f.id)}
-            >
-              {f.name}
-            </button>
-          )
-        })}
-        {onAddFloor && (
-          <button
-            type="button"
-            title="Add floor"
-            className="flex items-center justify-center size-6 rounded-[8px] text-(--secondary-text-color) hover:text-(--primary-text-color)"
-            onClick={onAddFloor}
-          >
-            <FontAwesomeIcon icon={faPlus} className="size-2.5" />
-          </button>
-        )}
-      </div>
+      {/* Floor selector pills with drag-and-drop & context menu */}
+      <FloorPills
+        floors={floors}
+        activeFloorId={activeFloorId}
+        onSelectFloor={onSelectFloor}
+        onAddFloor={onAddFloor}
+        onReorderFloors={onReorderFloors}
+        onUpdateFloor={onUpdateFloor}
+        onDeleteFloor={onDeleteFloor}
+      />
       <span className="bg-separator mx-2 h-4 w-px" />
       <ToolButton
         action={{ id: 'fit', icon: faExpand, title: 'Fit view', description: 'Frame all rooms.', shortcut: 'F' }}
@@ -418,5 +416,208 @@ function ToolButton({
         <p className="text-label-2 mt-0.5 text-xs leading-snug">{action.description}</p>
       </div>
     </div>
+  )
+}
+
+type FloorPillsProps = {
+  floors: FloorConfig[]
+  activeFloorId?: string
+  onSelectFloor?: (floorId: string) => void
+  onAddFloor?: () => void
+  onReorderFloors?: (nextFloors: FloorConfig[]) => void
+  onUpdateFloor?: (floorId: string, patch: Partial<FloorConfig>) => void
+  onDeleteFloor?: (floorId: string) => void
+}
+
+function FloorPills({
+  floors,
+  activeFloorId,
+  onSelectFloor,
+  onAddFloor,
+  onReorderFloors,
+  onUpdateFloor,
+  onDeleteFloor,
+}: FloorPillsProps) {
+  const currentFloors = floors.length === 0 ? [{ id: 'floor-0', name: 'Planta Baja', elevation: 0 }] : floors
+  const [contextMenu, setContextMenu] = useState<{ at: ContextMenuPosition; floorId: string } | null>(null)
+  const [editingFloor, setEditingFloor] = useState<FloorConfig | null>(null)
+  const [draggedFloorId, setDraggedFloorId] = useState<string | null>(null)
+
+  const activeId = activeFloorId ?? currentFloors[0]?.id ?? 'floor-0'
+
+  const moveFloor = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= currentFloors.length || toIndex >= currentFloors.length) return
+    const next = [...currentFloors]
+    const [moved] = next.splice(fromIndex, 1)
+    next.splice(toIndex, 0, moved)
+    onReorderFloors?.(next)
+  }
+
+  const selectedFloor = currentFloors.find(f => f.id === contextMenu?.floorId)
+  const selectedIndex = selectedFloor ? currentFloors.indexOf(selectedFloor) : -1
+
+  return (
+    <>
+      <div className="bg-fill-strong flex items-center gap-0.5 rounded-[10px] p-0.5">
+        {currentFloors.map((f, i) => {
+          const isActive = activeId === f.id
+          return (
+            <button
+              key={f.id}
+              type="button"
+              draggable
+              onDragStart={e => {
+                e.dataTransfer.setData('text/plain', f.id)
+                setDraggedFloorId(f.id)
+              }}
+              onDragOver={e => {
+                e.preventDefault()
+                e.dataTransfer.dropEffect = 'move'
+              }}
+              onDrop={e => {
+                e.preventDefault()
+                const fromId = e.dataTransfer.getData('text/plain')
+                const fromIndex = currentFloors.findIndex(item => item.id === fromId)
+                if (fromIndex !== -1 && fromIndex !== i) {
+                  moveFloor(fromIndex, i)
+                }
+                setDraggedFloorId(null)
+              }}
+              onDragEnd={() => setDraggedFloorId(null)}
+              onContextMenu={e => {
+                e.preventDefault()
+                setContextMenu({ at: { x: e.clientX, y: e.clientY }, floorId: f.id })
+              }}
+              className={cn(
+                'px-2.5 py-1 text-xs font-medium rounded-[8px] transition-all cursor-pointer select-none',
+                isActive
+                  ? 'bg-fill text-(--primary-text-color) shadow-sm'
+                  : 'text-(--secondary-text-color) hover:text-(--primary-text-color)',
+                draggedFloorId === f.id && 'opacity-40',
+              )}
+              onClick={() => onSelectFloor?.(f.id)}
+              title={`${f.name} (Elevación: ${f.elevation >= 0 ? '+' : ''}${f.elevation}m)
+Arrastra para reordenar o clic derecho para opciones`}
+            >
+              {f.name}
+            </button>
+          )
+        })}
+        {onAddFloor && (
+          <button
+            type="button"
+            title="Añadir planta"
+            className="flex items-center justify-center size-6 rounded-[8px] text-(--secondary-text-color) hover:text-(--primary-text-color) transition-colors cursor-pointer"
+            onClick={onAddFloor}
+          >
+            <FontAwesomeIcon icon={faPlus} className="size-2.5" />
+          </button>
+        )}
+      </div>
+
+      {contextMenu && selectedFloor && (
+        <ContextMenu position={contextMenu.at} onClose={() => setContextMenu(null)}>
+          <ContextMenuItem
+            onSelect={() => {
+              setEditingFloor({ ...selectedFloor })
+              setContextMenu(null)
+            }}
+          >
+            Ajustar elevación y nombre
+          </ContextMenuItem>
+          {selectedIndex > 0 && (
+            <ContextMenuItem
+              onSelect={() => {
+                moveFloor(selectedIndex, selectedIndex - 1)
+                setContextMenu(null)
+              }}
+            >
+              <FontAwesomeIcon icon={faArrowLeft} className="size-3" /> Mover hacia abajo / izquierda
+            </ContextMenuItem>
+          )}
+          {selectedIndex < currentFloors.length - 1 && (
+            <ContextMenuItem
+              onSelect={() => {
+                moveFloor(selectedIndex, selectedIndex + 1)
+                setContextMenu(null)
+              }}
+            >
+              <FontAwesomeIcon icon={faArrowRight} className="size-3" /> Mover hacia arriba / derecha
+            </ContextMenuItem>
+          )}
+          {currentFloors.length > 1 && onDeleteFloor && (
+            <>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                variant="destructive"
+                onSelect={() => {
+                  onDeleteFloor(selectedFloor.id)
+                  setContextMenu(null)
+                }}
+              >
+                <FontAwesomeIcon icon={faTrash} className="size-3" /> Eliminar planta
+              </ContextMenuItem>
+            </>
+          )}
+        </ContextMenu>
+      )}
+
+      {/* Modal / Dialog para ajustar elevación y nombre de planta */}
+      {editingFloor && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px]"
+          onPointerDown={() => setEditingFloor(null)}
+        >
+          <div
+            className={cn(floating, 'w-80 p-5 flex flex-col gap-4')}
+            onPointerDown={e => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-(--primary-text-color)">Editar Planta</h3>
+            <label className="flex flex-col gap-1.5 text-xs text-(--secondary-text-color)">
+              Nombre de la planta
+              <input
+                type="text"
+                className={field}
+                value={editingFloor.name}
+                onChange={e => setEditingFloor({ ...editingFloor, name: e.target.value })}
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs text-(--secondary-text-color)">
+              Elevación del piso (metros)
+              <input
+                type="number"
+                step="0.05"
+                className={field}
+                value={editingFloor.elevation}
+                onChange={e => setEditingFloor({ ...editingFloor, elevation: parseFloat(e.target.value) || 0 })}
+              />
+              <span className="text-[11px] text-label-2">Ej: 0.0 para planta baja, 3.0 para primera planta</span>
+            </label>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                className={plainButton}
+                onClick={() => setEditingFloor(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="bg-tint-fill flex h-8 items-center gap-1.5 rounded-lg px-3.5 text-[13px] font-semibold text-white shadow-sm hover:brightness-105 active:scale-95"
+                onClick={() => {
+                  onUpdateFloor?.(editingFloor.id, {
+                    name: editingFloor.name,
+                    elevation: editingFloor.elevation,
+                  })
+                  setEditingFloor(null)
+                }}
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

@@ -50,9 +50,9 @@ function Room({ room, rooms, index, radius, gap, floors }: Props) {
       outline,
       neighbours,
       ROOM_SLAB_EDGE_RADIUS_M,
-      // A floor raised above the lowest one reaches down to it, so it stands
-      // as a solid step and not as a sheet in the air.
-      ROOM_SLAB_THICKNESS_M + elevation - lowest,
+      // Only split-level offsets within the same floor make a solid step.
+      // Slabs of elevated upper floors stay standard thickness so they don't block rooms below.
+      ROOM_SLAB_THICKNESS_M + Math.max(0, (room.elevation ?? 0) - lowestOnFloor),
       SLAB_BEVEL_SEGMENTS,
       FLOOR_PATTERN_SHIFT_M,
     )
