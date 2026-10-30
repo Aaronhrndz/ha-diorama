@@ -432,10 +432,7 @@ export default function Canvas({
         const home = currentRooms.find(r => r.id === item.room)
         const roomFor = over ?? home
         let landing: DecorationConfig = { ...item, position: target, room: roomFor?.id ?? item.room }
-        if (kind?.id === 'stairs') {
-          // Stairs connect rooms or levels across voids and must not be clamped to room boundaries.
-          landing = { ...item, position: target, room: roomFor?.id ?? item.room }
-        } else if (kind?.mount === 'wall' && roomFor) {
+        if (kind?.mount === 'wall' && roomFor) {
           // Wall items sit on the nearest wall of the room and face inward.
           const snapped = snapToWall(target, roomFor.points)
           landing = { ...landing, position: snapped.point, rotation: snapped.rotation }
@@ -1154,9 +1151,7 @@ export default function Canvas({
             if (!room || !kind) return null
             const [sx, sy] = toScreen(view, item.position)
             const bound = devices.some(d => d.decorations?.includes(item.id))
-            const isStairs = item.kind === 'stairs'
             const invalid =
-              !isStairs &&
               draggingDecoration === item.id &&
               !(pointStrictlyInside(item.position, room.points) || pointOnBoundary(item.position, room.points))
             const isSelected = selectedDecoration === item.id

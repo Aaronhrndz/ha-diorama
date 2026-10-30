@@ -1,6 +1,7 @@
 import { CAMERA_DIRECTION, CAMERA_FIT_MARGIN, CAMERA_FOV_DEG } from '#/constants.ts'
 import { decorationKind, paramValue } from '#/decoration/catalog.ts'
 import { standHeight } from '#/decoration/surfaces.ts'
+import { elevationRange } from '#/geometry/elevation.ts'
 import { CEILING_HEIGHT_M, ROOM_SLAB_THICKNESS_M } from '#/theme.ts'
 import type { CameraView, DecorationConfig, RoomConfig } from '#/types.ts'
 import { MathUtils, Vector3 } from 'three'
@@ -100,9 +101,11 @@ export function frameRooms(
   const corners: Vector3[] = []
   const spills: number[] = []
   const floor = center ? rooms.flatMap(room => room.points) : [minX, maxX].flatMap(x => [minY, maxY].map(y => [x, y]))
+  // Floors raised or sunk reach the box higher or lower.
+  const [low, high] = elevationRange([...rooms, ...whole])
   const add = (points: number[][], by: number) => {
     for (const [x, y] of points)
-      for (const z of [-ROOM_SLAB_THICKNESS_M, height]) {
+      for (const z of [low - ROOM_SLAB_THICKNESS_M, height + high]) {
         corners.push(new Vector3(x, z, -y))
         spills.push(by)
       }
@@ -178,11 +181,12 @@ export function fitView(
   const tanV = Math.tan(MathUtils.degToRad(CAMERA_FOV_DEG) / 2) / margin
   const tanH = tanV * aspect
 
+  const [low, high] = elevationRange([...rooms, ...whole])
   let fits = true
   const corner = new Vector3()
   for (const room of [...rooms, ...whole]) {
     for (const [x, y] of room.points) {
-      for (const z of [-ROOM_SLAB_THICKNESS_M, height]) {
+      for (const z of [low - ROOM_SLAB_THICKNESS_M, height + high]) {
         corner.set(x, z, -y).sub(position)
         const depth = corner.dot(forward)
         if (depth <= 0 || Math.abs(corner.dot(right)) > depth * tanH || Math.abs(corner.dot(up)) > depth * tanV)

@@ -2,7 +2,14 @@ import { Select } from '#/components/ui/select.tsx'
 import { decorationKind } from '#/decoration/catalog.ts'
 import { ResetButton, SelectedHeader, Slider, Switch } from '#/editor/panel.tsx'
 import { neighboursOf } from '#/geometry/passages.ts'
-import { EDITOR_TINT_COLOR, FLOOR_MATERIALS, ROOM_COLORS } from '#/theme.ts'
+import {
+  EDITOR_TINT_COLOR,
+  FLOOR_MATERIALS,
+  ROOM_COLORS,
+  ROOM_ELEVATION_MAX_M,
+  ROOM_ELEVATION_MIN_M,
+  ROOM_ELEVATION_STEP_M,
+} from '#/theme.ts'
 import type { Area, DecorationConfig, RoomConfig } from '#/types.ts'
 import { useFlash } from '#/lib/flash.ts'
 import { cn } from '#/lib/utils.ts'
@@ -18,6 +25,8 @@ type Props = {
   onRenameDone: () => void
   onAssignArea: (roomId: string, areaId: string | undefined) => void
   onFloor: (roomId: string, floor: RoomConfig['floor']) => void
+  // Raises or lowers the room's floor, in meters, `undefined` for level.
+  onElevation: (roomId: string, elevation: number | undefined) => void
   // Every piece of the home, to tell which rooms beside this one a door
   // leads into.
   decorations: DecorationConfig[]
@@ -47,6 +56,7 @@ export default function RoomInfo({
   onRenameDone,
   onAssignArea,
   onFloor,
+  onElevation,
   decorations,
   onArrow,
   onSaveCamera,
@@ -70,13 +80,14 @@ export default function RoomInfo({
   )
   const neighbours = neighboursOf(room, rooms, decorations)
   // A setting of the floor put back to what the material comes with.
-  const resetFloor = (key: 'color' | 'scale' | 'intensity' | 'rotation' | 'elevation') => {
+  const resetFloor = (key: 'color' | 'scale' | 'intensity' | 'rotation') => {
     if (!room.floor) return
     const { [key]: _, ...rest } = room.floor
     onFloor(room.id, rest)
   }
-  const slider = (label: string, key: 'scale' | 'intensity' | 'rotation' | 'elevation', min: number, max: number, step: number) => {
-    const initial = key === 'rotation' || key === 'elevation' ? 0 : 1
+  const elevation = room.elevation ?? 0
+  const slider = (label: string, key: 'scale' | 'intensity' | 'rotation', min: number, max: number, step: number) => {
+    const initial = key === 'rotation' ? 0 : 1
     const value = room.floor?.[key] ?? initial
     return (
       <label className={cn(row, 'grid-cols-[96px_1fr_56px_24px]')}>
@@ -89,7 +100,7 @@ export default function RoomInfo({
           onChange={e => onFloor(room.id, { ...room.floor!, [key]: Number(e.target.value) })}
         />
         <span className="text-label-2 text-right text-xs tabular-nums">
-          {key === 'rotation' ? `${value}°` : key === 'elevation' ? `${Math.round(value * 100)} cm` : `${value.toFixed(2)}x`}
+          {key === 'rotation' ? `${value}°` : `${value.toFixed(2)}x`}
         </span>
         <ResetButton label={label} changed={value !== initial} onReset={() => resetFloor(key)} />
       </label>
@@ -126,6 +137,18 @@ export default function RoomInfo({
             onChange={v => onAssignArea(room.id, v || undefined)}
           />
         </label>
+        <label className={cn(row, 'grid-cols-[96px_1fr_56px_24px]')}>
+          Elevation
+          <Slider
+            min={ROOM_ELEVATION_MIN_M}
+            max={ROOM_ELEVATION_MAX_M}
+            step={ROOM_ELEVATION_STEP_M}
+            value={elevation}
+            onChange={e => onElevation(room.id, Number(e.target.value) || undefined)}
+          />
+          <span className="text-label-2 text-right text-xs tabular-nums">{Math.round(elevation * 100)} cm</span>
+          <ResetButton label="Elevation" changed={elevation !== 0} onReset={() => onElevation(room.id, undefined)} />
+        </label>
       </div>
       <div className={group}>
         <label className={cn(row, 'grid-cols-[96px_1fr_24px]')}>
@@ -156,7 +179,6 @@ export default function RoomInfo({
             {slider('Pattern size', 'scale', 0.25, 4, 0.05)}
             {slider('Pattern depth', 'intensity', 0, 2, 0.05)}
             {slider('Pattern angle', 'rotation', 0, 175, 5)}
-            {slider('Floor elevation', 'elevation', -5, 8, 0.01)}
           </>
         )}
       </div>

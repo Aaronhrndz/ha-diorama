@@ -4,6 +4,7 @@ import { usePressActions, type PressAction } from '#/scene/decor/press.ts'
 import { DragBadge, DragGhost, travelOf, useDrag, type DragAction } from '#/scene/decor/drag.tsx'
 import { grabs, type Grab } from '#/scene/drags.ts'
 import { standHeight } from '#/decoration/surfaces.ts'
+import { elevationOf } from '#/geometry/elevation.ts'
 import ApplianceModel from '#/scene/decor/ApplianceModel.tsx'
 import CustomModel from '#/scene/decor/CustomModel.tsx'
 import DecorModel from '#/scene/decor/DecorModel.tsx'
@@ -152,7 +153,8 @@ function DecorationModel({
   if (!Model) return null
 
   const rotation = MathUtils.degToRad(item.rotation ?? 0)
-  const lift = standHeight(item, all) + rise + (room?.floor?.elevation ?? room?.elevation ?? 0)
+  // A piece stands on its room's floor, however far that is raised or sunk.
+  const lift = elevationOf(room) + standHeight(item, all) + rise
   // A piece told to hang on the other side of its wall is turned round where
   // it meets the wall. The piece itself keeps facing its room, so it is still
   // in that room and its clicks still go where they did.

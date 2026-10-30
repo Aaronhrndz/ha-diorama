@@ -356,8 +356,8 @@ rooms:
     name: "Stairs"
     points:
       - [23.25, 13.15]
-      - [29.55, 13.15]
-      - [29.55, 17.4]
+      - [30.95, 13.15]
+      - [30.95, 17.4]
       - [23.25, 17.4]
   - id: rug
     name: "Rug"
@@ -1387,6 +1387,11 @@ decorations:
     room: stairs
     position: [27.8, 15.28]
     variant: quarter
+  - id: stairs_floating
+    kind: stairs
+    room: stairs
+    position: [30, 15.28]
+    variant: floating
   - id: rug_shag
     kind: rug
     room: rug

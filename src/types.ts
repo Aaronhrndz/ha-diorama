@@ -81,11 +81,12 @@ export type RoomConfig = {
   points: Point[]
   radius?: number
   color?: string
-  // Vertical elevation offset in meters for split-level rooms/steps.
+  // How far the floor stands above the rest of the home, or below it when
+  // negative, in meters: a raised platform, a step or a sunken living room.
+  // Everything in the room stands on it.
   elevation?: number
   // Floor material from the theme's list, with an optional color tint.
-  floor?: { material: string; color?: string; scale?: number; rotation?: number; intensity?: number; elevation?: number }
-  // Vertical elevation offset in meters for split-level rooms/steps.
+  floor?: { material: string; color?: string; scale?: number; rotation?: number; intensity?: number }
   // Where the camera goes when the room is clicked in the card. A room
   // without one is framed alone, from the side the card opens on.
   camera?: CameraView

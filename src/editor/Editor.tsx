@@ -625,6 +625,16 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       }),
     )
 
+  // Raises or sinks a room's floor, or brings it back level.
+  const setElevation = (roomId: string, elevation: number | undefined) =>
+    commit(
+      rooms.map(r => {
+        if (r.id !== roomId) return r
+        const { elevation: _dropped, ...rest } = r
+        return elevation ? { ...rest, elevation } : rest
+      }),
+    )
+
   // Shows or hides, in a room's view, the sign on the floor into a room
   // open beside it.
   const setArrow = (roomId: string, other: string, shown: boolean) =>
@@ -999,6 +1009,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
         onRenameDone={flushRename}
         onAssignArea={assignArea}
         onFloor={setFloor}
+        onElevation={setElevation}
         decorations={decorations}
         onArrow={setArrow}
         onSaveCamera={saveRoomCamera}

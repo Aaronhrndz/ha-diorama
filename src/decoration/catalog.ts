@@ -466,13 +466,6 @@ const WALL_TMM: DecorationVariant = {
 // The stairs' first style, an open riser flight: 4 cm oak treads on two
 // white steel strings, 90 cm wide, with a black steel handrail 90 cm over
 // the nosings on its open side.
-const STAIRS_FLOATING: DecorationVariant = {
-  id: 'floating',
-  label: 'Floating Cantilever',
-  colors: { treads: SCANDI.oak },
-  materials: { treads: 'wood' },
-}
-
 const STAIRS_OPEN: DecorationVariant = {
   id: 'open',
   label: 'Open Oak',
@@ -1790,7 +1783,8 @@ export const DECORATION_KINDS: DecorationKind[] = [
     // so it rises the room's height unless told otherwise. Width is the
     // flight's, length how far it runs across the floor, and the quarter
     // turn adds a second flight across the top. The risers share out the
-    // rise, each as close to 18 cm as a whole number of them comes.
+    // rise, each as close to 18 cm as a whole number of them comes. A low
+    // rise makes a few steps up to a raised floor.
     [
       width(0.9, 0.6, 1.6),
       length(3.25, 0.3, 6),
@@ -1803,7 +1797,6 @@ export const DECORATION_KINDS: DecorationKind[] = [
     STAIRS_OPEN.materials ?? {},
     NONE,
     [
-      STAIRS_FLOATING,
       STAIRS_OPEN,
       {
         id: 'closed',
@@ -1822,6 +1815,14 @@ export const DECORATION_KINDS: DecorationKind[] = [
         params: { length: 2.2, reach: 1.6 },
         colors: { treads: SCANDI.oak, risers: '#f3f1ec', rail: '#2b2c2d' },
         materials: { treads: 'wood', risers: 'matte', rail: 'metal' },
+      },
+      {
+        id: 'floating',
+        label: 'Floating Cantilever',
+        // 6 cm oak treads the full width of the flight, held in the wall
+        // on one side, with no strings, risers or rail.
+        colors: { treads: SCANDI.oak },
+        materials: { treads: 'wood' },
       },
     ],
   ),

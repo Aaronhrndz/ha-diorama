@@ -107,7 +107,7 @@ function risers(h: number, least: number) {
 // A straight flight, `w` wide and `l` long. Its treads lie between two
 // strings, open between them on the open riser style, or closed by risers
 // and boarded underneath, with a white wall up its open side for a
-// balustrade.
+// balustrade. The floating style keeps only its treads, held in the wall.
 function Straight({ style, w, l, h, flip, paint }: Omit<Props, 'reach'>) {
   const { count, rise } = risers(h, 2)
   const treads = count - 1
@@ -181,34 +181,36 @@ function Straight({ style, w, l, h, flip, paint }: Omit<Props, 'reach'>) {
           {paint('risers')}
         </Slab>
       )}
-      {!floating && sides.map((x, i) => (
-        <Side key={i} points={band(0.05, below)} x={x} t={string}>
-          {paint(open ? 'strings' : 'sides')}
-        </Side>
-      ))}
-      {!floating && (open ? (
-        <OpenRail side={side} w={w} h={h} front={front} treads={treads} nosing={nosing} pitch={pitch} paint={paint} />
-      ) : (
-        <>
-          {/* The underside is boarded over between the strings. */}
-          <Side points={band(0, below, 0.02)} x={-inner / 2} t={inner}>
-            {paint('sides')}
+      {!floating &&
+        sides.map((x, i) => (
+          <Side key={i} points={band(0.05, below)} x={x} t={string}>
+            {paint(open ? 'strings' : 'sides')}
           </Side>
-          {/* The open side carries on up as a white wall as high as a
+        ))}
+      {!floating &&
+        (open ? (
+          <OpenRail side={side} w={w} h={h} front={front} treads={treads} nosing={nosing} pitch={pitch} paint={paint} />
+        ) : (
+          <>
+            {/* The underside is boarded over between the strings. */}
+            <Side points={band(0, below, 0.02)} x={-inner / 2} t={inner}>
+              {paint('sides')}
+            </Side>
+            {/* The open side carries on up as a white wall as high as a
               handrail, a balustrade capped with an oak rail. */}
-          <Side points={band(RAIL_H - 0.03, below)} x={side > 0 ? w / 2 : -w / 2 - 0.06} t={0.06}>
-            {paint('sides')}
-          </Side>
-          <Rail
-            from={[pitch(front) + RAIL_H - 0.01, front]}
-            to={[h + RAIL_H - 0.01, -front]}
-            x={side > 0 ? w / 2 + 0.03 : -w / 2 - 0.03}
-            r={0.035}
-          >
-            {paint('rail')}
-          </Rail>
-        </>
-      ))}
+            <Side points={band(RAIL_H - 0.03, below)} x={side > 0 ? w / 2 : -w / 2 - 0.06} t={0.06}>
+              {paint('sides')}
+            </Side>
+            <Rail
+              from={[pitch(front) + RAIL_H - 0.01, front]}
+              to={[h + RAIL_H - 0.01, -front]}
+              x={side > 0 ? w / 2 + 0.03 : -w / 2 - 0.03}
+              r={0.035}
+            >
+              {paint('rail')}
+            </Rail>
+          </>
+        ))}
     </group>
   )
 }
