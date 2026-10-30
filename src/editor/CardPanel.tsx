@@ -197,6 +197,16 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
   const setBackground = (mode: 'light' | 'dark', id: string) => {
     const next: BackgroundConfig = { ...config.background, [mode]: id }
     if (next[mode] === DEFAULT_BACKGROUND) delete next[mode]
+    writeBackground(next)
+  }
+  // Turned off, the card lays no background, but keeps the ones picked for
+  // when it is turned on again.
+  const showBackground = config.background?.show !== false
+  const setShowBackground = (on: boolean) => {
+    const { show: _, ...next }: BackgroundConfig = { ...config.background }
+    writeBackground(on ? next : { show: false, ...next })
+  }
+  const writeBackground = (next: BackgroundConfig) => {
     const { background: _, ...rest } = config
     onChange(Object.keys(next).length ? { ...rest, background: next } : rest)
   }
@@ -500,19 +510,35 @@ export default function CardPanel({ hass, config, onChange, opening, onOpen }: P
       )}
 
       <Section title="Background">
-        <div className={cn(group, 'gap-4')}>
-          <BackgroundPicker
-            title="Light"
-            mode="light"
-            value={config.background?.light ?? DEFAULT_BACKGROUND}
-            onChange={id => setBackground('light', id)}
-          />
-          <BackgroundPicker
-            title="Dark"
-            mode="dark"
-            value={config.background?.dark ?? DEFAULT_BACKGROUND}
-            onChange={id => setBackground('dark', id)}
-          />
+        <div className={cn(group, 'gap-0 py-0')}>
+          <label className="flex cursor-pointer items-center justify-between gap-4 py-2.5">
+            <span className="flex min-w-0 flex-col">
+              <span className="text-[13px]">Use a background</span>
+              <span className="text-label-2 text-xs">Off, the dashboard keeps its own background.</span>
+            </span>
+            <Switch
+              checked={showBackground}
+              accent={EDITOR_TINT_COLOR}
+              label="Use a background"
+              onChange={setShowBackground}
+            />
+          </label>
+          {showBackground && (
+            <div className="border-separator flex flex-col gap-4 border-t py-3">
+              <BackgroundPicker
+                title="Light"
+                mode="light"
+                value={config.background?.light ?? DEFAULT_BACKGROUND}
+                onChange={id => setBackground('light', id)}
+              />
+              <BackgroundPicker
+                title="Dark"
+                mode="dark"
+                value={config.background?.dark ?? DEFAULT_BACKGROUND}
+                onChange={id => setBackground('dark', id)}
+              />
+            </div>
+          )}
         </div>
       </Section>
 

@@ -166,6 +166,7 @@ export function backgroundOf(config: BackgroundConfig | undefined, dark: boolean
 }
 
 function chosen(config: BackgroundConfig | undefined, dark: boolean) {
+  if (config?.show === false) return undefined
   const id = (dark ? config?.dark : config?.light) ?? DEFAULT_BACKGROUND
   return BACKGROUNDS.find(b => b.id === id)
 }
