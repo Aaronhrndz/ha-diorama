@@ -484,6 +484,10 @@ function FloorPills({
                 setDraggedFloorId(null)
               }}
               onDragEnd={() => setDraggedFloorId(null)}
+              onDoubleClick={e => {
+                e.stopPropagation()
+                setEditingFloor({ ...f })
+              }}
               onContextMenu={e => {
                 e.preventDefault()
                 setContextMenu({ at: { x: e.clientX, y: e.clientY }, floorId: f.id })
@@ -497,7 +501,7 @@ function FloorPills({
               )}
               onClick={() => onSelectFloor?.(f.id)}
               title={`${f.name} (Elevación: ${f.elevation >= 0 ? '+' : ''}${f.elevation}m)
-Arrastra para reordenar o clic derecho para opciones`}
+Doble clic para renombrar/editar elevación. Arrastra para reordenar o clic derecho.`}
             >
               {f.name}
             </button>
@@ -589,9 +593,12 @@ Arrastra para reordenar o clic derecho para opciones`}
                 step="0.05"
                 className={field}
                 value={editingFloor.elevation}
-                onChange={e => setEditingFloor({ ...editingFloor, elevation: parseFloat(e.target.value) || 0 })}
+                onChange={e => {
+                  const val = parseFloat(e.target.value)
+                  setEditingFloor({ ...editingFloor, elevation: isNaN(val) ? 0 : val })
+                }}
               />
-              <span className="text-[11px] text-label-2">Ej: 0.0 para planta baja, 3.0 para primera planta</span>
+              <span className="text-[11px] text-label-2">Ej: -3.0 para sótano/planta inferior, 0.0 para planta baja, 3.0 para primera planta</span>
             </label>
             <div className="flex justify-end gap-2 pt-2">
               <button
