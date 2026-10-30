@@ -1,6 +1,6 @@
 import { colorValue, decorationVariant, materialValue, paramValue, type DecorationKind } from '#/decoration/catalog.ts'
 import { useEased } from '#/scene/decor/ease.ts'
-import { Halo, Leg, Material, SEG, Slab, Soft, Tube } from '#/scene/decor/parts.tsx'
+import { Halo, Hollow, Leg, Material, SEG, Slab, Soft, Tube } from '#/scene/decor/parts.tsx'
 import type { ItemState } from '#/scene/decor/state.ts'
 import type { DecorationConfig } from '#/types.ts'
 import type { ReactNode } from 'react'
@@ -216,7 +216,7 @@ function Crib({ p, M, style }: Look) {
 // A bassinet: an oval woven basket on a crossed stand, a soft sided
 // sleeper on four legs with its side to the bed let down, or a wooden
 // cradle on two rockers.
-function Bassinet({ p, c, M, style }: Look) {
+function Bassinet({ p, M, style }: Look) {
   const w = p('width')
   const d = p('depth')
   const h = p('height')
@@ -240,24 +240,14 @@ function Bassinet({ p, c, M, style }: Look) {
             {M('stand')}
           </Box>
         ))}
-        {/* The basket: an open oval wall flaring out from its floor. */}
-        <mesh position={[0, top + wall / 2, 0]} scale={[w / 2, wall, d / 2]} castShadow>
-          <cylinderGeometry args={[1, 0.86, 1, SEG, 1, true]} />
-          <Material color={c('basket')} material="fabric" doubleSide />
-        </mesh>
-        <mesh position={[0, top + 0.01, 0]} scale={[(w / 2) * 0.86, 0.02, (d / 2) * 0.86]}>
-          <cylinderGeometry args={[1, 1, 1, SEG]} />
+        {/* The basket: an open box of weave with well rounded corners,
+            and the mattress down inside it. */}
+        <Hollow size={[w, wall, d]} wall={0.022} radius={Math.min(w, d) * 0.22} floor={0.02} position={[0, top, 0]}>
           {M('basket')}
-        </mesh>
-        <mesh position={[0, top + 0.05, 0]} scale={[(w / 2) * 0.82, 0.06, (d / 2) * 0.8]}>
-          <cylinderGeometry args={[1, 1, 1, SEG]} />
+        </Hollow>
+        <Soft size={[w - 0.06, 0.05, d - 0.06]} round={[0.04, 0.02, 0.04]} position={[0, top + 0.045, 0]}>
           {M('mattress')}
-        </mesh>
-        {/* The rim, rolled over the top of the weave. */}
-        <mesh position={[0, top + wall, 0]} scale={[w / 2, d / 2, 1]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1, 0.02, 8, SEG * 2]} />
-          {M('basket')}
-        </mesh>
+        </Soft>
       </group>
     )
   }
@@ -457,13 +447,31 @@ function LoftBed({ p, M, style }: Look) {
               {M('frame')}
             </Box>
           ))}
-          {/* A desk under the bed, its top across the back half. */}
-          <Box size={[w * 0.62, 0.03, d * 0.62]} at={[-w * 0.14, 0.72, -d * 0.16]}>
-            {M('desk')}
-          </Box>
-          <Box size={[0.03, 0.72, d * 0.5]} at={[-w * 0.14 + w * 0.31 - 0.03, 0, -d * 0.16]}>
-            {M('frame')}
-          </Box>
+          {/* A desk under the bed: its top runs from the left end of the
+              frame, held there on a rail between the two left posts, to a
+              side panel standing on the floor, and lies along the back. */}
+          {(() => {
+            const x0 = -px + post / 2
+            const x1 = x0 + w * 0.58
+            const z0 = -pz + post / 2
+            const deep = d * 0.6
+            return (
+              <>
+                <Box size={[x1 - x0, 0.03, deep]} at={[(x0 + x1) / 2, 0.72, z0 + deep / 2]}>
+                  {M('desk')}
+                </Box>
+                <Box size={[0.03, 0.72, deep]} at={[x1 - 0.015, 0, z0 + deep / 2]}>
+                  {M('frame')}
+                </Box>
+                <Box size={[0.03, 0.04, d - post * 2]} at={[x0 + 0.015, 0.68, 0]}>
+                  {M('frame')}
+                </Box>
+                <Box size={[x1 - x0, 0.04, 0.02]} at={[(x0 + x1) / 2, 0.68, z0 + 0.01]}>
+                  {M('frame')}
+                </Box>
+              </>
+            )
+          })()}
         </>
       )}
     </group>
