@@ -39,6 +39,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useResizeObserver } from 'usehooks-ts'
 
 type Props = {
+  activeFloorId?: string
   rooms: RoomConfig[]
   // Read only, to mark the items that stand in for one.
   devices: DeviceConfig[]
@@ -134,6 +135,7 @@ export default function Canvas({
   onTrace,
   onSelectTrace,
   fill = false,
+  activeFloorId = 'floor-0',
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
   const { width = 0, height = 0 } = useResizeObserver({
@@ -432,7 +434,10 @@ export default function Canvas({
         const home = currentRooms.find(r => r.id === item.room)
         const roomFor = over ?? home
         let landing: DecorationConfig = { ...item, position: target, room: roomFor?.id ?? item.room }
-        if (kind?.mount === 'wall' && roomFor) {
+        if (kind?.id === 'stairs') {
+          // Stairs connect rooms or levels across voids and must not be clamped to room boundaries.
+          landing = { ...item, position: target, room: roomFor?.id ?? item.room }
+        } else if (kind?.mount === 'wall' && roomFor) {
           // Wall items sit on the nearest wall of the room and face inward.
           const snapped = snapToWall(target, roomFor.points)
           landing = { ...landing, position: snapped.point, rotation: snapped.rotation }
@@ -578,8 +583,10 @@ export default function Canvas({
   }
   const planPoint = (e: React.PointerEvent | React.MouseEvent) => toPlan(view, screenPoint(e))
 
-  const selectedRoom = rooms.find(r => r.id === selection.roomId)
-  const roomPolygons = rooms.map(r => r.points)
+  const activeRooms = rooms.filter(r => (r.floor_id ?? 'floor-0') === activeFloorId)
+  const ghostRooms = rooms.filter(r => (r.floor_id ?? 'floor-0') !== activeFloorId)
+  const selectedRoom = activeRooms.find(r => r.id === selection.roomId)
+  const roomPolygons = activeRooms.map(r => r.points)
 
   // A new corner may not land inside a room, and the segment from the last
   // corner may not run through one.
@@ -1098,7 +1105,23 @@ export default function Canvas({
         <Grid view={view} width={width} height={height} />
         {trace && <TraceImage trace={trace} view={view} />}
 
-        {rooms.map(room => {
+        {/* Ghost rooms from other floors as onion skin reference */}
+        {ghostRooms.map(room => (
+          <polygon
+            key={'ghost-' + room.id}
+            points={polygon(room.points)}
+            fill="var(--primary-text-color)"
+            fillOpacity={0.02}
+            stroke="var(--secondary-text-color)"
+            strokeOpacity={0.25}
+            strokeWidth={1}
+            strokeDasharray="4 4"
+            strokeLinejoin="round"
+            className="pointer-events-none"
+          />
+        ))}
+
+        {activeRooms.map(room => {
           // While an item is dragged, the room under the pointer lifts a
           // little. Enough to see which one it would land in, no more.
           const dropTarget =
@@ -1149,9 +1172,14 @@ export default function Canvas({
             const room = rooms.find(r => r.id === item.room)
             const kind = decorationKind(item.kind)
             if (!room || !kind) return null
+            const isCurrentFloor = (room.floor_id ?? 'floor-0') === activeFloorId
+            // Only show decorations belonging to rooms on the active floor
+            if (!isCurrentFloor) return null
             const [sx, sy] = toScreen(view, item.position)
             const bound = devices.some(d => d.decorations?.includes(item.id))
+            const isStairs = item.kind === 'stairs'
             const invalid =
+              !isStairs &&
               draggingDecoration === item.id &&
               !(pointStrictlyInside(item.position, room.points) || pointOnBoundary(item.position, room.points))
             const isSelected = selectedDecoration === item.id

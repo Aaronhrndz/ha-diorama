@@ -42,6 +42,7 @@ import {
   EDITOR_SIDEBAR_WIDTH_PX,
 } from '#/constants.ts'
 import type {
+  FloorConfig,
   CardConfig,
   DecorationConfig,
   DeviceConfig,
@@ -85,6 +86,27 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
   // even after the original is gone.
   const [clipboard, setClipboard] = useState<DecorationConfig | null>(null)
   const [tool, setTool] = useState<Tool>('select')
+  const [floors, setFloors] = useState<FloorConfig[]>(
+    config.floors && config.floors.length > 0
+      ? config.floors
+      : [{ id: 'floor-0', name: 'Planta Baja', elevation: 0 }]
+  )
+  const [activeFloorId, setActiveFloorId] = useState<string>(floors[0]?.id ?? 'floor-0')
+
+  const addFloor = () => {
+    const nextNum = floors.length
+    const id = 'floor-' + nextNum
+    const newElevation = (floors[floors.length - 1]?.elevation ?? 0) + 3.0
+    const newFloor: FloorConfig = {
+      id,
+      name: 'Planta ' + nextNum,
+      elevation: Math.round(newElevation * 100) / 100,
+    }
+    const nextFloors = [...floors, newFloor]
+    setFloors(nextFloors)
+    setActiveFloorId(id)
+    onChange({ ...config, floors: nextFloors })
+  }
   const [selection, setSelection] = useState<Selection>({ roomId: null, vertex: null })
   const [draft, setDraft] = useState<Point[]>([])
   const [view, setView] = useState<View | null>(null)
@@ -98,7 +120,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
   // The picture the rooms are traced over. It is selected like anything
   // else on the plan, which is when it can be moved and sized, and it opens
   // selected when it is first chosen.
-  const [trace, setTrace] = useTrace()
+  const [trace, setTrace] = useTrace(activeFloorId)
   const [traceSelected, setTraceSelected] = useState(false)
   const pickTrace = async (file: File) => {
     setTrace(await traceFrom(file, rooms))
@@ -811,6 +833,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
     const room: RoomConfig = {
       id: `room-${n}`,
       name: `Room ${n}`,
+      floor_id: activeFloorId,
       points: draft.map(([x, y]) => [round(x), round(y)]),
       floor: { material: DEFAULT_FLOOR_MATERIAL },
     }
@@ -933,6 +956,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
 
   const canvas = (
     <Canvas
+      activeFloorId={activeFloorId}
       rooms={rooms}
       devices={devices}
       decorations={decorations}
@@ -977,6 +1001,10 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       <Toolbar
         tool={tool}
         onTool={setTool}
+        floors={floors}
+        activeFloorId={activeFloorId}
+        onSelectFloor={setActiveFloorId}
+        onAddFloor={addFloor}
         onFit={() => setView(null)}
         showLengths={showLengths}
         onShowLengths={setShowLengths}

@@ -1,6 +1,8 @@
 import { Select } from '#/components/ui/select.tsx'
 import type { Trace, TraceMode } from '#/editor/trace.ts'
 import type { Tool } from '#/editor/types.ts'
+import type { FloorConfig } from '#/types.ts'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { cn } from '#/lib/utils.ts'
 import { field, floating, iconButton, kbd, plainButton } from '#/editor/look.ts'
 import { Slider } from '#/editor/panel.tsx'
@@ -47,6 +49,10 @@ const TOOLS: (Action & { id: Tool })[] = [
 type Props = {
   tool: Tool
   onTool: (tool: Tool) => void
+  floors?: FloorConfig[]
+  activeFloorId?: string
+  onSelectFloor?: (floorId: string) => void
+  onAddFloor?: () => void
   onFit: () => void
   showLengths: boolean
   onShowLengths: (value: boolean) => void
@@ -62,6 +68,10 @@ type Props = {
 export default function Toolbar({
   tool,
   onTool,
+  floors = [],
+  activeFloorId,
+  onSelectFloor,
+  onAddFloor,
   onFit,
   showLengths,
   onShowLengths,
@@ -81,6 +91,36 @@ export default function Toolbar({
         {TOOLS.map(t => (
           <ToolButton key={t.id} action={t} active={tool === t.id} color={color} onClick={() => onTool(t.id)} />
         ))}
+      </div>
+      <span className="bg-separator mx-2 h-4 w-px" />
+      {/* Floor selector pills */}
+      <div className="bg-fill-strong flex items-center gap-0.5 rounded-[10px] p-0.5">
+        {(floors.length === 0 ? [{ id: 'floor-0', name: 'Floor 0', elevation: 0 }] : floors).map(f => {
+          const isActive = (activeFloorId ?? (floors[0]?.id ?? 'floor-0')) === f.id
+          return (
+            <button
+              key={f.id}
+              type="button"
+              className={cn(
+                'px-2.5 py-1 text-xs font-medium rounded-[8px] transition-colors',
+                isActive ? 'bg-fill text-(--primary-text-color) shadow-sm' : 'text-(--secondary-text-color) hover:text-(--primary-text-color)'
+              )}
+              onClick={() => onSelectFloor?.(f.id)}
+            >
+              {f.name}
+            </button>
+          )
+        })}
+        {onAddFloor && (
+          <button
+            type="button"
+            title="Add floor"
+            className="flex items-center justify-center size-6 rounded-[8px] text-(--secondary-text-color) hover:text-(--primary-text-color)"
+            onClick={onAddFloor}
+          >
+            <FontAwesomeIcon icon={faPlus} className="size-2.5" />
+          </button>
+        )}
       </div>
       <span className="bg-separator mx-2 h-4 w-px" />
       <ToolButton

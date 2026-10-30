@@ -74,10 +74,17 @@ export type CameraView = {
   target: [number, number, number]
 }
 
+export type FloorConfig = {
+  id: string
+  name: string
+  elevation: number
+}
+
 export type RoomConfig = {
   id: string
   name?: string
   area_id?: string
+  floor_id?: string
   points: Point[]
   radius?: number
   color?: string
@@ -197,6 +204,7 @@ export type ModelConfig = {
 
 export type CardConfig = {
   type: string
+  floors?: FloorConfig[]
   rooms?: RoomConfig[]
   devices?: DeviceConfig[]
   decorations?: DecorationConfig[]
