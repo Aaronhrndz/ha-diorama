@@ -3,6 +3,8 @@ import SurfaceMaterial from '#/scene/SurfaceMaterial.tsx'
 import type { SurfaceKind } from '#/materials/textures.ts'
 import { FLOOR_MATERIALS, FLOOR_PATTERN_SHIFT_M, ROOM_SLAB_EDGE_RADIUS_M, ROOM_SLAB_THICKNESS_M } from '#/theme.ts'
 import { floorColor } from '#/scene/floorColor.ts'
+import { useEased } from '#/scene/decor/ease.ts'
+import { presenceTint } from '#/scene/presence.ts'
 import { ensureCounterClockwise, inset, roundedShape } from '#/geometry/polygon.ts'
 import { elevationOf, elevationRange } from '#/geometry/elevation.ts'
 import { slabGeometry, touchesNeighbour } from '#/geometry/slab.ts'
@@ -19,11 +21,13 @@ type Props = {
   index: number
   radius: number
   gap: number
+  // Someone is in the room, by its presence sensor.
+  occupied?: boolean
 }
 
 // Clicks on the floor are not taken here. The press fallback finds the room
 // under a press once the pieces around it have had their turn.
-function Room({ room, rooms, index, radius, gap }: Props) {
+function Room({ room, rooms, index, radius, gap, occupied = false }: Props) {
   const elevation = elevationOf(room)
   const [lowest] = elevationRange(rooms)
   const geometry = useMemo(() => {
@@ -55,7 +59,9 @@ function Room({ room, rooms, index, radius, gap }: Props) {
   }, [room.id, room.points, room.radius, rooms, radius, gap, elevation, lowest])
 
   const floor = room.floor ? FLOOR_MATERIALS[room.floor.material] : undefined
-  const color = floorColor(room, index)
+  // The presence filter fades over the floor and away again.
+  const shown = useEased(occupied ? 1 : 0, 4)
+  const color = presenceTint(floorColor(room, index), room, shown)
 
   return (
     <mesh

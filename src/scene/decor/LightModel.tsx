@@ -1,5 +1,7 @@
 import { colorValue, decorationVariant, materialValue, paramValue, type DecorationKind } from '#/decoration/catalog.ts'
 import FlushLight from '#/scene/decor/CeilingLights.tsx'
+import { CeilingFan } from '#/scene/decor/Climate.tsx'
+import StringLights from '#/scene/decor/StringLights.tsx'
 import DeskLamp from '#/scene/decor/DeskLamps.tsx'
 import { DESK_LAMPS } from '#/scene/decor/deskLampSpecs.ts'
 import FloorLamp from '#/scene/decor/FloorLamps.tsx'
@@ -296,8 +298,80 @@ export default function LightModel({ kind, item, state }: Props) {
       )
       break
     }
+    case 'light_fan': {
+      // A ceiling fan whose light stands for the light it is bound to. The
+      // blades stay still: the fan itself is the Ceiling fan piece's.
+      const style = decorationVariant(kind, item.variant)?.id ?? 'disc'
+      const fan = style === 'bowl' ? 'classic' : style === 'globe' ? 'loft' : 'haiku'
+      const r = size / 2
+      const loft = fan === 'loft'
+      const mr =
+        fan === 'classic' ? Math.max(0.09, r * 0.17) : loft ? Math.max(0.06, r * 0.1) : Math.max(0.07, r * 0.17)
+      const mh = fan === 'classic' ? Math.max(0.1, r * 0.18) : loft ? Math.max(0.06, r * 0.1) : Math.max(0.045, r * 0.1)
+      const drop = Math.max(p('drop'), 0.05 + mh)
+      const shade = <ShadeMaterial color={c('light')} material={m('light')} state={state} />
+      const look = {
+        paint: (slot: string) => (slot === 'bowl' ? shade : <BaseMaterial color={c(slot)} material={m(slot)} />),
+        color: c,
+        material: m,
+      }
+      glowAt = [0, CEILING_HEIGHT_M - drop - (fan === 'classic' ? 0.04 : 0.08), 0]
+      body = (
+        <group position={[0, CEILING_HEIGHT_M, 0]}>
+          <CeilingFan style={fan} r={r} drop={p('drop')} speed={0} look={look} />
+          {fan === 'haiku' && (
+            // An LED disc set into the underside of the motor.
+            <mesh position={[0, -drop - 0.006, 0]} userData={{ transmits: true }}>
+              <cylinderGeometry args={[mr * 0.8, mr * 0.8, 0.012, SEG * 2]} />
+              {shade}
+            </mesh>
+          )}
+          {loft && (
+            // A schoolhouse globe hung under the motor on a short fitter.
+            <group position={[0, -drop, 0]}>
+              <mesh position={[0, -0.02, 0]}>
+                <cylinderGeometry args={[mr * 0.6, mr * 0.7, 0.04, SEG]} />
+                <BaseMaterial color={c('housing')} material={m('housing')} />
+              </mesh>
+              <mesh position={[0, -0.04 - mr * 0.9, 0]} userData={{ transmits: true }}>
+                <sphereGeometry args={[mr * 1.1, SEG, SEG]} />
+                {shade}
+              </mesh>
+            </group>
+          )}
+        </group>
+      )
+      break
+    }
+    case 'light_string': {
+      const style = decorationVariant(kind, item.variant)?.id ?? 'festoon'
+      const length = p('length')
+      const height = p('height')
+      const sag = Math.min(p('sag'), height - 0.1)
+      glowAt = [0, height - sag * 0.7 - 0.08, 0]
+      glowSpread = length
+      body = <StringLights style={style} length={length} height={height} sag={sag} c={c} m={m} state={state} />
+      break
+    }
     default:
       body = null
+  }
+
+  // A ceiling light is seen from above, where there is no ceiling, and its
+  // light faces down. A disc over it glows with the light as its shade does,
+  // so from above it still shows that it is on, and in what color.
+  if (kind.id === 'light_ceiling') {
+    const style = decorationVariant(kind, item.variant)?.id ?? 'focus'
+    const slot = style === 'dome' ? 'globe' : style === 'drum' ? 'diffuser' : 'focus'
+    body = (
+      <group>
+        {body}
+        <mesh position={[0, CEILING_HEIGHT_M + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[(size / 2) * 0.86, SEG * 2]} />
+          <ShadeMaterial color={c(slot)} material={m(slot)} state={state} solid />
+        </mesh>
+      </group>
+    )
   }
 
   return (
