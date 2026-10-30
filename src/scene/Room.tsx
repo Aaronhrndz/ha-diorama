@@ -43,25 +43,17 @@ function Room({ room, rooms, index, radius, gap, floors }: Props) {
         : floorRooms.filter(other => other.id !== room.id && elevationOf(other, floors) >= elevation).map(r => r.points)
 
     // Neighbours at lower elevation, touching this room to form a step
-    const lowerNeighbours =
-      gap > TOUCHING_GAP_M
-        ? []
-        : floorRooms.filter(other => other.id !== room.id && elevationOf(other, floors) < elevation).map(r => r.points)
-
+    
     const outline = roundedShape(points, cornerRadius, cornerRadius + gap, i => touchesNeighbour(points[i], higherNeighbours))
       .getPoints(SLAB_CURVE_SEGMENTS)
       .map((p): Point => [p.x, p.y])
 
-    // Solid step down only applies if this room actually borders a lower room in the same layout
-    const touchesLower = points.some(p => touchesNeighbour(p, lowerNeighbours))
 
     return slabGeometry(
       outline,
       higherNeighbours,
       ROOM_SLAB_EDGE_RADIUS_M,
-      touchesLower
-        ? ROOM_SLAB_THICKNESS_M + Math.max(0, (room.elevation ?? 0) - lowestRoomElevation)
-        : ROOM_SLAB_THICKNESS_M,
+      ROOM_SLAB_THICKNESS_M,
       SLAB_BEVEL_SEGMENTS,
       FLOOR_PATTERN_SHIFT_M,
     )
