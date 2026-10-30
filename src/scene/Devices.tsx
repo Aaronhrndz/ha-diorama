@@ -1,6 +1,7 @@
-import { betweenOf, coverAt, coversOver, roomLookedFrom } from '#/decoration/between.ts'
+import { betweenOf, coverAt, coversOver, roomLookedFrom, type Between } from '#/decoration/between.ts'
 import { decorationKind, type DecorationKind } from '#/decoration/catalog.ts'
 import { canTry, initialTry, tryItemState, type TryState, type TryStates } from '#/editor/tryState.ts'
+import { elevationOf } from '#/geometry/elevation.ts'
 import { DOOR_KINDS } from '#/geometry/passages.ts'
 import DecorationModel from '#/scene/decor/DecorationModel.tsx'
 import type { DragAction } from '#/scene/decor/drag.tsx'
@@ -182,6 +183,10 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
   // for every one of them on every state change.
   const byId = new Map(decorations.map(d => [d.id, d]))
   const roomById = new Map(rooms.map(r => [r.id, r]))
+  // A piece in a wall between two rooms stands with the higher floor, so a
+  // door up to a raised room reaches its floor.
+  const floorUnder = (room: string, between: Between | null) =>
+    Math.max(...(between?.rooms ?? [room]).map(id => elevationOf(roomById.get(id))))
 
   // The guesses clicks have made, by entity, and the timers that end them.
   // A guess that runs out has to be drawn again to fall back, and nothing
@@ -408,6 +413,7 @@ export default function Devices({ hass, config, onPick, tries, onTry, roomFirst,
             all={decorations}
             room={roomById.get(item.room)}
             between={between}
+            floor={floorUnder(item.room, between)}
             state={state}
             raise={raise(item)}
             onClick={onClick && h.click}

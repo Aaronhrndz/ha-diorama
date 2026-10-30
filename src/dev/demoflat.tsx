@@ -15,9 +15,7 @@
 // `first=device` has a click on a device act on it from any room;
 // `mobile=1:1` gives the card that aspect ratio while it is narrow, and 16:9
 // otherwise; `frame=living,kitchen` has the view of the whole home zoom in
-// on those rooms; `elevate=bedroom:0.45,living:-0.3` raises or sinks those
-// rooms' floors by that many meters; `stairs=kitchen:3.7:3.5:90:floating:0.45`
-// puts a flight in a room at that spot and turn, in that style and rise.
+// on those rooms.
 // A click on a piece flips its entity, the way Home Assistant would. A cover
 // sent to a position runs there at a tenth of its travel every half second.
 import { setMerging } from '#/scene/Merged.tsx'
@@ -70,32 +68,6 @@ if (params.has('views')) {
     const y = room.points.reduce((sum, p) => sum + p[1], 0) / room.points.length
     return { ...room, camera: { position: [x + 2, 7, -y + 5], target: [x, 0, -y] } }
   })
-}
-const elevate = new Map(
-  (params.get('elevate') ?? '')
-    .split(',')
-    .filter(Boolean)
-    .map(pair => pair.split(':'))
-    .map(([id, by]) => [id, Number(by)]),
-)
-if (elevate.size) {
-  config.rooms = config.rooms?.map(room => (elevate.has(room.id) ? { ...room, elevation: elevate.get(room.id) } : room))
-}
-const stairs = params.get('stairs')?.split(':')
-if (stairs?.length === 6) {
-  const [room, x, y, rotation, variant, height] = stairs
-  config.decorations = [
-    ...(config.decorations ?? []),
-    {
-      id: 'demo_stairs',
-      kind: 'stairs',
-      room,
-      position: [Number(x), Number(y)],
-      rotation: Number(rotation),
-      variant,
-      params: { height: Number(height), length: Math.max(0.3, Number(height) * 1.4) },
-    },
-  ]
 }
 const mobile = params.get('mobile')
 if (mobile) {

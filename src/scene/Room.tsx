@@ -31,8 +31,12 @@ function Room({ room, rooms, index, radius, gap }: Props) {
     const cornerRadius = room.radius ?? radius
     // With no gap, floors that touch meet flat and square: the edge is only
     // rounded over, and a corner only rounded off, where it stands free.
-    // With a gap every floor stands free.
-    const neighbours = gap > TOUCHING_GAP_M ? [] : rooms.filter(other => other.id !== room.id).map(r => r.points)
+    // With a gap every floor stands free, and so does a floor along a lower
+    // one, where it is rounded over as a step down.
+    const neighbours =
+      gap > TOUCHING_GAP_M
+        ? []
+        : rooms.filter(other => other.id !== room.id && elevationOf(other) >= elevation).map(r => r.points)
     // A concave corner wraps around a neighbour's convex corner. For the two
     // arcs to be concentric its radius grows by the gap.
     const outline = roundedShape(points, cornerRadius, cornerRadius + gap, i => touchesNeighbour(points[i], neighbours))

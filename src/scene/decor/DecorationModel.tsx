@@ -35,6 +35,10 @@ type Props = {
   // The rooms it belongs to, for a piece in a wall between two. Absent for
   // a piece that has only its own.
   between?: Between | null
+  // How high the floor it stands on is, in meters. A piece in a wall
+  // between two rooms stands with the higher one. Taken from `room` when
+  // absent.
+  floor?: number
   state: ItemState | null
   // How far the standing desks under it have carried it up.
   raise?: number
@@ -120,6 +124,7 @@ function DecorationModel({
   all,
   room,
   between,
+  floor,
   state,
   raise = 0,
   onClick,
@@ -154,7 +159,7 @@ function DecorationModel({
 
   const rotation = MathUtils.degToRad(item.rotation ?? 0)
   // A piece stands on its room's floor, however far that is raised or sunk.
-  const lift = elevationOf(room) + standHeight(item, all) + rise
+  const lift = (floor ?? elevationOf(room)) + standHeight(item, all) + rise
   // A piece told to hang on the other side of its wall is turned round where
   // it meets the wall. The piece itself keeps facing its room, so it is still
   // in that room and its clicks still go where they did.
@@ -210,7 +215,7 @@ function DecorationModel({
 // every model in the flat, and the plan a piece stands in changes with every
 // edit, so it only counts through the height it lifts the piece to.
 function unchanged(a: Props, b: Props) {
-  if (a.raise !== b.raise) return false
+  if (a.raise !== b.raise || a.floor !== b.floor) return false
   if (JSON.stringify(a.between ?? null) !== JSON.stringify(b.between ?? null)) return false
   if (a.item !== b.item || a.room !== b.room || a.onClick !== b.onClick || a.onOpen !== b.onOpen || a.exact !== b.exact)
     return false
