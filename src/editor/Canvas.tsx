@@ -430,8 +430,10 @@ export default function Canvas({
           Math.round((d.origin[1] + p[1] - d.start[1]) / g) * g,
         ]
         const within = (q: Point, points: Point[]) => pointStrictlyInside(q, points) || pointOnBoundary(q, points)
-        const over = currentRooms.find(r => within(target, r.points))
-        const home = currentRooms.find(r => r.id === item.room)
+        // Only allow dropping or binding decorations to rooms on the active floor
+        const activeFloorRooms = currentRooms.filter(r => (r.floor_id ?? 'floor-0') === activeFloorId)
+        const over = activeFloorRooms.find(r => within(target, r.points))
+        const home = activeFloorRooms.find(r => r.id === item.room) ?? activeFloorRooms[0]
         const roomFor = over ?? home
         let landing: DecorationConfig = { ...item, position: target, room: roomFor?.id ?? item.room }
         if (kind?.id === 'stairs') {
@@ -765,13 +767,17 @@ export default function Canvas({
       const ly = dx * Math.sin(a) + dy * Math.cos(a)
       return Math.abs(lx) <= halfW && Math.abs(ly) <= halfD
     }
-    const all = latest.current.decorations
+    const activeFloorRooms = latest.current.rooms.filter(r => (r.floor_id ?? 'floor-0') === activeFloorId)
+    const activeFloorRoomIds = new Set(activeFloorRooms.map(r => r.id))
+    const all = latest.current.decorations.filter(d => activeFloorRoomIds.has(d.room))
     // Highest first, so clicking again keeps going down through the pile.
     return all.filter(covers).sort((x, y) => standHeight(y, all) - standHeight(x, all))
   }
 
   const roomAt = (point: Point) =>
-    latest.current.rooms.find(r => pointStrictlyInside(point, r.points) || pointOnBoundary(point, r.points)) ?? null
+    latest.current.rooms.find(
+      r => (r.floor_id ?? 'floor-0') === activeFloorId && (pointStrictlyInside(point, r.points) || pointOnBoundary(point, r.points)),
+    ) ?? null
 
   // What the next click on the same spot should pick: the item under the one
   // already picked, then the room they all stand in, then round again.

@@ -13,7 +13,7 @@ import { Select } from '#/components/ui/select.tsx'
 import type { Trace, TraceMode } from '#/editor/trace.ts'
 import type { Tool } from '#/editor/types.ts'
 import type { FloorConfig } from '#/types.ts'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faGripVertical, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { cn } from '#/lib/utils.ts'
 import { field, floating, iconButton, kbd, plainButton } from '#/editor/look.ts'
 import { Slider } from '#/editor/panel.tsx'
@@ -493,7 +493,7 @@ function FloorPills({
                 setContextMenu({ at: { x: e.clientX, y: e.clientY }, floorId: f.id })
               }}
               className={cn(
-                'px-2.5 py-1 text-xs font-medium rounded-[8px] transition-all cursor-pointer select-none',
+                'group flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-[8px] transition-all cursor-grab active:cursor-grabbing select-none',
                 isActive
                   ? 'bg-fill text-(--primary-text-color) shadow-sm'
                   : 'text-(--secondary-text-color) hover:text-(--primary-text-color)',
@@ -501,9 +501,13 @@ function FloorPills({
               )}
               onClick={() => onSelectFloor?.(f.id)}
               title={`${f.name} (Elevación: ${f.elevation >= 0 ? '+' : ''}${f.elevation}m)
-Doble clic para renombrar/editar elevación. Arrastra para reordenar o clic derecho.`}
+Arrastra para reordenar plantas. Doble clic para renombrar o editar elevación.`}
             >
-              {f.name}
+              <FontAwesomeIcon
+                icon={faGripVertical}
+                className="size-2.5 opacity-35 group-hover:opacity-80 transition-opacity"
+              />
+              <span>{f.name}</span>
             </button>
           )
         })}
