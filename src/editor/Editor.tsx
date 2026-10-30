@@ -1039,6 +1039,8 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
         onAssignArea={assignArea}
         onFloor={setFloor}
         onElevation={setElevation}
+        floors={floors}
+        onAssignFloor={(roomId, floorId) => updateRoom(roomId, { floor_id: floorId })}
         decorations={decorations}
         onArrow={setArrow}
         onSaveCamera={saveRoomCamera}

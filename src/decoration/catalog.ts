@@ -1788,7 +1788,7 @@ export const DECORATION_KINDS: DecorationKind[] = [
     [
       width(0.9, 0.6, 1.6),
       length(3.25, 0.3, 6),
-      p('height', 'Rise', CEILING_HEIGHT_M, 0.15, 4),
+      p('height', 'Rise', CEILING_HEIGHT_M, 0.15, 8),
       only(p('reach', 'Second flight', 1.6, 0.5, 4), ['quarter']),
       only(flag('flip', 'Turn left'), ['quarter']),
       only(flag('rail', 'Rail on left'), ['open', 'closed']),

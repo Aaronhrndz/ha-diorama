@@ -39,6 +39,8 @@ type Props = {
   onClearCamera: (roomId: string) => void
   // Whether there is a 3D view to take the camera from.
   hasPreview: boolean
+  floors?: { id: string; name: string; elevation: number }[]
+  onAssignFloor?: (roomId: string, floorId: string) => void
   onDelete: (roomId: string) => void
   onDeselect: () => void
 }
@@ -63,6 +65,8 @@ export default function RoomInfo({
   onShowCamera,
   onClearCamera,
   hasPreview,
+  floors,
+  onAssignFloor,
   onDelete,
   onDeselect,
 }: Props) {
@@ -121,6 +125,17 @@ export default function RoomInfo({
             onBlur={onRenameDone}
           />
         </label>
+        {floors && floors.length > 0 && onAssignFloor && (
+          <label className={cn(row, 'grid-cols-[96px_1fr]')}>
+            Planta
+            <Select
+              aria-label="Planta"
+              value={room.floor_id ?? floors[0].id}
+              options={floors.map(f => ({ value: f.id, label: `${f.name} (${f.elevation >= 0 ? '+' : ''}${f.elevation}m)` }))}
+              onChange={v => onAssignFloor(room.id, v)}
+            />
+          </label>
+        )}
         <label className={cn(row, 'grid-cols-[96px_1fr]')}>
           Area
           <Select
