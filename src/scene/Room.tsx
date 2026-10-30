@@ -11,7 +11,7 @@ import {
 } from '#/theme.ts'
 import { floorColor } from '#/scene/floorColor.ts'
 import { ensureCounterClockwise, inset, roundedShape } from '#/geometry/polygon.ts'
-import { elevationOf, elevationRange, getFloorElevation } from '#/geometry/elevation.ts'
+import { elevationOf, elevationRange } from '#/geometry/elevation.ts'
 import { slabGeometry, touchesNeighbour } from '#/geometry/slab.ts'
 import { memo, useMemo } from 'react'
 
@@ -38,7 +38,6 @@ function Room({ room, rooms, index, radius, gap, floors }: Props) {
   const [lowestRoomElevation] = elevationRange(
     floorRooms.map(r => ({ ...r, floor_id: undefined }))
   )
-  const lowest = lowestRoomElevation + getFloorElevation(room.floor_id, floors)
   const geometry = useMemo(() => {
     const points = inset(ensureCounterClockwise(room.points), gap / 2)
     const cornerRadius = room.radius ?? radius
@@ -73,7 +72,7 @@ function Room({ room, rooms, index, radius, gap, floors }: Props) {
       SLAB_BEVEL_SEGMENTS,
       FLOOR_PATTERN_SHIFT_M,
     )
-  }, [room.id, room.points, room.radius, rooms, radius, gap, elevation, lowest, room.thickness])
+  }, [room.id, room.points, room.radius, room.elevation, room.thickness, floorRooms, floors, lowestRoomElevation, radius, gap, elevation])
 
   const floor = room.floor ? FLOOR_MATERIALS[room.floor.material] : undefined
   const color = floorColor(room, index)
