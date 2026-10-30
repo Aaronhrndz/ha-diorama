@@ -1,4 +1,5 @@
 import { SLAB_BEVEL_SEGMENTS } from '#/constants.ts'
+import { elevationOf } from '#/geometry/elevation.ts'
 import { pebbleGeometry } from '#/geometry/pebble.ts'
 import { PASSAGE_CORNER_RADIUS_M, passageCore, passagesOf, type Passage } from '#/geometry/passages.ts'
 import type { SurfaceKind } from '#/materials/textures.ts'
@@ -86,7 +87,8 @@ function Sign({ passage, room, index, onRoom }: SignProps) {
       ref={hide}
       name={`${PASSAGE}${passage.from}`}
       geometry={geometry}
-      position={[ox * lean * 0.06, 0, -oy * lean * 0.06]}
+      // On the floor it leads onto, raised or sunk with it.
+      position={[ox * lean * 0.06, elevationOf(room), -oy * lean * 0.06]}
       receiveShadow
       userData={{ pick: { click: go, open: go } }}
       {...press}

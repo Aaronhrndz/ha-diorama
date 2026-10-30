@@ -2,7 +2,14 @@ import { Select } from '#/components/ui/select.tsx'
 import { decorationKind } from '#/decoration/catalog.ts'
 import { ResetButton, SelectedHeader, Slider, Switch } from '#/editor/panel.tsx'
 import { neighboursOf } from '#/geometry/passages.ts'
-import { EDITOR_TINT_COLOR, FLOOR_MATERIALS, ROOM_COLORS } from '#/theme.ts'
+import {
+  EDITOR_TINT_COLOR,
+  FLOOR_MATERIALS,
+  ROOM_COLORS,
+  ROOM_ELEVATION_MAX_M,
+  ROOM_ELEVATION_MIN_M,
+  ROOM_ELEVATION_STEP_M,
+} from '#/theme.ts'
 import type { Area, DecorationConfig, RoomConfig } from '#/types.ts'
 import { useFlash } from '#/lib/flash.ts'
 import { cn } from '#/lib/utils.ts'
@@ -18,6 +25,8 @@ type Props = {
   onRenameDone: () => void
   onAssignArea: (roomId: string, areaId: string | undefined) => void
   onFloor: (roomId: string, floor: RoomConfig['floor']) => void
+  // Raises or lowers the room's floor, in meters, `undefined` for level.
+  onElevation: (roomId: string, elevation: number | undefined) => void
   // Every piece of the home, to tell which rooms beside this one a door
   // leads into.
   decorations: DecorationConfig[]
@@ -47,6 +56,7 @@ export default function RoomInfo({
   onRenameDone,
   onAssignArea,
   onFloor,
+  onElevation,
   decorations,
   onArrow,
   onSaveCamera,
@@ -75,6 +85,7 @@ export default function RoomInfo({
     const { [key]: _, ...rest } = room.floor
     onFloor(room.id, rest)
   }
+  const elevation = room.elevation ?? 0
   const slider = (label: string, key: 'scale' | 'intensity' | 'rotation', min: number, max: number, step: number) => {
     const initial = key === 'rotation' ? 0 : 1
     const value = room.floor?.[key] ?? initial
@@ -125,6 +136,18 @@ export default function RoomInfo({
             ]}
             onChange={v => onAssignArea(room.id, v || undefined)}
           />
+        </label>
+        <label className={cn(row, 'grid-cols-[96px_1fr_56px_24px]')}>
+          Elevation
+          <Slider
+            min={ROOM_ELEVATION_MIN_M}
+            max={ROOM_ELEVATION_MAX_M}
+            step={ROOM_ELEVATION_STEP_M}
+            value={elevation}
+            onChange={e => onElevation(room.id, Number(e.target.value) || undefined)}
+          />
+          <span className="text-label-2 text-right text-xs tabular-nums">{Math.round(elevation * 100)} cm</span>
+          <ResetButton label="Elevation" changed={elevation !== 0} onReset={() => onElevation(room.id, undefined)} />
         </label>
       </div>
       <div className={group}>

@@ -30,6 +30,8 @@ const NOSING = 0.025
 // A handrail's height over the nosings, and its round bar.
 const RAIL_H = 0.9
 const RAIL_R = 0.022
+// A flight lower than this, a few steps up to a raised floor, has no rail.
+const RAILED_FROM = 0.6
 
 type YZ = [number, number]
 
@@ -107,7 +109,7 @@ function risers(h: number, least: number) {
 // A straight flight, `w` wide and `l` long. Its treads lie between two
 // strings, open between them on the open riser style, or closed by risers
 // and boarded underneath, with a white wall up its open side for a
-// balustrade.
+// balustrade. The floating style keeps only its treads, held in the wall.
 function Straight({ style, w, l, h, flip, paint }: Omit<Props, 'reach'>) {
   const { count, rise } = risers(h, 2)
   const treads = count - 1
@@ -119,17 +121,20 @@ function Straight({ style, w, l, h, flip, paint }: Omit<Props, 'reach'>) {
   const pitch = (z: number) => rise + ((front - z) * rise) / going
   // The rail runs on the right, or on the left with its switch.
   const side = flip ? -1 : 1
-  const open = style === 'open'
-  const string = open ? 0.015 : 0.03
-  const tread = open ? 0.04 : 0.028
-  const inner = w - string * 2
+  const floating = style === 'floating'
+  const open = style === 'open' || floating
+  const string = floating ? 0 : open ? 0.015 : 0.03
+  const tread = floating ? 0.06 : open ? 0.04 : 0.028
+  const inner = floating ? w : w - string * 2
+  const railed = h >= RAILED_FROM
   // The strings run along the pitch, a hand above the nosings and a deep
   // board below them, cut level at the floor and at the floor above.
   const below = open ? 0.24 : 0.2
   const band = (above: number, under: number, thick = 0): YZ[] => {
     // Where the top edge reaches the floor above, if it does before the
-    // back, and where the underside meets the floor below.
-    const level = Math.max(-front + (above * going) / rise, -front)
+    // back, and where the underside meets the floor below. A short flight
+    // of a few steps never gets there, and the edge stays within its run.
+    const level = Math.min(Math.max(-front + (above * going) / rise, -front), front)
     const foot = Math.min(front - ((under - rise) * going) / rise, front - 0.01)
     const bottom = (z: number) => pitch(z) - under
     if (thick > 0) {
@@ -180,34 +185,51 @@ function Straight({ style, w, l, h, flip, paint }: Omit<Props, 'reach'>) {
           {paint('risers')}
         </Slab>
       )}
-      {sides.map((x, i) => (
-        <Side key={i} points={band(0.05, below)} x={x} t={string}>
-          {paint(open ? 'strings' : 'sides')}
-        </Side>
-      ))}
-      {open ? (
-        <OpenRail side={side} w={w} h={h} front={front} treads={treads} nosing={nosing} pitch={pitch} paint={paint} />
-      ) : (
-        <>
-          {/* The underside is boarded over between the strings. */}
-          <Side points={band(0, below, 0.02)} x={-inner / 2} t={inner}>
-            {paint('sides')}
+      {!floating &&
+        sides.map((x, i) => (
+          <Side key={i} points={band(0.05, below)} x={x} t={string}>
+            {paint(open ? 'strings' : 'sides')}
           </Side>
-          {/* The open side carries on up as a white wall as high as a
+        ))}
+      {!floating &&
+        (open ? (
+          railed && (
+            <OpenRail
+              side={side}
+              w={w}
+              h={h}
+              front={front}
+              treads={treads}
+              nosing={nosing}
+              pitch={pitch}
+              paint={paint}
+            />
+          )
+        ) : (
+          <>
+            {/* The underside is boarded over between the strings. */}
+            <Side points={band(0, below, 0.02)} x={-inner / 2} t={inner}>
+              {paint('sides')}
+            </Side>
+            {/* The open side carries on up as a white wall as high as a
               handrail, a balustrade capped with an oak rail. */}
-          <Side points={band(RAIL_H - 0.03, below)} x={side > 0 ? w / 2 : -w / 2 - 0.06} t={0.06}>
-            {paint('sides')}
-          </Side>
-          <Rail
-            from={[pitch(front) + RAIL_H - 0.01, front]}
-            to={[h + RAIL_H - 0.01, -front]}
-            x={side > 0 ? w / 2 + 0.03 : -w / 2 - 0.03}
-            r={0.035}
-          >
-            {paint('rail')}
-          </Rail>
-        </>
-      )}
+            {railed && (
+              <>
+                <Side points={band(RAIL_H - 0.03, below)} x={side > 0 ? w / 2 : -w / 2 - 0.06} t={0.06}>
+                  {paint('sides')}
+                </Side>
+                <Rail
+                  from={[pitch(front) + RAIL_H - 0.01, front]}
+                  to={[h + RAIL_H - 0.01, -front]}
+                  x={side > 0 ? w / 2 + 0.03 : -w / 2 - 0.03}
+                  r={0.035}
+                >
+                  {paint('rail')}
+                </Rail>
+              </>
+            )}
+          </>
+        ))}
     </group>
   )
 }

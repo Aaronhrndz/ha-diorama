@@ -12,12 +12,13 @@ moves that section under the new version and uses it as the release notes.
 ### Added
 
 - A piano in three styles, a desk lamp in two, three more ceiling lights, and a switch to hang the sideboard on the wall at any height.
-- Stairs that climb a full storey, a 3D printer that lights its chamber while it prints, a router, a wall tablet that shows a dashboard, a sim racing cockpit, a driveway gate that opens with its cover, a terrace door whose two leaves both swing open, and a Hue style tilted ring table lamp.
+- Stairs that climb a full storey or a few steps, including a floating style with only its treads, a railing in steel, glass or oak spindles for the edge of a raised floor, a 3D printer that lights its chamber while it prints, a router, a wall tablet that shows a dashboard, a sim racing cockpit, a driveway gate that opens with its cover, a terrace door whose two leaves both swing open, and a Hue style tilted ring table lamp.
 - Plants, vases, books and other small pieces can stand on a wall shelf, and a plant can stand in for its sensors or Home Assistant plant, wilting and yellowing when its soil runs dry.
 - Hold Shift to draw rooms and place pieces to the centimeter, and turn a piece a quarter at a time from buttons in its panel.
 - A smoke detector can stand in for a carbon monoxide sensor or a sensor that reports smoke in words, and anything that switches can stand in for a group.
 - Your own 3D models can be imported into the editor's catalog from a .glb or .gltf file, under My models, and placed, sized, recolored part by part and hung on a wall or a ceiling like any other piece, drawn in the card's own colors.
 - A Use a background switch at the top of the editor's Background section turns the card's background off, leaving the dashboard's own.
+- A room's floor can be raised or sunk from its block in the editor, for a platform, a step or a sunken living room, and everything in the room goes up or down with it.
 
 ### Changed
 

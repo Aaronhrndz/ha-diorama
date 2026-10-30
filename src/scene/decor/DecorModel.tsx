@@ -3,6 +3,7 @@ import { useEased, useTravel } from '#/scene/decor/ease.ts'
 import { Material, SEG, Slab, Tube } from '#/scene/decor/parts.tsx'
 import { Books, Clock, Curtain, Mirror, Rug } from '#/scene/decor/Furnishings.tsx'
 import Piano from '#/scene/decor/Piano.tsx'
+import Railing from '#/scene/decor/Railing.tsx'
 import Stairs from '#/scene/decor/Stairs.tsx'
 import { FloorPlant, ShelfPlant, WallPlant } from '#/scene/decor/Plants.tsx'
 import type { ItemState } from '#/scene/decor/state.ts'
@@ -240,6 +241,8 @@ export default function DecorModel({ kind, item, state }: Props) {
           paint={paint}
         />
       )
+    case 'railing':
+      return <Railing style={style} w={p('width')} h={p('height')} paint={paint} glass={c('glass')} />
     case 'piano':
       return <Piano style={style} w={p('width')} d={p('depth')} h={p('height')} paint={paint} />
     case 'books':

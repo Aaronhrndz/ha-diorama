@@ -14,6 +14,11 @@ export const ROOM_SLAB_EDGE_RADIUS_M = 0.07
 // Rounding of the room corners, seen from above: the same as the edge's, and
 // like it only for the corners that touch no other room.
 export const ROOM_CORNER_RADIUS_M = ROOM_SLAB_EDGE_RADIUS_M
+// How far a room's floor can be raised or sunk, and the step its slider
+// moves in: enough for platforms, steps and a half level.
+export const ROOM_ELEVATION_MIN_M = -1
+export const ROOM_ELEVATION_MAX_M = 1.5
+export const ROOM_ELEVATION_STEP_M = 0.05
 // The sign on the floor that leads into a room open beside the focused one
 // is made of that room's floor, and under the pointer darkens by this much,
 // as if black laid over it to multiply, so it answers without standing out

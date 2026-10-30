@@ -1783,11 +1783,12 @@ export const DECORATION_KINDS: DecorationKind[] = [
     // so it rises the room's height unless told otherwise. Width is the
     // flight's, length how far it runs across the floor, and the quarter
     // turn adds a second flight across the top. The risers share out the
-    // rise, each as close to 18 cm as a whole number of them comes.
+    // rise, each as close to 18 cm as a whole number of them comes. A low
+    // rise makes a few steps up to a raised floor.
     [
       width(0.9, 0.6, 1.6),
-      length(3.25, 1.2, 6),
-      p('height', 'Rise', CEILING_HEIGHT_M, 1, 3),
+      length(3.25, 0.3, 6),
+      p('height', 'Rise', CEILING_HEIGHT_M, 0.15, 4),
       only(p('reach', 'Second flight', 1.6, 0.5, 4), ['quarter']),
       only(flag('flip', 'Turn left'), ['quarter']),
       only(flag('rail', 'Rail on left'), ['open', 'closed']),
@@ -1814,6 +1815,48 @@ export const DECORATION_KINDS: DecorationKind[] = [
         params: { length: 2.2, reach: 1.6 },
         colors: { treads: SCANDI.oak, risers: '#f3f1ec', rail: '#2b2c2d' },
         materials: { treads: 'wood', risers: 'matte', rail: 'metal' },
+      },
+      {
+        id: 'floating',
+        label: 'Floating Cantilever',
+        // 6 cm oak treads the full width of the flight, held in the wall
+        // on one side, with no strings, risers or rail.
+        colors: { treads: SCANDI.oak },
+        materials: { treads: 'wood' },
+      },
+    ],
+  ),
+  kind(
+    'railing',
+    'decor',
+    'Railing',
+    'floor',
+    // A balustrade along the edge of a raised floor or beside a few steps.
+    // Width is how long the run is, height the handrail's, 90 cm as most
+    // building codes ask of one inside a home.
+    [width(1.2, 0.3, 6), height(0.9, 0.6, 1.2)],
+    { rail: '#2b2c2d', balusters: '#2b2c2d' },
+    { rail: 'metal', balusters: 'metal' },
+    NONE,
+    [
+      // Black steel: square end posts, a round handrail, a flat bar low
+      // down and slim round balusters 11 cm apart.
+      { id: 'steel', label: 'Steel Balusters' },
+      {
+        id: 'glass',
+        label: 'Glass Panel',
+        // A frameless pane in a brushed aluminium floor shoe, capped with
+        // an oak handrail.
+        colors: { glass: '#dfeef0', shoe: '#c9ccce', rail: SCANDI.oak },
+        materials: { glass: 'ceramic', shoe: 'metal', rail: 'wood' },
+      },
+      {
+        id: 'spindle',
+        label: 'Oak Spindle',
+        // Square newels, spindles and handrail all in bare oak, the
+        // classic timber balustrade.
+        colors: { posts: SCANDI.oak, spindles: SCANDI.oak, rail: SCANDI.oak },
+        materials: { posts: 'wood', spindles: 'wood', rail: 'wood' },
       },
     ],
   ),
@@ -3121,6 +3164,8 @@ export function footprint(
   if (kind.family === 'light' && kind.params.some(x => x.id === 'length')) {
     return [paramValue(kind, params, 'length', variant), 0.08]
   }
+  // A railing is a thin run, as deep as its handrail.
+  if (kind.id === 'railing') return [paramValue(kind, params, 'width', variant), 0.08]
   // A quarter turn stair takes its second flight out to the side.
   if (kind.id === 'stairs' && decorationVariant(kind, variant)?.id === 'quarter') {
     const v = (id: string) => paramValue(kind, params, id, variant)
