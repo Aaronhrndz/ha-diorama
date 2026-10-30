@@ -447,9 +447,8 @@ function LoftBed({ p, M, style }: Look) {
               {M('frame')}
             </Box>
           ))}
-          {/* A desk under the bed: its top runs from the left end of the
-              frame, held there on a rail between the two left posts, to a
-              side panel standing on the floor, and lies along the back. */}
+          {/* A desk under the bed, along the back: its top stands on a
+              side panel at each end, the left one against the left posts. */}
           {(() => {
             const x0 = -px + post / 2
             const x1 = x0 + w * 0.58
@@ -463,7 +462,7 @@ function LoftBed({ p, M, style }: Look) {
                 <Box size={[0.03, 0.72, deep]} at={[x1 - 0.015, 0, z0 + deep / 2]}>
                   {M('frame')}
                 </Box>
-                <Box size={[0.03, 0.04, d - post * 2]} at={[x0 + 0.015, 0.68, 0]}>
+                <Box size={[0.03, 0.72, deep]} at={[x0 + 0.015, 0, z0 + deep / 2]}>
                   {M('frame')}
                 </Box>
                 <Box size={[x1 - x0, 0.04, 0.02]} at={[(x0 + x1) / 2, 0.68, z0 + 0.01]}>

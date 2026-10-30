@@ -3133,18 +3133,18 @@ export const DECORATION_KINDS: DecorationKind[] = [
     'floor',
     // A 90 by 200 cm mattress up on a frame, with room to stand under it.
     [width(2.07, 1.5, 2.3), depth(0.97, 0.8, 1.5), height(1.8, 1.3, 2.2)],
-    { frame: '#f3f1ec', mattress: '#e6ded1', desk: SCANDI.oak },
-    { frame: 'metal', mattress: 'fabric', desk: 'wood' },
+    { frame: '#e3c99a', mattress: '#e6ded1', desk: '#e3c99a' },
+    { frame: 'wood', mattress: 'fabric', desk: 'wood' },
     NONE,
     [
-      // White steel, a ladder at the end and a desk underneath.
-      { id: 'desk', label: 'Loft With Desk' },
+      // Square pine posts and slatted guards, the ladder on the front.
+      { id: 'pine', label: 'Pine Loft' },
       {
-        id: 'pine',
-        label: 'Pine Loft',
-        // Square pine posts and slatted guards, the ladder on the front.
-        colors: { frame: '#e3c99a', mattress: '#e6ded1', desk: '#e3c99a' },
-        materials: { frame: 'wood', mattress: 'fabric', desk: 'wood' },
+        id: 'desk',
+        label: 'Loft With Desk',
+        // White steel, a ladder at the end and a desk underneath.
+        colors: { frame: '#f3f1ec', mattress: '#e6ded1', desk: SCANDI.oak },
+        materials: { frame: 'metal', mattress: 'fabric', desk: 'wood' },
       },
     ],
   ),

@@ -2142,16 +2142,16 @@ decorations:
     room: bassinet
     position: [61.68, 27.9]
     variant: cradle
-  - id: loft_bed_desk
-    kind: loft_bed
-    room: loft_bed
-    position: [69.68, 0.98]
-    variant: desk
   - id: loft_bed_pine
     kind: loft_bed
     room: loft_bed
-    position: [72.22, 0.98]
+    position: [69.68, 0.98]
     variant: pine
+  - id: loft_bed_desk
+    kind: loft_bed
+    room: loft_bed
+    position: [72.22, 0.98]
+    variant: desk
   - id: kids_sofa_blocks
     kind: kids_sofa
     room: kids_sofa
