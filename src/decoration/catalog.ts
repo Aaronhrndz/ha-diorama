@@ -1827,6 +1827,40 @@ export const DECORATION_KINDS: DecorationKind[] = [
     ],
   ),
   kind(
+    'railing',
+    'decor',
+    'Railing',
+    'floor',
+    // A balustrade along the edge of a raised floor or beside a few steps.
+    // Width is how long the run is, height the handrail's, 90 cm as most
+    // building codes ask of one inside a home.
+    [width(1.2, 0.3, 6), height(0.9, 0.6, 1.2)],
+    { rail: '#2b2c2d', balusters: '#2b2c2d' },
+    { rail: 'metal', balusters: 'metal' },
+    NONE,
+    [
+      // Black steel: square end posts, a round handrail, a flat bar low
+      // down and slim round balusters 11 cm apart.
+      { id: 'steel', label: 'Steel Balusters' },
+      {
+        id: 'glass',
+        label: 'Glass Panel',
+        // A frameless pane in a brushed aluminium floor shoe, capped with
+        // an oak handrail.
+        colors: { glass: '#dfeef0', shoe: '#c9ccce', rail: SCANDI.oak },
+        materials: { glass: 'ceramic', shoe: 'metal', rail: 'wood' },
+      },
+      {
+        id: 'spindle',
+        label: 'Oak Spindle',
+        // White square newels and spindles under an oak handrail, the
+        // classic timber balustrade.
+        colors: { posts: '#f3f1ec', spindles: '#f3f1ec', rail: SCANDI.oak },
+        materials: { posts: 'matte', spindles: 'matte', rail: 'wood' },
+      },
+    ],
+  ),
+  kind(
     'rug',
     'decor',
     'Rug',
@@ -3130,6 +3164,8 @@ export function footprint(
   if (kind.family === 'light' && kind.params.some(x => x.id === 'length')) {
     return [paramValue(kind, params, 'length', variant), 0.08]
   }
+  // A railing is a thin run, as deep as its handrail.
+  if (kind.id === 'railing') return [paramValue(kind, params, 'width', variant), 0.08]
   // A quarter turn stair takes its second flight out to the side.
   if (kind.id === 'stairs' && decorationVariant(kind, variant)?.id === 'quarter') {
     const v = (id: string) => paramValue(kind, params, id, variant)
