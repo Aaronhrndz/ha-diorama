@@ -695,6 +695,16 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
       }),
     )
 
+  // Sets custom slab thickness for a room's floor, or resets to standard.
+  const setThickness = (roomId: string, thickness: number | undefined) =>
+    commit(
+      rooms.map(r => {
+        if (r.id !== roomId) return r
+        const { thickness: _dropped, ...rest } = r
+        return thickness ? { ...rest, thickness } : rest
+      }),
+    )
+
   // Shows or hides, in a room's view, the sign on the floor into a room
   // open beside it.
   const setArrow = (roomId: string, other: string, shown: boolean) =>
@@ -1081,6 +1091,7 @@ export default function Editor({ hass, config, onChange, onSave }: Props) {
         onAssignArea={assignArea}
         onFloor={setFloor}
         onElevation={setElevation}
+        onThickness={setThickness}
         floors={floors}
         onAssignFloor={(roomId, floorId) => updateRoom(roomId, { floor_id: floorId })}
         decorations={decorations}

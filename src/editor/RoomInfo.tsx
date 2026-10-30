@@ -9,6 +9,10 @@ import {
   ROOM_ELEVATION_MAX_M,
   ROOM_ELEVATION_MIN_M,
   ROOM_ELEVATION_STEP_M,
+  ROOM_SLAB_THICKNESS_M,
+  ROOM_THICKNESS_MAX_M,
+  ROOM_THICKNESS_MIN_M,
+  ROOM_THICKNESS_STEP_M,
 } from '#/theme.ts'
 import type { Area, DecorationConfig, RoomConfig } from '#/types.ts'
 import { useFlash } from '#/lib/flash.ts'
@@ -27,6 +31,7 @@ type Props = {
   onFloor: (roomId: string, floor: RoomConfig['floor']) => void
   // Raises or lowers the room's floor, in meters, `undefined` for level.
   onElevation: (roomId: string, elevation: number | undefined) => void
+  onThickness?: (roomId: string, thickness: number | undefined) => void
   // Every piece of the home, to tell which rooms beside this one a door
   // leads into.
   decorations: DecorationConfig[]
@@ -67,6 +72,7 @@ export default function RoomInfo({
   hasPreview,
   floors,
   onAssignFloor,
+  onThickness,
   onDelete,
   onDeselect,
 }: Props) {
@@ -164,6 +170,26 @@ export default function RoomInfo({
           <span className="text-label-2 text-right text-xs tabular-nums">{Math.round(elevation * 100)} cm</span>
           <ResetButton label="Elevation" changed={elevation !== 0} onReset={() => onElevation(room.id, undefined)} />
         </label>
+        {onThickness && (
+          <label className={cn(row, 'grid-cols-[96px_1fr_56px_24px]')}>
+            Thickness
+            <Slider
+              min={ROOM_THICKNESS_MIN_M}
+              max={ROOM_THICKNESS_MAX_M}
+              step={ROOM_THICKNESS_STEP_M}
+              value={room.thickness ?? ROOM_SLAB_THICKNESS_M}
+              onChange={e => onThickness(room.id, Number(e.target.value) || undefined)}
+            />
+            <span className="text-label-2 text-right text-xs tabular-nums">
+              {Math.round((room.thickness ?? ROOM_SLAB_THICKNESS_M) * 100)} cm
+            </span>
+            <ResetButton
+              label="Thickness"
+              changed={room.thickness !== undefined && room.thickness !== ROOM_SLAB_THICKNESS_M}
+              onReset={() => onThickness(room.id, undefined)}
+            />
+          </label>
+        )}
       </div>
       <div className={group}>
         <label className={cn(row, 'grid-cols-[96px_1fr_24px]')}>

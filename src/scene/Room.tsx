@@ -2,7 +2,13 @@ import type { FloorConfig, Point, RoomConfig } from '#/types.ts'
 import { SLAB_BEVEL_SEGMENTS, SLAB_CURVE_SEGMENTS } from '#/constants.ts'
 import SurfaceMaterial from '#/scene/SurfaceMaterial.tsx'
 import type { SurfaceKind } from '#/materials/textures.ts'
-import { FLOOR_MATERIALS, FLOOR_PATTERN_SHIFT_M, ROOM_SLAB_EDGE_RADIUS_M, ROOM_SLAB_THICKNESS_M } from '#/theme.ts'
+import {
+  FLOOR_MATERIALS,
+  FLOOR_PATTERN_SHIFT_M,
+  ROOM_SLAB_EDGE_RADIUS_M,
+  ROOM_SLAB_STEP_MAX_DROP_M,
+  ROOM_SLAB_THICKNESS_M,
+} from '#/theme.ts'
 import { floorColor } from '#/scene/floorColor.ts'
 import { ensureCounterClockwise, inset, roundedShape } from '#/geometry/polygon.ts'
 import { elevationOf, elevationRange, getFloorElevation } from '#/geometry/elevation.ts'
@@ -43,21 +49,31 @@ function Room({ room, rooms, index, radius, gap, floors }: Props) {
         : floorRooms.filter(other => other.id !== room.id && elevationOf(other, floors) >= elevation).map(r => r.points)
 
     // Neighbours at lower elevation, touching this room to form a step
-    
+    const lowerNeighbours =
+      gap > TOUCHING_GAP_M
+        ? []
+        : floorRooms.filter(other => other.id !== room.id && elevationOf(other, floors) < elevation).map(r => r.points)
+
     const outline = roundedShape(points, cornerRadius, cornerRadius + gap, i => touchesNeighbour(points[i], higherNeighbours))
       .getPoints(SLAB_CURVE_SEGMENTS)
       .map((p): Point => [p.x, p.y])
 
+    // Solid step down only applies if this room actually borders a lower room in the same layout
+    // and the height offset is within a sensible threshold (<= 50 cm), avoiding huge solid blocks
+    const touchesLower = points.some(p => touchesNeighbour(p, lowerNeighbours))
+    const drop = (room.elevation ?? 0) - lowestRoomElevation
+    const stepDepth = touchesLower && drop > 0 && drop <= ROOM_SLAB_STEP_MAX_DROP_M ? drop : 0
+    const slabDepth = (room.thickness ?? ROOM_SLAB_THICKNESS_M) + stepDepth
 
     return slabGeometry(
       outline,
       higherNeighbours,
       ROOM_SLAB_EDGE_RADIUS_M,
-      ROOM_SLAB_THICKNESS_M,
+      slabDepth,
       SLAB_BEVEL_SEGMENTS,
       FLOOR_PATTERN_SHIFT_M,
     )
-  }, [room.id, room.points, room.radius, rooms, radius, gap, elevation, lowest])
+  }, [room.id, room.points, room.radius, rooms, radius, gap, elevation, lowest, room.thickness])
 
   const floor = room.floor ? FLOOR_MATERIALS[room.floor.material] : undefined
   const color = floorColor(room, index)

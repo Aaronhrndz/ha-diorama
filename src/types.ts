@@ -92,6 +92,7 @@ export type RoomConfig = {
   // negative, in meters: a raised platform, a step or a sunken living room.
   // Everything in the room stands on it.
   elevation?: number
+  thickness?: number
   // Floor material from the theme's list, with an optional color tint.
   floor?: { material: string; color?: string; scale?: number; rotation?: number; intensity?: number }
   // Where the camera goes when the room is clicked in the card. A room
